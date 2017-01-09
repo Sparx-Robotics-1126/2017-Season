@@ -1,0 +1,18 @@
+# Local Properties
+/build.properties
+/.classpath
+
+# Compiled Files
+/bin/
+*.class
+
+# Package Files
+*.jar
+*.war
+*.ear
+
+# Eclipse Settings
+.settings/
+
+sysProps.xml
+/bin/
