@@ -1,10 +1,12 @@
 package org.gosparx.team1126.robot.subsystem;
 
 import org.gosparx.team1126.robot.sensors.EncoderData;
-
+import org.gosparx.team1126.robot.sensors.PID;
 import com.ctre.CANTalon;
-
+import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 /**
  * This class controls the drives system of the 2017 in tank drive 
@@ -12,48 +14,36 @@ import edu.wpi.first.wpilibj.Encoder;
  */
 public class Drives extends GenericSubsystem {
 	
-//INSTANCES
+/** Contants */
 	
-	/**
-	 * an instance of drives
-	 */
-	private static Drives drives;
+	// TODO : Calculate DISTANCE_PER_TICK, KI, KP, MAX_SPEED for 2017 Robot
+	private static final double DISTANCE_PER_TICK = 5;  // The Formula:
+	private static final double STOP_MOTOR_SPEED = 0;   // The Speed for the motors when they are stopped
+	private static final double KI = 0.005 * 50;        // The integral for the PID
+	private static final double KP = (1.0 / 50); 		// The proportional for the PID
+	private static final double MAX_SPEED = 50;         // Maximum speed for the robot
 	
-//MOTOR CONTROLLERS
+/** Objects */
 	
-	/**
-	 * the right CAN Talon
-	 */
-	private static CANTalon rightTalon;
+	private static Drives drives;                       // An instance of drives
+	private static CANTalon rightMotor;					// Right CANTalon
+	private static CANTalon leftMotor;					// Left CANTalon
+	private static Encoder rightEncoder; 				// Right Encoder
+	private static Encoder leftEncoder;					// Left Encoder
+	private static EncoderData rightEncoderData;		// Encoder data for the right encoder
+	private static EncoderData leftEncoderData;			// Encoder data for the left encoder
+	private static AHRS gyro; 							// NAVX gyro
+	private static PID rightPID;						// PID for the right speed and such
+	private static PID leftPID;							// PID for the left speed and such
+
+/** Variables */
 	
-	/**
-	 * the left CAN Talon
-	 */
-	private static CANTalon leftTalon;
-	
-//ENCODERS & ENCODER DATAS
-	
-	/**
-	 * the right encoder
-	 */
-	private static Encoder rightEncoder;
-	
-	/**
-	 * the left encoder
-	 */
-	private static Encoder leftEncoder;
-	
-	/**
-	 * the encoder data for the right encoder
-	 */
-	private static EncoderData rightEncoderData;
-	
-	/**
-	 * the encoder data for the left encoder
-	 */
-	private static EncoderData leftEncoderData;
-	
-//METHODS	
+	private static double rightWantedSpeed;				// The wanted speed for the right motor
+	private static double leftWantedSpeed;				// The wanted speed for the left motor
+	private static double rightCurrentSpeed;			// The wanted speed for the right motor
+	private static double leftCurrentSpeed;				// The current speed of the left motor
+	private static double rightSetPower;				// The power we'll give the right motor
+	private static double leftSetPower;					// The power we'll give the left motor
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -79,8 +69,21 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean init(){
-		rightTalon = new CANTalon(8);
-		leftTalon = new CANTalon(7);
+		rightMotor = new CANTalon(8);
+		leftMotor = new CANTalon(7);
+		rightEncoder = new Encoder(3,6);
+		leftEncoder = new Encoder(5,9);
+		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);
+		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);
+		gyro = new AHRS(SerialPort.Port.kUSB);
+		rightPID = new PID(KI, KP);
+		rightPID.breakMode(true);
+		leftPID = new PID(KI, KP);
+		leftPID.breakMode(true);
+		rightCurrentSpeed = 0;
+		leftCurrentSpeed = 0;
+		rightWantedSpeed = 0;
+		leftWantedSpeed = 0;
 		return true;
 	}
 
@@ -89,13 +92,25 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void liveWindow() {
-		// TODO Auto-generated method stub
-		
+		String motorName = "Drives Motors";
+		String sensorName = "Drives Sensors";
+		LiveWindow.addActuator(motorName, "Right Motor", rightMotor);
+		LiveWindow.addActuator(motorName, "Left Motor", leftMotor);
+		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
+		LiveWindow.addSensor(sensorName, "Left Encoder", leftEncoder);
+		LiveWindow.addSensor(sensorName, "Gyro", gyro);
 	}
 
 	@Override
 	protected boolean execute() {
-		// TODO Auto-generated method stub
+		rightEncoderData.calculateSpeed();
+		leftEncoderData.calculateSpeed();
+		rightCurrentSpeed = rightEncoderData.getSpeed();
+		leftCurrentSpeed = leftEncoderData.getSpeed();
+		rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+		leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+		rightMotor.set(rightSetPower);
+		leftMotor.set(leftSetPower);
 		return false;
 	}
 
@@ -113,7 +128,19 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-		// TODO Auto-generated method stub
-		
+		LOG.logMessage("Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+		LOG.logMessage("Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
+		LOG.logMessage("Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
 	}
+	
+	/**
+	 * sets the speed based on the power of the joysticks
+	 * @param right the power from the right joystick
+	 * @param left the power from the left joystick
+	 */
+	public void setSpeed(double right, double left){
+		rightWantedSpeed = right * MAX_SPEED;
+		leftWantedSpeed = left * MAX_SPEED;
+	}
+	
 }
