@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
  */
 public class Drives extends GenericSubsystem {
 	
-/** Contants */
+/** Constants */
 	
 	// TODO : Calculate DISTANCE_PER_TICK, KI, KP, MAX_SPEED for 2017 Robot
 	private static final double DISTANCE_PER_TICK = 5;  // The Formula:
@@ -22,6 +22,7 @@ public class Drives extends GenericSubsystem {
 	private static final double KI = 0.005 * 50;        // The integral for the PID
 	private static final double KP = (1.0 / 50); 		// The proportional for the PID
 	private static final double MAX_SPEED = 50;         // Maximum speed for the robot
+	private static final double X_SENSITIVITY = 1.25;   // The Sensitivity in the x-axis for arcade drive
 	
 /** Objects */
 	
@@ -69,27 +70,34 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean init(){
+		//Right
 		rightMotor = new CANTalon(8);
-		leftMotor = new CANTalon(7);
 		rightEncoder = new Encoder(3,6);
-		leftEncoder = new Encoder(5,9);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);
-		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);
-		gyro = new AHRS(SerialPort.Port.kUSB);
 		rightPID = new PID(KI, KP);
 		rightPID.breakMode(true);
+		rightCurrentSpeed = 0;
+		rightWantedSpeed = 0;
+		
+		//Left
+		leftMotor = new CANTalon(7);
+		leftEncoder = new Encoder(5,9);
+		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);
 		leftPID = new PID(KI, KP);
 		leftPID.breakMode(true);
-		rightCurrentSpeed = 0;
 		leftCurrentSpeed = 0;
-		rightWantedSpeed = 0;
 		leftWantedSpeed = 0;
+		
+		//Other
+		gyro = new AHRS(SerialPort.Port.kUSB);
+		
 		return true;
 	}
 
 	/**
 	 * Sets up liveWindow to set values during test mode
 	 */
+	
 	@Override
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
@@ -134,13 +142,44 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
-	 * sets the speed based on the power of the joysticks
+	 * sets the speed based on the power of the joysticks for tank drive
 	 * @param right the power from the right joystick
 	 * @param left the power from the left joystick
 	 */
-	public void setSpeed(double right, double left){
+	public void setTankSpeed(double right, double left){
 		rightWantedSpeed = right * MAX_SPEED;
 		leftWantedSpeed = left * MAX_SPEED;
+	}
+	
+	/**
+	 * sets the speed based on the power of the joystick for arcade dribe
+	 * @param xAxis value from the xAxis on the joystick
+	 * @param yAxis value from the yAxis on the joystick
+	 */
+	public void setArcadeSpeed(double xAxis, double yAxis){
+		rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
+		leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+	}
+	
+	public enum MatchState{
+		AUTO,
+		TELEOP;
+		
+		/**
+		 * Gets the name of the state
+		 * @return the correct state 
+		 */
+		@Override
+		public String toString(){
+			switch(this){
+			case AUTO:
+				return "Auto";
+			case TELEOP:
+				return "Teleop";
+			default:
+				return "Error :(";
+			}
+		}
 	}
 	
 }
