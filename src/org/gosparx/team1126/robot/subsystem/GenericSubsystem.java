@@ -118,7 +118,7 @@ public abstract class GenericSubsystem extends Thread {
 		do{
 			if(!ds.isTest()){
 				try{
-					//startTime = Timer.getFPGATimestamp();
+					startTime = Timer.getFPGATimestamp();
 					retVal = execute();
 					updateSmartStatus();
 				}catch(Exception e){
@@ -126,24 +126,27 @@ public abstract class GenericSubsystem extends Thread {
 						LOG.logError("Uncaught Exception! " + e.getMessage());
 					e.printStackTrace(System.err);
 				}
-				//elapsedTime = Timer.getFPGATimestamp() - startTime;
-				//sleepTime = sleepTime()- elapsedTime;
-//				if(sleepTime < sleepTime()*.5){
-//					sleepTime = sleepTime()*.5;
-//				}
+				elapsedTime = Timer.getFPGATimestamp() - startTime;
+				if(sleepTime - lastTime > 100){
+					LOG.logError("Thread time > " + (sleepTime - lastTime));
+				}
+				sleepTime = sleepTime()- elapsedTime;
+				if(sleepTime < sleepTime()*.5){
+					sleepTime = sleepTime()*.5;
+				}
 				if(Timer.getFPGATimestamp() >= lastLogged + logTime()){
 					writeLog();
 					lastLogged = Timer.getFPGATimestamp();
 				}
 				try {
-					Thread.sleep(sleepTime());
+					Thread.sleep((long)sleepTime);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}else{
 				retVal = false;
 			}
-			//lastTime = startTime;
+			lastTime = startTime;
 		}while(!retVal);
 		if(LOG != null)
 			LOG.logMessage("Completing thread: " + getName());

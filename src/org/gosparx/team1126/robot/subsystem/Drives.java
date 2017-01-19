@@ -13,55 +13,57 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
  * @author Allison Morgan
  */
 public class Drives extends GenericSubsystem {
-	
-/** Constants */
-	
-	// TODO : Calculate DISTANCE_PER_TICK, KI, KP, MAX_SPEED for 2017 Robot
-	private static final double DISTANCE_PER_TICK = 5;  // The Formula:
-	private static final double STOP_MOTOR_SPEED = 0;   // The Speed for the motors when they are stopped
-	private static final double KI = 0.005 * 50;        // The integral for the PID
-	private static final double KP = (1.0 / 50); 		// The proportional for the PID
-	private static final double MAX_SPEED = 50;         // Maximum speed for the robot
-	private static final double X_SENSITIVITY = 1.25;   // The Sensitivity in the x-axis for arcade drive
-	
-/** Objects */
-	
-	private static Drives drives;                       // An instance of drives
-	private static CANTalon rightMotor;					// Right CANTalon
-	private static CANTalon leftMotor;					// Left CANTalon
-	private static Encoder rightEncoder; 				// Right Encoder
-	private static Encoder leftEncoder;					// Left Encoder
-	private static EncoderData rightEncoderData;		// Encoder data for the right encoder
-	private static EncoderData leftEncoderData;			// Encoder data for the left encoder
-	private static AHRS gyro; 							// NAVX gyro
-	private static PID rightPID;						// PID for the right speed and such
-	private static PID leftPID;							// PID for the left speed and such
 
-/** Variables */
-	
-	private static double rightWantedSpeed;				// The wanted speed for the right motor
-	private static double leftWantedSpeed;				// The wanted speed for the left motor
-	private static double rightCurrentSpeed;			// The wanted speed for the right motor
-	private static double leftCurrentSpeed;				// The current speed of the left motor
-	private static double rightSetPower;				// The power we'll give the right motor
-	private static double leftSetPower;					// The power we'll give the left motor
-	
+	/** Constants */
+
+	// TODO : Calculate DISTANCE_PER_TICK, KI, KP, MAX_SPEED for 2017 Robot
+	private static final double DISTANCE_PER_TICK = 888;						// The Formula:
+	private static final double STOP_MOTOR_SPEED = 0;							// The Speed for the motors when they are stopped
+	private static final double KI = 0.005 * 50;								// The integral for the PID
+	private static final double KP = (1.0 / 50);								// The proportional for the PID
+	private static final double MAX_SPEED = 888;        						// Maximum speed for the robot
+	private static final double X_SENSITIVITY = 1.25;							// The Sensitivity in the x-axis for arcade drive
+
+	/** Objects */
+
+	private static Drives drives;												// An instance of drives
+	private CANTalon rightMotor;												// Right CANTalon
+	private CANTalon leftMotor;													// Left CANTalon
+	private Encoder rightEncoder; 												// Right Encoder
+	private Encoder leftEncoder;												// Left Encoder
+	private EncoderData rightEncoderData;										// Encoder data for the right encoder
+	private EncoderData leftEncoderData;										// Encoder data for the left encoder
+	private AHRS gyro; 															// NAVX gyro
+	private PID rightPID;														// PID for the right speed and such
+	private PID leftPID;														// PID for the left speed and such
+	private RobotState currentRobotState; 			    						// The current state of the robot, 
+																				// ex) disabled, auto
+
+	/** Variables */
+
+	private double rightWantedSpeed;				    						// The wanted speed for the right motor
+	private double leftWantedSpeed;												// The wanted speed for the left motor
+	private double rightCurrentSpeed;											// The wanted speed for the right motor
+	private double leftCurrentSpeed;											// The current speed of the left motor
+	private double rightSetPower;												// The power we'll give the right motor
+	private double leftSetPower;							    				// The power we'll give the left motor
+
 	/**
 	 * Constructors a drives object with normal priority
 	 */
 	private Drives(){
 		super("Drives",Thread.NORM_PRIORITY);
 	}
-	
+
 	/**
-	 * ensures that there is only one instance of drives
+	 * ensures that there is only one instance of drives		
 	 * @return the instance of drives 
 	 */
 	public static synchronized Drives getInstanced(){
 		if(drives == null){
 			drives = new Drives();
 		}
-		return drives;
+		return drives;											
 	}
 
 	/**
@@ -71,33 +73,33 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean init(){
 		//Right
-		rightMotor = new CANTalon(8);
-		rightEncoder = new Encoder(3,6);
+		rightMotor = new CANTalon(888);
+		rightEncoder = new Encoder(888,888);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);
 		rightPID = new PID(KI, KP);
 		rightPID.breakMode(true);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
-		
+
 		//Left
-		leftMotor = new CANTalon(7);
-		leftEncoder = new Encoder(5,9);
+		leftMotor = new CANTalon(888);
+		leftEncoder = new Encoder(888,888);
 		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);
 		leftPID = new PID(KI, KP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
-		
+
 		//Other
 		gyro = new AHRS(SerialPort.Port.kUSB);
-		
+		currentRobotState = RobotState.DISABLED;
 		return true;
 	}
 
 	/**
 	 * Sets up liveWindow to set values during test mode
 	 */
-	
+
 	@Override
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
@@ -111,14 +113,39 @@ public class Drives extends GenericSubsystem {
 
 	@Override
 	protected boolean execute() {
+		if(ds.isAutonomous()){
+			currentRobotState = RobotState.AUTO;
+		}else if(ds.isDisabled()){
+			currentRobotState = RobotState.DISABLED;
+		}else{
+			currentRobotState = RobotState.TELEOP;
+		}
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
 		leftCurrentSpeed = leftEncoderData.getSpeed();
-		rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-		leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-		rightMotor.set(rightSetPower);
-		leftMotor.set(leftSetPower);
+		switch(currentRobotState){
+
+		case AUTO:
+			break;
+
+		case TELEOP:
+			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			//rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
+			//leftSetPower = leftWantedSpeed;									// In case driver doesn't want PID loop
+			rightMotor.set(rightSetPower);
+			leftMotor.set(leftSetPower);
+			break;
+
+		case DISABLED:
+			rightMotor.set(STOP_MOTOR_SPEED);
+			leftMotor.set(STOP_MOTOR_SPEED);
+			break;
+
+		default:
+			LOG.logError("ERROR: Current Robot State is: " + currentRobotState);
+		}
 		return false;
 	}
 
@@ -140,7 +167,7 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
 		LOG.logMessage("Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
 	}
-	
+
 	/**
 	 * sets the speed based on the power of the joysticks for tank drive
 	 * @param right the power from the right joystick
@@ -150,7 +177,7 @@ public class Drives extends GenericSubsystem {
 		rightWantedSpeed = right * MAX_SPEED;
 		leftWantedSpeed = left * MAX_SPEED;
 	}
-	
+
 	/**
 	 * sets the speed based on the power of the joystick for arcade dribe
 	 * @param xAxis value from the xAxis on the joystick
@@ -160,11 +187,12 @@ public class Drives extends GenericSubsystem {
 		rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 		leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
 	}
-	
-	public enum MatchState{
+
+	public enum RobotState{
 		AUTO,
-		TELEOP;
-		
+		TELEOP,
+		DISABLED;
+
 		/**
 		 * Gets the name of the state
 		 * @return the correct state 
@@ -176,10 +204,11 @@ public class Drives extends GenericSubsystem {
 				return "Auto";
 			case TELEOP:
 				return "Teleop";
+			case DISABLED:
+				return "Disabled";
 			default:
 				return "Error :(";
 			}
 		}
 	}
-	
 }
