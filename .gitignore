@@ -11,6 +11,9 @@
 *.war
 *.ear
 
+# JDT-specific (Eclipse Java Development Tools)
+.classpath
+
 # Eclipse Settings
 .settings/
 

@@ -122,9 +122,9 @@ public class Drives extends GenericSubsystem {
 
 	@Override
 	protected boolean execute() {
-		if(ds.isAutonomous()){
+		if(dsc.isAutonomous()){
 			currentRobotState = RobotState.AUTO;
-		}else if(ds.isDisabled()){
+		}else if(dsc.isDisabled()){
 			currentRobotState = RobotState.DISABLED;
 		}else{
 			currentRobotState = RobotState.TELEOP;

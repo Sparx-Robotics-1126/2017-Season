@@ -2,9 +2,9 @@ package org.gosparx.team1126.robot.subsystem;
 
 import java.security.InvalidParameterException;
 
+import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.Logger;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -26,7 +26,7 @@ public abstract class GenericSubsystem extends Thread {
 	/**
 	 * An instance of driverstation
 	 */
-	protected DriverStation ds;
+	protected DriverStationControls dsc;
 	
 	/**
 	 * The last time the thread was ran
@@ -49,7 +49,7 @@ public abstract class GenericSubsystem extends Thread {
 		if(name != "LogWriter"){
 			LOG = new Logger(name);
 		}
-		ds = DriverStation.getInstance();
+		dsc = new DriverStationControls();
 	}
 
 	/**
@@ -116,7 +116,7 @@ public abstract class GenericSubsystem extends Thread {
 		if(LOG != null)
 			LOG.logMessage("***Executing: " + getName());
 		do{
-			if(!ds.isTest()){
+			if(!dsc.isTest()){
 				try{
 					startTime = Timer.getFPGATimestamp();
 					retVal = execute();
