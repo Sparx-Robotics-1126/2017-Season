@@ -2,6 +2,7 @@ package org.gosparx.team1126.robot.subsystem;
 
 import java.security.InvalidParameterException;
 
+import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.Logger;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -18,6 +19,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  */
 public abstract class GenericSubsystem extends Thread {
 
+	protected DriverStationControls dsc;						// Provides Access to DS Joysticks
+	
 	/**
 	 * This is the logger for the specific subsystem.
 	 */
@@ -26,7 +29,7 @@ public abstract class GenericSubsystem extends Thread {
 	/**
 	 * An instance of driverstation
 	 */
-	protected DriverStation ds;
+//	protected DriverStation ds;
 
 	/**
 	 * This constructs a new subsystem with the given name and priority.
@@ -38,13 +41,18 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	public GenericSubsystem(String name, int priority){
 		super(name);
+		
 		if(priority != Thread.MIN_PRIORITY && priority != Thread.NORM_PRIORITY && priority != MAX_PRIORITY)
 			throw new InvalidParameterException();
+		
 		setPriority(priority);
+		
 		if(name != "LogWriter"){
 			LOG = new Logger(name);
 		}
-		ds = DriverStation.getInstance();
+		
+//		ds = DriverStation.getInstance();
+		dsc = new DriverStationControls();
 	}
 
 	/**
@@ -101,14 +109,20 @@ public abstract class GenericSubsystem extends Thread {
 	public void run(){
 		boolean retVal = false;
 		double lastLogged = 0;
+		
 		if(LOG != null)
 			LOG.logMessage("***Starting: " + getName());
+		
 		init();
 		liveWindow();
+		
 		if(LOG != null)
 			LOG.logMessage("***Executing: " + getName());
+		
 		do{
-			if(!ds.isTest()){
+			if(!dsc.isTest()){
+				dsc.update();
+				
 				try{
 					retVal = execute();
 					updateSmartStatus();
@@ -117,10 +131,12 @@ public abstract class GenericSubsystem extends Thread {
 						LOG.logError("Uncaught Exception! " + e.getMessage());
 					e.printStackTrace(System.err);
 				}
+				
 				if(Timer.getFPGATimestamp() >= lastLogged + logTime()){
 					writeLog();
 					lastLogged = Timer.getFPGATimestamp();
 				}
+				
 				try {
 					Thread.sleep(sleepTime());
 				} catch (InterruptedException e) {
@@ -130,6 +146,7 @@ public abstract class GenericSubsystem extends Thread {
 				retVal = false;
 			}
 		}while(!retVal);
+
 		if(LOG != null)
 			LOG.logMessage("Completing thread: " + getName());
 	}
@@ -139,6 +156,6 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	@Override
 	public String toString(){
-		return  this.getName();
+		return this.getName();
 	}
 }
