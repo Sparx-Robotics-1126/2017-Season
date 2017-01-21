@@ -48,6 +48,8 @@ public class DriverStationControls {
 	private static boolean firstTime = true;
 	private static final int maxButtons = 18;
 	private static final int maxAxes = 10;
+	private static final int joystickButtonStart[] = {0, 4, 8};
+	private static final int joystickAxisStart[] = {0, 2, 4};
 	
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
