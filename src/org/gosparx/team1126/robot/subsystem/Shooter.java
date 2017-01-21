@@ -2,7 +2,7 @@ package org.gosparx.team1126.robot.subsystem;
 
 /**
  * 
- * @Author - Nathan Hunt
+ * @Author - nphto
  */
 
 import edu.wpi.first.wpilibj.Encoder;
@@ -16,14 +16,9 @@ public class Shooter extends GenericSubsystem{
 //*****************************************Variables*************************************\\
 	
 	/**
-	 * true if first agitator is moving
+	 * true if the agitator is moving
 	 */
-	private boolean firstAgitatorMoving;
-	
-	/**
-	 * true if second agitator is moving
-	 */
-	private boolean secondAgitatorMoving;
+	private boolean agitatorMoving;
 	
 	/**
 	 * true if conveyer belt is moving
@@ -80,14 +75,9 @@ public class Shooter extends GenericSubsystem{
 	
 //*****************************************Constants*************************************\\
 	/**
-	 * the speed wanted for the first agitator 
+	 * the speed wanted for the agitator 
 	 */
-	private final double FIRST_AGITATOR_SPEED = 0;
-	
-	/**
-	 * The speed wanted for the second agitator;
-	 */
-	private final double SECOND_AGITATOR_SPEED = 0;
+	private final double AGITATOR_SPEED = 0;
 	
 	/**
 	 * The speed wanted for the conveyer belt
@@ -135,8 +125,7 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init() {
 		encoderData = new EncoderData(encoder, distPerTick); 
 		turretSensor = new AbsoluteEncoderData(IO.CAN_TURRET_PORT, DEGREE_PER_VOLT);
-		firstAgitatorMoving = false;
-		secondAgitatorMoving = false;
+		agitatorMoving = false;
 		conveyerBeltMoving = false;
 		turretMotorMoving  = false;
 		shootingSpeedCurrent = 0;
