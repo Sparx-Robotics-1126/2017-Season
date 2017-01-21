@@ -214,7 +214,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has reached its destination, false otherwise
 	 */
 	public boolean autoDrive(double distance, double speed){
-
+		return false;
 	}
 	
 	/**
@@ -224,7 +224,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
-		
+		return false;
 	}
 	
 	/**
@@ -235,7 +235,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has made it to the coordinate, false otherwise
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double speed){
-		
+		return false;
 	}
 	
 	/**
