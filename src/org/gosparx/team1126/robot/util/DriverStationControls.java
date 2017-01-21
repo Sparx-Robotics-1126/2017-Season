@@ -5,10 +5,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class DriverStationControls {
-
-	// "English" names that represent the various joystick axes functions
-	
-	public static final int DRIVES_LEFT_AXIS = 0;
 	
 	// Standard Joystick Mapping
 	
