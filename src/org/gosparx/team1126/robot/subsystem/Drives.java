@@ -9,20 +9,22 @@ import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 /**
- * This class controls the drives system of the 2017 in tank drive 
+ * This class controls the drives system of the 2017 in tank or arcade drive 
  * @author Allison Morgan
  */
 public class Drives extends GenericSubsystem {
 
 	/** Constants */
 
-	// TODO : Calculate DISTANCE_PER_TICK, KI, KP, MAX_SPEED for 2017 Robot
-	private static final double DISTANCE_PER_TICK = 888;						// The Formula:
-	private static final double STOP_MOTOR_SPEED = 0;							// The Speed for the motors when they are stopped
-	private static final double KI = 0.005 * 50;								// The integral for the PID
-	private static final double KP = (1.0 / 50);								// The proportional for the PID
+	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
+	private static final double DISTANCE_PER_TICK = .031219576995;				// The Formula: (Gear Ratio * Circumference)/ticks
+	private static final double STOP_MOTOR_SPEED = 0;							// Speed for the motors when they are stopped
+	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
+	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
+	private static final double leftKI = 0.005 * 50;							// Integral for the left PID
+	private static final double leftKP = (1.0 / 50);							// Proportional for the left PID
 	private static final double MAX_SPEED = 888;        						// Maximum speed for the robot
-	private static final double X_SENSITIVITY = 1.25;							// The Sensitivity in the x-axis for arcade drive
+	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
 
 	/** Objects */
 
@@ -41,13 +43,16 @@ public class Drives extends GenericSubsystem {
 
 	/** Variables */
 
-	private double rightWantedSpeed;				    						// The wanted speed for the right motor
-	private double leftWantedSpeed;												// The wanted speed for the left motor
-	private double rightCurrentSpeed;											// The wanted speed for the right motor
-	private double leftCurrentSpeed;											// The current speed of the left motor
-	private double rightSetPower;												// The power we'll give the right motor
-	private double leftSetPower;							    				// The power we'll give the left motor
-
+	private double rightWantedSpeed;				    						// Wanted speed for the right motor
+	private double leftWantedSpeed;												// Wanted speed for the left motor
+	private double rightCurrentSpeed;											// Wanted speed for the right motor
+	private double leftCurrentSpeed;											// Current speed of the left motor
+	private double rightSetPower;												// Power for the right motor
+	private double leftSetPower;							    				// Power for the left motor
+	private double startingX;													// Starting x value of the robot
+	private double startingY;													// Starting y value of the robot
+	
+	
 	/**
 	 * Constructors a drives object with normal priority
 	 */
@@ -74,18 +79,20 @@ public class Drives extends GenericSubsystem {
 	protected boolean init(){
 		//Right
 		rightMotor = new CANTalon(888);
+																				// might need to invert motor
 		rightEncoder = new Encoder(888,888);
-		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);
-		rightPID = new PID(KI, KP);
+		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	// might need a negative distance per tick
+		rightPID = new PID(rightKI, rightKP);
 		rightPID.breakMode(true);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
 
 		//Left
 		leftMotor = new CANTalon(888);
+																				// might need to invert motor
 		leftEncoder = new Encoder(888,888);
-		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);
-		leftPID = new PID(KI, KP);
+		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		// might need a negative distance per tick
+		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
@@ -93,6 +100,8 @@ public class Drives extends GenericSubsystem {
 		//Other
 		gyro = new AHRS(SerialPort.Port.kUSB);
 		currentRobotState = RobotState.DISABLED;
+		startingX = 0;
+		startingY = 0;
 		return true;
 	}
 
@@ -173,9 +182,14 @@ public class Drives extends GenericSubsystem {
 	 * @param right the power from the right joystick
 	 * @param left the power from the left joystick
 	 */
-	public void setTankSpeed(double right, double left){
-		rightWantedSpeed = right * MAX_SPEED;
-		leftWantedSpeed = left * MAX_SPEED;
+	public void setTankSpeed(double right, double left, boolean isInverted){
+		if(!isInverted){
+			rightWantedSpeed = right * MAX_SPEED;
+			leftWantedSpeed = left * MAX_SPEED;
+		}else{
+			rightWantedSpeed = -(right * MAX_SPEED);
+			leftWantedSpeed = -(left * MAX_SPEED);
+		}
 	}
 
 	/**
@@ -183,9 +197,55 @@ public class Drives extends GenericSubsystem {
 	 * @param xAxis value from the xAxis on the joystick
 	 * @param yAxis value from the yAxis on the joystick
 	 */
-	public void setArcadeSpeed(double xAxis, double yAxis){
-		rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
-		leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
+		if(!isInverted){
+			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
+			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+		}else{
+			rightWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+			leftWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+		}
+	}
+	
+	/**
+	 * Drives the robot in auto
+	 * @param distance the distance the robot will go 
+	 * @param speed the speed at which the robot should drive
+	 * @return true if the robot has reached its destination, false otherwise
+	 */
+	public boolean autoDrive(double distance, double speed){
+
+	}
+	
+	/**
+	 * Turns the robot in auto
+	 * @param angle the angle the robot needs to turn
+	 * @param speed the speed at which the robot should turn
+	 * @return true if the robot has turned to the angle, false otherwise
+	 */
+	public boolean autoTurn(double angle, double speed){
+		
+	}
+	
+	/**
+	 * Moves the robot to a specific coordinate
+	 * @param xValue the x the robot needs to travel to 
+	 * @param yValue the y value the robot needs to travel to
+	 * @param speed the speed at which the robot needs to travel
+	 * @return true if the robot has made it to the coordinate, false otherwise
+	 */
+	public boolean travelToCoordinate(double xValue, double yValue, double speed){
+		
+	}
+	
+	/**
+	 * Allows auto to set the starting coordinate of the robot
+	 * @param x the x value the robot starts in 
+	 * @param y the y value the robot starts in
+	 */
+	public void setStartingCoordinate(double x, double y){
+		startingX = x;
+		startingY = y;
 	}
 
 	public enum RobotState{
