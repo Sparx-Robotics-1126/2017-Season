@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.Encoder;
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
+import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 
 public class Shooter extends GenericSubsystem{
 
@@ -142,7 +143,7 @@ public class Shooter extends GenericSubsystem{
 
 	@Override
 	protected boolean execute() {
-		if(dsc.isPressed(IO.SHOOTING_SYSTEM_ON)){
+		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
 			shooting = true;
 		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			//sets power = 100%
