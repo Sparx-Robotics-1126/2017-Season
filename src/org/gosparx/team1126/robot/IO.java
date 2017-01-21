@@ -44,9 +44,7 @@ public class IO {
 	
 	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
 	
-	public static final int CAN_SHOOTER_A                                   = 0;
-	
-	public static final int CAN_SHOOTER_B                                   = 0;
+	public static final int CAN_TURRET_PORT                                 = 0;
 
 	/**********************************USB********************************************/
 	

@@ -6,6 +6,9 @@ package org.gosparx.team1126.robot.subsystem;
  */
 
 import edu.wpi.first.wpilibj.Encoder;
+
+import org.gosparx.team1126.robot.IO;
+import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 
 public class Shooter extends GenericSubsystem{
@@ -57,6 +60,14 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double turretMotorCurrent;
 	
+	
+	private double distPerTick;
+	
+	/**
+	 * distance to boiler
+	 */
+	private double distanceSetPoint;
+	
 //******************************************Objects**************************************\\
 	
 	private static Shooter shoot;
@@ -71,27 +82,35 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the speed wanted for the first agitator 
 	 */
-	private final double firstAgitatorSpeed = 0;
+	private final double FIRST_AGITATOR_SPEED = 0;
 	
 	/**
 	 * The speed wanted for the second agitator;
 	 */
-	private final double secondAgitatorSpeed = 0;
+	private final double SECOND_AGITATOR_SPEED = 0;
 	
 	/**
 	 * The speed wanted for the conveyer belt
 	 */
-	private final double conveyerBeltSpeed = 0;
+	private final double CONVEYER_BELT_SPEED = 0;
 	
 	/**
 	 * the case number for shooting
 	 */
-	private final int caseShooting = 1;
+	private final int CASE_SHOOTING = 1;
 	
 	/**
 	 * the case number for the turret
 	 */
-	private final int caseTurret = 2;
+	private final int CASE_TURRET = 2;
+	
+	
+	private final double DEGREE_PER_VOLT = 0;
+	
+	/**
+	 * the value that the speed of the motor is  allowed to be off by.
+	 */
+	private final int SPEED_ALLOWED_OFF = 25;
 	
 //***************************************************************************************\\	
 	
@@ -114,9 +133,8 @@ public class Shooter extends GenericSubsystem{
 	
 	@Override
 	protected boolean init() {
-		encoder = new encoder();
-		encoderData = new encoderData(); 
-		turretSensor = new AbsoluteEncoderData();
+		encoderData = new EncoderData(encoder, distPerTick); 
+		turretSensor = new AbsoluteEncoderData(IO.CAN_TURRET_PORT, DEGREE_PER_VOLT);
 		firstAgitatorMoving = false;
 		secondAgitatorMoving = false;
 		conveyerBeltMoving = false;
@@ -124,6 +142,7 @@ public class Shooter extends GenericSubsystem{
 		shootingSpeedCurrent = 0;
 		turretDegree = 0;
 		turretMotorCurrent = 0;
+		distPerTick = 0;
 		return true;
 	}
 
@@ -134,27 +153,21 @@ public class Shooter extends GenericSubsystem{
 
 	@Override
 	protected boolean execute() {
-		int option = 1;
+		if(dsc.isPressed(IO.SHOOTING_SYSTEM_ON)){
+			shooting = true;
+		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
+			//sets power = 100%
+		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
+			//sets power = to some value that keeps the wheel turning but isn't increasing the speed
+		}
 		
-		
-		switch(option){
-		case caseShooting:
-			if(shooting == false){
-				shooting = true;
-			}	
-			else if(shootingSpeedCurrent < shootingSpeed){
-				
-			}
-			break;
-		case caseTurret:
-			if(turretDegree > 360){
-				turretDegree -= 360;
-			}else if(turretDegree < 0){
-				turretDegree += 360;
-			}
-			if(turretMotorMoving == false){
-				turretMotorMoving = true;
-			}
+		if(turretDegree > 360){
+			turretDegree -= 360;
+		}else if(turretDegree < 0){
+			turretDegree += 360;
+		}
+		if(turretMotorMoving == false){
+			turretMotorMoving = true;
 		}
 		return false;
 	}
@@ -169,6 +182,19 @@ public class Shooter extends GenericSubsystem{
 	protected void writeLog() {
 		
 		
+	}
+	
+	/**
+	 * sets the distance variable to the new distance
+	 * @param distance - the new distance from the boiler
+	 */
+	public void setDistance(int distance){
+		distanceSetPoint = distance;
+	}
+	
+	
+	private double distanceToSpeed(){
+		return distanceSetPoint * 10;
 	}
 
 }
