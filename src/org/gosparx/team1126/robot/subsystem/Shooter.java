@@ -1,5 +1,10 @@
 package org.gosparx.team1126.robot.subsystem;
 
+/**
+ * 
+ * @Author - Nathan Hunt
+ */
+
 import edu.wpi.first.wpilibj.Encoder;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 
@@ -88,7 +93,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private final int caseTurret = 2;
 	
-	
+//***************************************************************************************\\	
 	
 	
 	
@@ -109,6 +114,8 @@ public class Shooter extends GenericSubsystem{
 	
 	@Override
 	protected boolean init() {
+		encoder = new encoder();
+		encoderData = new encoderData(); 
 		turretSensor = new AbsoluteEncoderData();
 		firstAgitatorMoving = false;
 		secondAgitatorMoving = false;
