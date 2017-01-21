@@ -332,7 +332,6 @@ public class DriverStationControls {
 		return false;													// Failure
 	}
 	
-	
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------

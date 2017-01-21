@@ -5,7 +5,6 @@ import java.security.InvalidParameterException;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.Logger;
 
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
