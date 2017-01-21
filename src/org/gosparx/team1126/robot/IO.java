@@ -1,0 +1,93 @@
+package org.gosparx.team1126.robot;
+
+/**
+ * Stores all of the IO information
+ */
+
+/** Subject to change */
+
+public class IO {
+
+	/**************************************PWM*****************************************/
+	
+	public static final int PWM_BALLACQ_SERVO_AGITATOR						= 2;
+	
+	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 3;
+	
+	/************************************DIO*******************************************/
+
+	public static final int DIO_SHOOTER_ENC_A                               = 0;
+	
+	public static final int DIO_SHOOTER_ENC_B								= 1;
+	
+	public static final int DIO_GEARACQ_ENC									= 4;
+	
+	public static final int DIO_SHOOTER_POT									= 5;
+	
+	public static final int DIO_CLIMBING_LIMITSWITCH						= 6;
+	
+	public static final int DIO_LEFT_DRIVES_ENC_A                           = 12;
+
+	public static final int DIO_LEFT_DRIVES_ENC_B                           = 13;
+
+	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 14;
+
+	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 15;
+
+	/**********************************CAN********************************************/
+
+	public static final int CAN_DRIVES_LEFT_FRONT                           = 0;
+
+	public static final int CAN_DRIVES_LEFT_BACK                            = 1;
+	
+	public static final int CAN_DRIVES_LEFT_TOP								= 2;
+
+	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
+	
+	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
+	
+	public static final int CAN_DRIVES_RIGHT_TOP							= 5;
+	
+	public static final int CAN_BALLACQ_ROLLER								= 6;
+	
+	public static final int CAN_BALLACQ_CONVEYOR							= 7;
+	
+	public static final int CAN_SHOOTER_FLYWHEEL                            = 8;
+	
+	public static final int CAN_CLIMBING	   								= 9;
+	
+	public static final int CAN_SHOOTER_TURNING								= 10;
+
+	/**********************************USB********************************************/
+	
+	public static final int USB_DRIVER_LEFT                                 = 0;
+	
+	public static final int USB_DRIVER_RIGHT                                = 1;
+	
+	public static final int USB_OPERATOR                                    = 2;
+	
+	/*********************************CAMS********************************************/
+	
+	public static final String[] CAMS                                       = {
+			                                                                "cam0",
+			                                                                "cam1"
+	                                                                        };
+	
+	/***********************BUTTONS/JOYSTICK******************************************/
+	
+	public static final int INVERT_DRIVES_BUTTON							= 1;
+	
+	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
+	
+	public static final int BUTTON_FIRE										= 9;
+	
+	public static final int RIGHT_JOY_X										= 2;
+	
+	public static final int RIGHT_JOY_Y										= 3;
+	
+	public static final int LEFT_JOY_X										= 0;
+	
+	public static final int LEFT_JOY_Y										= 1;
+	
+	
+}
