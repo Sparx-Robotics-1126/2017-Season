@@ -1,6 +1,6 @@
 # Local Properties
 /build.properties
-/.classpath
+.classpath
 
 # Compiled Files
 /bin/
