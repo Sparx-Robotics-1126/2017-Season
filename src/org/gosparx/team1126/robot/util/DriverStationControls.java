@@ -52,15 +52,15 @@ public class DriverStationControls {
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
 	private static final int[][] buttons = {							// {Joystick #, Raw Button #}
-			{0, JOY_TRIGGER},
+			{0, JOY_TRIGGER},											// Index 0 - Start of Joystick #1
 			{0, JOY_LEFT},
 			{0, JOY_RIGHT},
 			{0, JOY_MIDDLE},
-			{1, JOY_TRIGGER},
+			{1, JOY_TRIGGER},											// Index 4 - Start of Joystick #2
 			{1, JOY_LEFT},
 			{1, JOY_RIGHT},
 			{1, JOY_MIDDLE},
-			{2, XBOX_A},
+			{2, XBOX_A},												// Index 8 - Start of Joystick #3 (XBox)
 			{2, XBOX_B},
 			{2, XBOX_X},
 			{2, XBOX_Y},
