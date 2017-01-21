@@ -19,6 +19,8 @@ public class DriverStationControls {
 	public static final int JOY_LEFT = 2;
 	public static final int JOY_RIGHT = 3;
 	public static final int JOY_MIDDLE = 4;
+	private static final int joystickButtonStart[] = {0, 4, 8};
+	private static final int joystickAxisStart[] = {0, 2, 4};
 
 	// XBox Mapping
 	
@@ -394,3 +396,4 @@ public class DriverStationControls {
 		}
 	}
 }
+
