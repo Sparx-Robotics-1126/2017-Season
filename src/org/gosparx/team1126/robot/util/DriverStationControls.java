@@ -155,17 +155,17 @@ public class DriverStationControls {
 			{2, XBOX_R2}
 	};
 	
-	private double[][] axesData = {										// { Deadband }
-			{0.05},														// Joystick 0 (Standard)
-			{0.05},
-			{0.05},														// Joystick 1 (Standard)
-			{0.05},
-			{0.05},														// Joystick 2 (XBox)
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05}
+	private double[][] axesData = {										// { Deadband, axis invert }
+			{0.05,1.0},														// Joystick 0 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},														// Joystick 1 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},														// Joystick 2 (XBox)
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0}
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -291,8 +291,9 @@ public class DriverStationControls {
 			deadband = axesData[axisNumber][0];							// Local variable used for readability
 			
 			if (Math.abs(rawAxis) > deadband)							// Is it outside the deadband?
-				return (rawAxis - (rawAxis > 0 ? deadband :				// Rescale value to include the the full
-					-deadband)) / (1.0 - deadband);						//   range between 0 and 1.0
+				return ((rawAxis - (rawAxis > 0 ? deadband :				// Rescale value to include the the full
+					-deadband)) / (1.0 - deadband)) * 
+					axesData[axisNumber][1];						//   range between 0 and 1.0
 		}
 		
 		return (0.0);													// Invalid axis number return value
@@ -331,6 +332,21 @@ public class DriverStationControls {
 		}
 		return false;													// Failure
 	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Inverts the joystick axis if the boolean passed in is true  
+	//-----------------------------------------------------------------------------------------------------------
+		
+		public boolean setInverted(int axisNumber, boolean isInverted)
+		{
+			if ((axisNumber >= 0) && (axisNumber <= maxAxes))		// Check for valid Axis Number
+			{
+				
+				axesData[axisNumber][1] = isInverted ? -1.0 : 1.0;							// Update deadband
+				return true;												// Success
+			}
+			return false;													// Failure
+		}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted

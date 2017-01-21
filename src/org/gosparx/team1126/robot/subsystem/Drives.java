@@ -1,5 +1,6 @@
 package org.gosparx.team1126.robot.subsystem;
 
+import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.sensors.PID;
 import com.ctre.CANTalon;
@@ -29,8 +30,12 @@ public class Drives extends GenericSubsystem {
 	/** Objects */
 
 	private static Drives drives;												// An instance of drives
-	private CANTalon rightMotor;												// Right CANTalon
-	private CANTalon leftMotor;													// Left CANTalon
+	private CANTalon rightMotor1;												// Right CANTalon 1
+	private CANTalon rightMotor2;												// Right CANTalon 2
+	private CANTalon rightMotor3;												// Right CANTalon 3
+	private CANTalon leftMotor1;												// Left CANTalon 1
+	private CANTalon leftMotor2;												// Left CANTalon 2
+	private CANTalon leftMotor3;												// Left CANTalon 3
 	private Encoder rightEncoder; 												// Right Encoder
 	private Encoder leftEncoder;												// Left Encoder
 	private EncoderData rightEncoderData;										// Encoder data for the right encoder
@@ -49,8 +54,16 @@ public class Drives extends GenericSubsystem {
 	private double leftCurrentSpeed;											// Current speed of the left motor
 	private double rightSetPower;												// Power for the right motor
 	private double leftSetPower;							    				// Power for the left motor
-	private double startingX;													// Starting x value of the robot
-	private double startingY;													// Starting y value of the robot
+	private double currentX;													// Starting x value of the robot
+	private double currentY;													// Starting y value of the robot
+	private double rightPreviousDistance;										// Previous right distance			
+	private double leftPreviousDistance;										// Previous left distance
+	private double rightCurrentDistance;										// Current right distance			
+	private double leftCurrentDistance;											// Current left distance
+	private double currentAngle;												// Current angle
+	private double averageDistance;												// Average Distance
+	private double wantedDistance;												// Wanted Distance
+	private double wantedAngle;													// Wanted Angle
 	
 	
 	/**
@@ -78,30 +91,39 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean init(){
 		//Right
-		rightMotor = new CANTalon(888);
+		rightMotor1 = new CANTalon(88);
+		rightMotor2 = new CANTalon(88);
+		rightMotor3 = new CANTalon(88);						
 																				// might need to invert motor
-		rightEncoder = new Encoder(888,888);
+		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	// might need a negative distance per tick
 		rightPID = new PID(rightKI, rightKP);
 		rightPID.breakMode(true);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
+		rightPreviousDistance = 0;
+		rightCurrentDistance = 0;
 
 		//Left
-		leftMotor = new CANTalon(888);
+		leftMotor1 = new CANTalon(88);
+		leftMotor2 = new CANTalon(88);
+		leftMotor3 = new CANTalon(88);
 																				// might need to invert motor
-		leftEncoder = new Encoder(888,888);
+		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		// might need a negative distance per tick
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
+		leftPreviousDistance = 0;
+		leftCurrentDistance = 0;
 
 		//Other
 		gyro = new AHRS(SerialPort.Port.kUSB);
 		currentRobotState = RobotState.DISABLED;
-		startingX = 0;
-		startingY = 0;
+		currentX = 0;
+		currentY = 0;
+		currentAngle = 0;
 		return true;
 	}
 
@@ -113,15 +135,25 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
-		LiveWindow.addActuator(motorName, "Right Motor", rightMotor);
-		LiveWindow.addActuator(motorName, "Left Motor", leftMotor);
+		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotor1);
+		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotor2);
+		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotor3);
+		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotor1);
+		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotor2);
+		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotor3);
 		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
 		LiveWindow.addSensor(sensorName, "Left Encoder", leftEncoder);
 		LiveWindow.addSensor(sensorName, "Gyro", gyro);
 	}
-
+	
+	/**
+	 * Continues as long as it returns false
+	 */
 	@Override
 	protected boolean execute() {
+		
+		dsc.update();
+		
 		if(dsc.isAutonomous()){
 			currentRobotState = RobotState.AUTO;
 		}else if(dsc.isDisabled()){
@@ -129,10 +161,18 @@ public class Drives extends GenericSubsystem {
 		}else{
 			currentRobotState = RobotState.TELEOP;
 		}
+		
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
 		leftCurrentSpeed = leftEncoderData.getSpeed();
+		currentAngle = gyro.getAngle() % 360;
+		rightCurrentDistance = rightEncoderData.getDistance();
+		leftCurrentDistance = leftEncoderData.getDistance();
+		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
+		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
+		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
+		
 		switch(currentRobotState){
 
 		case AUTO:
@@ -143,18 +183,29 @@ public class Drives extends GenericSubsystem {
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
 			//leftSetPower = leftWantedSpeed;									// In case driver doesn't want PID loop
-			rightMotor.set(rightSetPower);
-			leftMotor.set(leftSetPower);
+			rightMotor1.set(rightSetPower);
+			rightMotor2.set(rightSetPower);
+			rightMotor3.set(rightSetPower);
+			leftMotor1.set(leftSetPower);
+			leftMotor2.set(leftSetPower);
+			leftMotor3.set(leftSetPower);
 			break;
 
 		case DISABLED:
-			rightMotor.set(STOP_MOTOR_SPEED);
-			leftMotor.set(STOP_MOTOR_SPEED);
+			rightMotor1.set(STOP_MOTOR_SPEED);
+			rightMotor2.set(STOP_MOTOR_SPEED);
+			rightMotor3.set(STOP_MOTOR_SPEED);
+			leftMotor1.set(STOP_MOTOR_SPEED);
+			leftMotor2.set(STOP_MOTOR_SPEED);
+			leftMotor3.set(STOP_MOTOR_SPEED);
 			break;
 
 		default:
 			LOG.logError("ERROR: Current Robot State is: " + currentRobotState);
 		}
+		
+		rightPreviousDistance = rightCurrentDistance;
+		leftPreviousDistance = leftCurrentDistance;
 		return false;
 	}
 
@@ -187,8 +238,8 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = right * MAX_SPEED;
 			leftWantedSpeed = left * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(right * MAX_SPEED);
-			leftWantedSpeed = -(left * MAX_SPEED);
+			rightWantedSpeed = -(left * MAX_SPEED);
+			leftWantedSpeed = -(right * MAX_SPEED);
 		}
 	}
 
@@ -202,8 +253,8 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
-			leftWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
 		}
 	}
 	
@@ -228,6 +279,19 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
+	 * Calculates the wanted angle and wanted distance to travel to a coordinate
+	 * @param newX the x value of the position we're driving to
+	 * @param newY the y value of the position we're driving to 
+	 */
+	public void trig(double newX, double newY){
+		double xChange, yChange;
+		xChange = newX - currentX;
+		yChange = newY - currentY;
+		wantedDistance = Math.sqrt((xChange * xChange) + (yChange * yChange));
+		wantedAngle = Math.atan(xChange/yChange);
+	}
+	
+	/**
 	 * Moves the robot to a specific coordinate
 	 * @param xValue the x the robot needs to travel to 
 	 * @param yValue the y value the robot needs to travel to
@@ -235,7 +299,10 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has made it to the coordinate, false otherwise
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double speed){
-		return false;
+		trig(xValue,yValue);
+		autoTurn(wantedAngle, speed);
+		autoDrive(wantedDistance, speed);
+		return true;
 	}
 	
 	/**
@@ -244,8 +311,8 @@ public class Drives extends GenericSubsystem {
 	 * @param y the y value the robot starts in
 	 */
 	public void setStartingCoordinate(double x, double y){
-		startingX = x;
-		startingY = y;
+		currentX = x;
+		currentY = y;
 	}
 
 	public enum RobotState{
