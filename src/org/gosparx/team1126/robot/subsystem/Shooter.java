@@ -195,6 +195,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private double distanceToSpeed(){
 		return distanceSetPoint * 10;
+
 	}
 
 }
