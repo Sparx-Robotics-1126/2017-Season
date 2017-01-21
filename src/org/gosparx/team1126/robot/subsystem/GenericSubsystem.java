@@ -2,6 +2,7 @@ package org.gosparx.team1126.robot.subsystem;
 
 import java.security.InvalidParameterException;
 
+import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.Logger;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -26,7 +27,7 @@ public abstract class GenericSubsystem extends Thread {
 	/**
 	 * An instance of driverstation
 	 */
-	protected DriverStation ds;
+	protected DriverStationControls dsc;
 
 	/**
 	 * This constructs a new subsystem with the given name and priority.
@@ -44,7 +45,7 @@ public abstract class GenericSubsystem extends Thread {
 		if(name != "LogWriter"){
 			LOG = new Logger(name);
 		}
-		ds = DriverStation.getInstance();
+		dsc = new DriverStationControls();
 	}
 
 	/**
@@ -108,7 +109,7 @@ public abstract class GenericSubsystem extends Thread {
 		if(LOG != null)
 			LOG.logMessage("***Executing: " + getName());
 		do{
-			if(!ds.isTest()){
+			if(!dsc.isTest()){
 				try{
 					retVal = execute();
 					updateSmartStatus();

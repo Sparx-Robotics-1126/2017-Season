@@ -74,7 +74,7 @@ public class LogWriter extends GenericSubsystem{
 	protected boolean init() {
 		try {
 			Calendar cal = Calendar.getInstance();
-			logName = "log" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DATE) + "-" + cal.get(Calendar.YEAR) + "(" + cal.get(Calendar.HOUR_OF_DAY) + "-" + cal.get(Calendar.MINUTE) + ") " + (ds.isFMSAttached() ? (ds.getAlliance() == Alliance.Red ? "Red" : "Blue") : "Practice") + ".txt";
+			logName = "log" + cal.get(Calendar.MONTH) + "-" + cal.get(Calendar.DATE) + "-" + cal.get(Calendar.YEAR) + "(" + cal.get(Calendar.HOUR_OF_DAY) + "-" + cal.get(Calendar.MINUTE) + ") " + (dsc.isFMSAttached() ? (dsc.getAlliance() == Alliance.Red ? "Red" : "Blue") : "Practice") + ".txt";
 			file = new File(FILE_PATH + logName);
 			file.mkdirs();
 			file.setWritable(true, false);
