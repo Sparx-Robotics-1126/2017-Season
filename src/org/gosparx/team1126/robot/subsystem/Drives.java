@@ -30,12 +30,12 @@ public class Drives extends GenericSubsystem {
 	/** Objects */
 
 	private static Drives drives;												// An instance of drives
-	private CANTalon rightMotor1;												// Right CANTalon 1
-	private CANTalon rightMotor2;												// Right CANTalon 2
-	private CANTalon rightMotor3;												// Right CANTalon 3
-	private CANTalon leftMotor1;												// Left CANTalon 1
-	private CANTalon leftMotor2;												// Left CANTalon 2
-	private CANTalon leftMotor3;												// Left CANTalon 3
+	private CANTalon rightMotorTop;												// Right CANTalon 1
+	private CANTalon rightMotorFront;												// Right CANTalon 2
+	private CANTalon rightMotorBack;												// Right CANTalon 3
+	private CANTalon leftMotorTop;												// Left CANTalon 1
+	private CANTalon leftMotorFront;												// Left CANTalon 2
+	private CANTalon leftMotorBack;												// Left CANTalon 3
 	private Encoder rightEncoder; 												// Right Encoder
 	private Encoder leftEncoder;												// Left Encoder
 	private EncoderData rightEncoderData;										// Encoder data for the right encoder
@@ -91,9 +91,9 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean init(){
 		//Right
-		rightMotor1 = new CANTalon(88);
-		rightMotor2 = new CANTalon(88);
-		rightMotor3 = new CANTalon(88);						
+		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
+		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
+		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);						
 																				// might need to invert motor
 		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	// might need a negative distance per tick
@@ -105,9 +105,9 @@ public class Drives extends GenericSubsystem {
 		rightCurrentDistance = 0;
 
 		//Left
-		leftMotor1 = new CANTalon(88);
-		leftMotor2 = new CANTalon(88);
-		leftMotor3 = new CANTalon(88);
+		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
+		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
+		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
 																				// might need to invert motor
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		// might need a negative distance per tick
@@ -135,12 +135,12 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
-		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotor1);
-		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotor2);
-		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotor3);
-		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotor1);
-		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotor2);
-		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotor3);
+		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
+		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
+		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotorBack);
+		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
+		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotorFront);
+		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotorBack);
 		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
 		LiveWindow.addSensor(sensorName, "Left Encoder", leftEncoder);
 		LiveWindow.addSensor(sensorName, "Gyro", gyro);
@@ -183,21 +183,21 @@ public class Drives extends GenericSubsystem {
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
 			//leftSetPower = leftWantedSpeed;									// In case driver doesn't want PID loop
-			rightMotor1.set(rightSetPower);
-			rightMotor2.set(rightSetPower);
-			rightMotor3.set(rightSetPower);
-			leftMotor1.set(leftSetPower);
-			leftMotor2.set(leftSetPower);
-			leftMotor3.set(leftSetPower);
+			rightMotorTop.set(rightSetPower);
+			rightMotorFront.set(rightSetPower);
+			rightMotorBack.set(rightSetPower);
+			leftMotorTop.set(leftSetPower);
+			leftMotorFront.set(leftSetPower);
+			leftMotorBack.set(leftSetPower);
 			break;
 
 		case DISABLED:
-			rightMotor1.set(STOP_MOTOR_SPEED);
-			rightMotor2.set(STOP_MOTOR_SPEED);
-			rightMotor3.set(STOP_MOTOR_SPEED);
-			leftMotor1.set(STOP_MOTOR_SPEED);
-			leftMotor2.set(STOP_MOTOR_SPEED);
-			leftMotor3.set(STOP_MOTOR_SPEED);
+			rightMotorTop.set(STOP_MOTOR_SPEED);
+			rightMotorFront.set(STOP_MOTOR_SPEED);
+			rightMotorBack.set(STOP_MOTOR_SPEED);
+			leftMotorTop.set(STOP_MOTOR_SPEED);
+			leftMotorFront.set(STOP_MOTOR_SPEED);
+			leftMotorBack.set(STOP_MOTOR_SPEED);
 			break;
 
 		default:
