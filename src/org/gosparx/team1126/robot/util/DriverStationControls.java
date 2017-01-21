@@ -206,6 +206,26 @@ public class DriverStationControls {
 	}
 
 	//-----------------------------------------------------------------------------------------------------------
+	// Returns true if the passed button number is pressed. 
+	//-----------------------------------------------------------------------------------------------------------
+
+	public boolean isPressed(int buttonNumber)
+	{
+		return (getButton(buttonNumber));								// Return True if pressed
+	}
+
+
+	//-----------------------------------------------------------------------------------------------------------
+	// Returns treu if the passed button number is NOT pressed.
+	//-----------------------------------------------------------------------------------------------------------
+
+	public boolean isReleased(int buttonNumber)
+	{
+		return (!getButton(buttonNumber));								// Return True if not pressed
+	}
+
+
+	//-----------------------------------------------------------------------------------------------------------
 	// Pass-thru of the joystick getRawButton method 
 	//-----------------------------------------------------------------------------------------------------------
 
