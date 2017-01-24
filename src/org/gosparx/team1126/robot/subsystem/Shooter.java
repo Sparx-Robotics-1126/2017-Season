@@ -64,6 +64,10 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double distanceSetPoint;
 	
+	private boolean speedButton;
+	
+	private boolean turretButton;
+	
 //******************************************Objects**************************************\\
 	
 	private static Shooter shoot;
@@ -125,7 +129,7 @@ public class Shooter extends GenericSubsystem{
 	@Override
 	protected boolean init() {
 		encoderData = new EncoderData(encoder, distPerTick); 
-		turretSensor = new AbsoluteEncoderData(IO.CAN_TURRET_PORT, DEGREE_PER_VOLT);
+		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
 		agitatorMoving = false;
 		conveyerBeltMoving = false;
 		turretMotorMoving  = false;
@@ -133,6 +137,8 @@ public class Shooter extends GenericSubsystem{
 		turretDegree = 0;
 		turretMotorCurrent = 0;
 		distPerTick = 0;
+		speedButton = false;
+		turretButton = false;
 		return true;
 	}
 
@@ -143,21 +149,9 @@ public class Shooter extends GenericSubsystem{
 
 	@Override
 	protected boolean execute() {
-		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
-			shooting = true;
-		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
-			//sets power = 100%
-		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
-			//sets power = to some value that keeps the wheel turning but isn't increasing the speed
-		}
-		
-		if(turretDegree > 360){
-			turretDegree -= 360;
-		}else if(turretDegree < 0){
-			turretDegree += 360;
-		}
-		if(turretMotorMoving == false){
-			turretMotorMoving = true;
+		if(fireCtrl(speedCtrl(speedButton) && turretCtrl(turretButton))){
+			//FIRE
+			return true;
 		}
 		return false;
 	}
@@ -182,10 +176,47 @@ public class Shooter extends GenericSubsystem{
 		distanceSetPoint = distance;
 	}
 	
-	
+	/**
+	 * calculates the required speed needed for the 
+	 * @return - the required speed
+	 */
 	private double distanceToSpeed(){
 		return distanceSetPoint * 10;
 
+	}
+	
+	/**
+	 * checks if the motors are ready and are at a correct speed
+	 * @param button - if the button is pressed 
+	 * @return - if this system is ready
+	 */
+	private boolean speedCtrl(boolean button){
+		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
+			shooting = true;
+		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
+			//sets power = 100%
+		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
+			//sets power = to some value that keeps the wheel turning but isn't increasing the speed
+		}
+		return true;
+	}
+	
+	/**
+	 * checks if the turret is ready to fire(correct distance and angle to fire)
+	 * @param button - if the button is pressed
+	 * @return - if this system is ready
+	 */
+	private boolean turretCtrl(boolean button){
+		return true;
+	}
+	
+	/**
+	 * checks if the turret is locked on and the shooter is at speed
+	 * @param fire - if turret and speed ctrl. are ready to fire
+	 * @return - if this system is ready
+	 */
+	private boolean fireCtrl(boolean fire){
+		return true;
 	}
 
 }
