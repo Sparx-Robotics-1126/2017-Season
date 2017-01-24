@@ -100,15 +100,16 @@ public class ForTheRoboRio {
 					//System.out.println(topLeft+" "+bottomRight);
 					double width = bottomRight.x-topLeft.x;
 					findDistanceFromGoal(width);
-					//Point center = new Point((topLeft.x+bottomRight.x)/2.0,(topLeft.y+bottomRight.y)/2.0);
-					//Point center2 = new Point((topLeft2.x+bottomRight2.x)/2.0,(topLeft2.y+bottomRight2.y)/2.0); //For 2nd Target
+					Point center = new Point((topLeft.x+bottomRight.x)/2.0,(topLeft.y+bottomRight.y)/2.0);
 					//double overAllX = (center.x-center2.x)/2;
 					//System.out.println(overAllX);		
 					//Imgcodecs.imwrite("resources/tester/rectangle.jpg", image);
 					
 					widthTotal += findDistanceFromGoal(width);
-
-					System.out.println(findDistanceFromGoal(width));
+					double radius=findDistanceFromGoal(width);
+					System.out.println(radius);
+					System.out.println("Center: "+center);
+					System.out.println("Degrees off center: "+(320-center.x)*.0975);
 				}
 				else{
 					count++;
@@ -140,6 +141,7 @@ public class ForTheRoboRio {
 		//}	
 		//return (18.82487-.099444*width)*12;
 		return (.001116531569*(width*width)-.311488390152*width+28.7931405153)*12;
+	
 	}
 		/**
 		 * Finds the largest contour in the list
@@ -159,7 +161,9 @@ public class ForTheRoboRio {
 			}
 			
 			return greatest;
+			
 		} 
+	
 }
 
 
