@@ -31,10 +31,10 @@ public class Drives extends GenericSubsystem {
 
 	private static Drives drives;												// An instance of drives
 	private CANTalon rightMotorTop;												// Right CANTalon 1
-	private CANTalon rightMotorFront;												// Right CANTalon 2
-	private CANTalon rightMotorBack;												// Right CANTalon 3
+	private CANTalon rightMotorFront;											// Right CANTalon 2
+	private CANTalon rightMotorBack;											// Right CANTalon 3
 	private CANTalon leftMotorTop;												// Left CANTalon 1
-	private CANTalon leftMotorFront;												// Left CANTalon 2
+	private CANTalon leftMotorFront;											// Left CANTalon 2
 	private CANTalon leftMotorBack;												// Left CANTalon 3
 	private Encoder rightEncoder; 												// Right Encoder
 	private Encoder leftEncoder;												// Left Encoder
@@ -43,8 +43,7 @@ public class Drives extends GenericSubsystem {
 	private AHRS gyro; 															// NAVX gyro
 	private PID rightPID;														// PID for the right speed and such
 	private PID leftPID;														// PID for the left speed and such
-	private RobotState currentRobotState; 			    						// The current state of the robot, 
-																				// ex) disabled, auto
+	private RobotState currentRobotState; 			    						// The current state of the robot, ex) disabled
 
 	/** Variables */
 
@@ -64,6 +63,7 @@ public class Drives extends GenericSubsystem {
 	private double averageDistance;												// Average Distance
 	private double wantedDistance;												// Wanted Distance
 	private double wantedAngle;													// Wanted Angle
+	private boolean isInverse;													// If the drives is inverted
 	
 	
 	/**
@@ -124,6 +124,7 @@ public class Drives extends GenericSubsystem {
 		currentX = 0;
 		currentY = 0;
 		currentAngle = 0;
+		isInverse = false;
 		return true;
 	}
 
@@ -179,6 +180,13 @@ public class Drives extends GenericSubsystem {
 			break;
 
 		case TELEOP:
+			
+			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
+				isInverse = !isInverse;
+			}
+			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 
+			//	dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);						// In case driver wants to use Arcade drive 
 			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
@@ -198,6 +206,10 @@ public class Drives extends GenericSubsystem {
 			leftMotorTop.set(STOP_MOTOR_SPEED);
 			leftMotorFront.set(STOP_MOTOR_SPEED);
 			leftMotorBack.set(STOP_MOTOR_SPEED);
+			rightEncoder.reset();
+			rightEncoderData.reset();
+			leftEncoder.reset();
+			leftEncoderData.reset();
 			break;
 
 		default:
@@ -226,6 +238,16 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
 		LOG.logMessage("Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
 		LOG.logMessage("Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
+		LOG.logMessage("Current Angle: " + currentAngle);
+		LOG.logMessage("Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+		LOG.logMessage("Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+		LOG.logMessage("Current Robot State: " + currentRobotState);
+		LOG.logMessage("Current Position (x,y): (" + currentX + "," + currentY + ")");
+		if(isInverse){
+			LOG.logMessage("The drives are inverted");
+		}else{
+			LOG.logMessage("The drives are not inverted");
+		}
 	}
 
 	/**
@@ -315,14 +337,17 @@ public class Drives extends GenericSubsystem {
 		currentY = y;
 	}
 
+	/**
+	 * Enables the Drives to know if the robot is disabled, in auto, or if it's in teleop
+	 */
 	public enum RobotState{
 		AUTO,
 		TELEOP,
 		DISABLED;
 
 		/**
-		 * Gets the name of the state
-		 * @return the correct state 
+		 * Gets the name of the robot state
+		 * @return the correct robot state 
 		 */
 		@Override
 		public String toString(){
