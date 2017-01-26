@@ -17,9 +17,14 @@ public class Shooter extends GenericSubsystem{
 //*****************************************Variables*************************************\\
 	
 	/**
-	 * true if the agitator is moving
+	 * true if the first agitator is moving
 	 */
-	private boolean agitatorMoving;
+	private boolean firstAgitatorMoving;
+	
+	/**
+	 * true if the second agitator is moving
+	 */
+	private boolean secondAgitatorMoving;
 	
 	/**
 	 * true if conveyer belt is moving
@@ -64,9 +69,12 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double distanceSetPoint;
 	
+	
 	private boolean speedButton;
 	
 	private boolean turretButton;
+	
+	private double pot;
 	
 //******************************************Objects**************************************\\
 	
@@ -126,11 +134,13 @@ public class Shooter extends GenericSubsystem{
 		return shoot;
 	}
 	
+	//framework done(updated whenever instance values are added) 
 	@Override
 	protected boolean init() {
 		encoderData = new EncoderData(encoder, distPerTick); 
 		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
-		agitatorMoving = false;
+		firstAgitatorMoving = false;
+		secondAgitatorMoving = false;
 		conveyerBeltMoving = false;
 		turretMotorMoving  = false;
 		shootingSpeedCurrent = 0;
@@ -139,35 +149,43 @@ public class Shooter extends GenericSubsystem{
 		distPerTick = 0;
 		speedButton = false;
 		turretButton = false;
+		pot = 0;
 		return true;
 	}
 
+	//needs to be started
 	@Override
 	protected void liveWindow() {
 		
 	}
 
-	@Override
+	//need to figure out what else should be updated and stuff
+	@Override  
 	protected boolean execute() {
-		if(fireCtrl(speedCtrl(speedButton) && turretCtrl(turretButton))){
+		//turretButton = isButtonPressed
+		//speedButton = isButtonPressed
+		if(fireCtrl()){
 			//FIRE
 			return true;
 		}
 		return false;
 	}
 
+	//needs to be started
 	@Override
 	protected long sleepTime() {
 		
 		return 0;
 	}
 
+	//needs to be started
 	@Override
 	protected void writeLog() {
 		
 		
 	}
 	
+	//done
 	/**
 	 * sets the distance variable to the new distance
 	 * @param distance - the new distance from the boiler
@@ -176,8 +194,9 @@ public class Shooter extends GenericSubsystem{
 		distanceSetPoint = distance;
 	}
 	
+	//framework done
 	/**
-	 * calculates the required speed needed for the 
+	 * calculates the required speed needed for shooting 
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
@@ -185,38 +204,48 @@ public class Shooter extends GenericSubsystem{
 
 	}
 	
+	//framework done
 	/**
 	 * checks if the motors are ready and are at a correct speed
 	 * @param button - if the button is pressed 
 	 * @return - if this system is ready
 	 */
 	private boolean speedCtrl(boolean button){
+		shootingSpeedCurrent = distanceToSpeed();
 		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
 			shooting = true;
 		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			//sets power = 100%
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
 			//sets power = to some value that keeps the wheel turning but isn't increasing the speed
+		}else{
+			return true;
 		}
-		return true;
+		return false;	
 	}
 	
+	//need to have the distance and angle figured out
 	/**
 	 * checks if the turret is ready to fire(correct distance and angle to fire)
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(boolean button){
+		
 		return true;
 	}
 	
+	//framework done
 	/**
 	 * checks if the turret is locked on and the shooter is at speed
 	 * @param fire - if turret and speed ctrl. are ready to fire
 	 * @return - if this system is ready
 	 */
-	private boolean fireCtrl(boolean fire){
-		return true;
+	private boolean fireCtrl(){
+		if(speedCtrl(speedButton) && turretCtrl(turretButton)){
+			return true;
+		}
+		return false;
 	}
 
 }
