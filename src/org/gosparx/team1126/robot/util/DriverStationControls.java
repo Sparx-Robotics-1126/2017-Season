@@ -199,17 +199,17 @@ public class DriverStationControls {
 			{2, XBOX_R2}
 	};
 	
-	private double[][] axesData = {										// { Deadband }
-			{0.05},														// Joystick 0 (Standard)
-			{0.05},
-			{0.05},														// Joystick 1 (Standard)
-			{0.05},
-			{0.05},														// Joystick 2 (XBox)
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05}
+	private double[][] axesData = {										// { Deadband, axis invert }
+			{0.05,1.0},													// Joystick 0 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},													// Joystick 1 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},													// Joystick 2 (XBox)
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0}
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
