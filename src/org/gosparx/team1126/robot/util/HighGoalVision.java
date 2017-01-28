@@ -9,6 +9,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.imgcodecs.Imgcodecs;
 
 public class HighGoalVision {
 	static final int H_MIN = 70; //Hue min
@@ -24,8 +25,8 @@ public class HighGoalVision {
 	static final int SMALLEST_CONTOUR=15; //smallest contour size allowed
 	static final int LARGEST_CONTOUR=600; //largest contour size allowed
 	static {System.loadLibrary(Core.NATIVE_LIBRARY_NAME);}
-	static double center = 0;
-	static double width = 0;
+	static double centerX = 0;
+	static double height = 0;
 	static int count =0;
 	static MatOfPoint largestContour;
 
@@ -33,10 +34,11 @@ public class HighGoalVision {
 		WebCam camera = new WebCam();
 		Mat image=new Mat();
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-
+		
 		while (true)  
 		{
 			image = camera.capture();
+			Imgcodecs.imwrite("/home/admin/hello3.jpg", image);
 			//Blurs image with Max kernal length  
 			for(int i=1; i<MAX_KERNEL_LENGTH;i+=2)
 				Imgproc.blur(image, image, new Size(i,i),new Point(-1,-1)); 
@@ -44,6 +46,7 @@ public class HighGoalVision {
 			Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV); 
 			// Isolate HSV values in range.
 			Core.inRange(image, new Scalar(H_MIN, S_MIN, V_MIN), new Scalar(H_MAX, S_MAX, V_MAX), image);
+			Imgcodecs.imwrite("/home/admin/hello4.jpg", image);
 			//Canny conversion
 			Imgproc.Canny(image, image, 1, 3);
 			//Finds contours		
@@ -51,6 +54,7 @@ public class HighGoalVision {
 
 			if(!contours.isEmpty()){
 				largestContour=findLargestContour(contours);
+				
 			}
 			else{
 				largestContour=null;
@@ -65,18 +69,20 @@ public class HighGoalVision {
 				bottomRight = boundingRect.br();
 				//Point bottomRight2 = boundingRect2.br(); //For the 2nd target
 				//Imgproc.rectangle(image,topLeft,bottomRight, new Scalar(255,255,255));
-				width = bottomRight.x-topLeft.x;
-				findDistanceFromGoal();
+				height = bottomRight.y-topLeft.y;
+				//findDistanceFromGoal();
+				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,20,100));
+				Imgcodecs.imwrite("/home/admin/hello2.jpg", image);
 				degreesOffCenter();
 				//Point = new Point((topLeft.x+bottomRight.x)/2.0,(topLeft.y+bottomRight.y)/2.0);
-				center=((topLeft.x+bottomRight.x)/2);
-				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,30,255));
+				centerX=((topLeft.x+bottomRight.x)/2);
+				//Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,30,255));
+				System.out.println(height);
 				//Imgcodecs.imwrite("/home/admin/Image"+count+".jpg", image );
 			}
 			else 
 			{
-				count++;
-				System.out.println(count);
+				System.out.println("Error");
 			}
 			contours=new ArrayList<MatOfPoint>();
 		}
@@ -85,8 +91,8 @@ public class HighGoalVision {
 	/**
 	 * Determines how far away the camera is from the target in inches
 	 */
-	public static double findDistanceFromGoal(){
-		double distanceAway = (.001116531569*(width*width)-.311488390152*width+28.7931405153)*12;
+	public static double findDistanceFromGoal(){  //TODO change this once we can take measurements
+		double distanceAway = (.001116531569*(height*height)-.311488390152*height+28.7931405153)*12;
 		System.out.println(distanceAway);
 		return distanceAway;
 	}
@@ -97,7 +103,7 @@ public class HighGoalVision {
 	 * If target is to the left a positive angle is returned 
 	 */
 	public static double degreesOffCenter(){
-		double degreesOff = ((320-center)*.07984375);
+		double degreesOff = ((320-centerX)*.07984375);
 		System.out.println(degreesOff);
 		return degreesOff;
 	}
