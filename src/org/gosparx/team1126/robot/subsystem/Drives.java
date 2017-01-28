@@ -18,7 +18,8 @@ public class Drives extends GenericSubsystem {
 	/** Constants */
 
 	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
-	private static final double DISTANCE_PER_TICK = .031219576995;				// The Formula: (Gear Ratio * Circumference)/ticks
+	private final double DISTANCE_PER_TICK = 0.00689;							// Last Year's Distance Per Tick
+	//private static final double DISTANCE_PER_TICK = .031219576995;			// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double STOP_MOTOR_SPEED = 0;							// Speed for the motors when they are stopped
 	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
 	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
@@ -44,6 +45,7 @@ public class Drives extends GenericSubsystem {
 	private PID rightPID;														// PID for the right speed and such
 	private PID leftPID;														// PID for the left speed and such
 	private RobotState currentRobotState; 			    						// The current state of the robot, ex) disabled
+	private AutoState currentAutoState;											// The current auto state;
 
 	/** Variables */
 
@@ -64,6 +66,7 @@ public class Drives extends GenericSubsystem {
 	private double wantedDistance;												// Wanted Distance
 	private double wantedAngle;													// Wanted Angle
 	private boolean isInverse;													// If the drives is inverted
+	private double wantedSpeed;													// Speed passed in through methods
 	
 	
 	/**
@@ -93,10 +96,9 @@ public class Drives extends GenericSubsystem {
 		//Right
 		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
-		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);						
-																				// might need to invert motor
+		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);									
 		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
-		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	// might need a negative distance per tick
+		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	
 		rightPID = new PID(rightKI, rightKP);
 		rightPID.breakMode(true);
 		rightCurrentSpeed = 0;
@@ -106,11 +108,13 @@ public class Drives extends GenericSubsystem {
 
 		//Left
 		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
+		leftMotorTop.setInverted(true);
 		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
+		leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
-																				// might need to invert motor
+		leftMotorBack.setInverted(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
-		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		// might need a negative distance per tick
+		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
@@ -121,10 +125,12 @@ public class Drives extends GenericSubsystem {
 		//Other
 		gyro = new AHRS(SerialPort.Port.kUSB);
 		currentRobotState = RobotState.DISABLED;
+		currentAutoState = AutoState.AUTO_STANDBY;
 		currentX = 0;
 		currentY = 0;
 		currentAngle = 0;
 		isInverse = false;
+		wantedSpeed = 0;
 		return true;
 	}
 
@@ -177,6 +183,20 @@ public class Drives extends GenericSubsystem {
 		switch(currentRobotState){
 
 		case AUTO:
+			switch(currentAutoState){
+			
+			case AUTO_STANDBY:
+				break;
+				
+			case AUTO_DRIVE:
+				break;
+				
+			case AUTO_TURN:
+				break;
+				
+			default:
+				LOG.logError("ERROR: Current Auto State is: " + currentAutoState);
+			}
 			break;
 
 		case TELEOP:
@@ -185,8 +205,8 @@ public class Drives extends GenericSubsystem {
 				isInverse = !isInverse;
 			}
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 
-			//	dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);						// In case driver wants to use Arcade drive 
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 						// In case driver wants to use Arcade drive 
+			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
@@ -286,8 +306,12 @@ public class Drives extends GenericSubsystem {
 	 * @param speed the speed at which the robot should drive
 	 * @return true if the robot has reached its destination, false otherwise
 	 */
-	public boolean autoDrive(double distance, double speed){
-		return false;
+	public void autoDrive(double distance, double speed){
+		rightEncoderData.reset();
+		leftEncoderData.reset();
+		wantedDistance = distance;
+		wantedSpeed = speed;
+		currentAutoState = AutoState.AUTO_DRIVE;
 	}
 	
 	/**
@@ -297,6 +321,20 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
+		double offset = angle - currentAngle;
+
+		if(Math.abs(offset)<3){
+			rightWantedSpeed = 0;
+			leftWantedSpeed = 0;
+			return true;
+		}
+		if((offset>=0 && offset<=180) || (offset<=-180 && offset>=-360)){
+			rightWantedSpeed = -speed;
+			leftWantedSpeed = speed;
+		}else{
+			rightWantedSpeed = speed;
+			leftWantedSpeed = -speed;
+		}
 		return false;
 	}
 	
@@ -358,6 +396,33 @@ public class Drives extends GenericSubsystem {
 				return "Teleop";
 			case DISABLED:
 				return "Disabled";
+			default:
+				return "Error :(";
+			}
+		}
+	}
+	
+	/**
+	 * Enables the Drives to know if the robot is disabled, in auto, or if it's in teleop
+	 */
+	public enum AutoState{
+		AUTO_STANDBY,
+		AUTO_DRIVE,
+		AUTO_TURN;
+
+		/**
+		 * Gets the name of the robot state
+		 * @return the correct robot state 
+		 */
+		@Override
+		public String toString(){
+			switch(this){
+			case AUTO_STANDBY:
+				return "Auto Standby";
+			case AUTO_DRIVE:
+				return "Auto Drive";
+			case AUTO_TURN:
+				return "Auto Turn";
 			default:
 				return "Error :(";
 			}
