@@ -106,9 +106,6 @@ public abstract class GenericSubsystem extends Thread {
 	public void run(){
 		boolean retVal = false;
 		double lastLogged = 0;
-		double elapsedTime = 0; 
-		double startTime = 0;
-		double sleepTime = 0;
 		if(LOG != null)
 			LOG.logMessage("***Starting: " + getName());
 		init();
@@ -118,7 +115,6 @@ public abstract class GenericSubsystem extends Thread {
 		do{
 			if(!dsc.isTest()){
 				try{
-					startTime = Timer.getFPGATimestamp();
 					retVal = execute();
 					updateSmartStatus();
 				}catch(Exception e){
@@ -126,27 +122,18 @@ public abstract class GenericSubsystem extends Thread {
 						LOG.logError("Uncaught Exception! " + e.getMessage());
 					e.printStackTrace(System.err);
 				}
-				elapsedTime = Timer.getFPGATimestamp() - startTime;
-				if(sleepTime - lastTime > 100){
-					LOG.logError("Thread time > " + (sleepTime - lastTime));
-				}
-				sleepTime = sleepTime()- elapsedTime;
-				if(sleepTime < sleepTime()*.5){
-					sleepTime = sleepTime()*.5;
-				}
 				if(Timer.getFPGATimestamp() >= lastLogged + logTime()){
 					writeLog();
 					lastLogged = Timer.getFPGATimestamp();
 				}
 				try {
-					Thread.sleep((long)sleepTime);
+					Thread.sleep(sleepTime());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
 			}else{
 				retVal = false;
 			}
-			lastTime = startTime;
 		}while(!retVal);
 		if(LOG != null)
 			LOG.logMessage("Completing thread: " + getName());
