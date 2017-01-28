@@ -1,9 +1,32 @@
 package org.gosparx.team1126.robot.subsystem;
 
+import edu.wpi.first.wpilibj.Encoder;
+
+import org.gosparx.team1126.robot.IO;
+import org.gosparx.team1126.robot.sensors.EncoderData;
+
+import com.ctre.CANTalon;
+
 public class BallAcq extends GenericSubsystem{
 
+	private static final double ROLLER_SPIN = 1.0;
+
+	private static final double ROLLER_STOP = 0;
+
+	private static State currentAcqstatus;
+
 	public static BallAcq ballacq;
-	
+
+	private static Encoder encoder;
+
+	private static  EncoderData encoderData;
+
+	private static CANTalon roller;
+
+	private static CANTalon conveyor;
+
+	private static double distPerTick;
+
 	private BallAcq(){
 		super("BallAcq", Thread.NORM_PRIORITY);
 	}
@@ -17,37 +40,63 @@ public class BallAcq extends GenericSubsystem{
 		}
 		return ballacq;
 	}
+	@Override 
+	protected void writeLog() {
+		LOG.logMessage("Acqusition Status" + currentAcqstatus);
+	}
+	public enum State{
+		STANDBY,
+		ACQING,
 	
-	@Override
-	protected boolean init() {
-		// TODO Auto-generated method stub
-		return false;
+
+		@Override
+		public String toString(){
+			switch(this){
+			case STANDBY:
+				return "Ready to acquire";
+			case ACQING:
+				return "Acquiring balls";
+			default:
+				return "Acqing Status Unknown";
+			}
+		}
+		protected boolean init() {
+			encoderData = new EncoderData(encoder, distPerTick);
+			roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
+			conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
+			return false;
+		}
 	}
 
-	@Override
 	protected void liveWindow() {
 		// TODO Auto-generated method stub
-		
+
 	}
 
-	@Override
 	protected boolean execute() {
-		// TODO Auto-generated method stub
+		switch(currentAcqstatus){
+		case STANDBY:{
+			roller.set(ROLLER_STOP);
+		}
+		case ACQING:{
+			roller.set(ROLLER_SPIN);
+			currentAcqstatus = State.ACQING;
+
+			break;
+		}
+		break;
+		default:
+			break;
+		}
+
 		return false;
 	}
-
-	@Override
 	protected long sleepTime() {
 		// TODO Auto-generated method stub
 		return 20;
 	}
 
-	@Override
-	protected void writeLog() {
-		// TODO Auto-generated method stub
-		
-	}
+}
 
-	
-	
+
 }
