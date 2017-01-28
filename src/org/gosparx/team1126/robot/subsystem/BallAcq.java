@@ -46,9 +46,8 @@ public class BallAcq extends GenericSubsystem{
 	}
 	public enum State{
 		STANDBY,
-		ACQING,
+		ACQING;
 	
-
 		@Override
 		public String toString(){
 			switch(this){
@@ -77,6 +76,7 @@ public class BallAcq extends GenericSubsystem{
 		switch(currentAcqstatus){
 		case STANDBY:{
 			roller.set(ROLLER_STOP);
+			break;
 		}
 		case ACQING:{
 			roller.set(ROLLER_SPIN);
@@ -84,7 +84,6 @@ public class BallAcq extends GenericSubsystem{
 
 			break;
 		}
-		break;
 		default:
 			break;
 		}
@@ -96,7 +95,10 @@ public class BallAcq extends GenericSubsystem{
 		return 20;
 	}
 
-}
-
+	@Override
+	protected boolean init() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 
 }
