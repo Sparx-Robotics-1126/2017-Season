@@ -82,7 +82,7 @@ public class PID {
 			return 0;
 		}
 		
-		return (proportional + integral + feedForward);	// Sum the components and return the total
+		return (proportional + integral + feedForward);	// Sum the components and return the total, returns power
 	}
 	
 	/* Set the speed controller brake mode flag.  When TRUE, the PID loop will return a zero (0) output

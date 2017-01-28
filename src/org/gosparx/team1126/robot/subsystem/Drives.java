@@ -20,12 +20,12 @@ public class Drives extends GenericSubsystem {
 	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
 	private final double DISTANCE_PER_TICK = 0.00689;							// Last Year's Distance Per Tick
 	//private static final double DISTANCE_PER_TICK = .031219576995;			// The Formula: (Gear Ratio * Circumference)/ticks
-	private static final double STOP_MOTOR_SPEED = 0;							// Speed for the motors when they are stopped
+	private static final double STOP_MOTOR_POWER = 0;							// Speed for the motors when they are stopped
 	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
 	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
 	private static final double leftKI = 0.005 * 50;							// Integral for the left PID
 	private static final double leftKP = (1.0 / 50);							// Proportional for the left PID
-	private static final double MAX_SPEED = 30;        							// Maximum speed for the robot
+	private static final double MAX_SPEED = 60;        							// Maximum speed for the robot
 	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
 	private static final double JOYSTICK_DEADBAND = .06; 						// Axis for the deadband
 
@@ -68,7 +68,8 @@ public class Drives extends GenericSubsystem {
 	private double wantedAngle;													// Wanted Angle
 	private boolean isInverse;													// If the drives is inverted
 	private double wantedSpeed;													// Speed passed in through methods
-	private double counter;														// For logging
+	private double angleOffset;													// Offset of the angle
+	
 	
 	
 	/**
@@ -134,7 +135,7 @@ public class Drives extends GenericSubsystem {
 		currentAngle = 0;
 		isInverse = false;
 		wantedSpeed = 0;
-		counter = 0;
+		angleOffset = 0;
 		return true;
 	}
 
@@ -185,7 +186,6 @@ public class Drives extends GenericSubsystem {
 		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
-		counter++;
 		
 		switch(currentRobotState){
 
@@ -196,9 +196,36 @@ public class Drives extends GenericSubsystem {
 				break;
 				
 			case AUTO_DRIVE:
+				rightSetPower = wantedSpeed/MAX_SPEED;
+				leftSetPower = wantedSpeed/MAX_SPEED;
+				//correction = angleGyro.getAngle() - initialHeading;
+				averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
+
+				if(averageDistance >= Math.abs(wantedDistance - (.05*wantedSpeed)) - .5){
+					rightSetPower = 0;
+					leftSetPower = 0;
+					//correction = 0;
+					LOG.logMessage("Distance Traveled: " + averageDistance);
+					LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+					currentAutoState = AutoState.AUTO_STANDBY;
+				}
 				break;
 				
 			case AUTO_TURN:
+				angleOffset = wantedAngle - currentAngle;
+
+				if(Math.abs(angleOffset)<3){
+					rightSetPower = 0;
+					leftSetPower = 0;
+					currentAutoState = AutoState.AUTO_STANDBY;
+				}
+				if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
+					rightSetPower = -wantedSpeed/MAX_SPEED;
+					leftSetPower = wantedSpeed/MAX_SPEED;
+				}else{
+					rightWantedSpeed = wantedSpeed/MAX_SPEED;
+					leftWantedSpeed = -wantedSpeed/MAX_SPEED;
+				}
 				break;
 				
 			default:
@@ -214,35 +241,21 @@ public class Drives extends GenericSubsystem {
 			}
 			
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			if(counter>5){
 				LOG.logMessage("Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
 				LOG.logMessage("Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
-				counter = 0;
-			}
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 						// In case driver wants to use Arcade drive 
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
 			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			rightSetPower = rightWantedSpeed;			        				// In case driver doesn't want PID loop
-			leftSetPower = leftWantedSpeed;									// In case driver doesn't want PID loop
-			
-			rightMotorTop.set(rightSetPower);
-			rightMotorFront.set(rightSetPower);
-			rightMotorBack.set(rightSetPower);
-			leftMotorTop.set(leftSetPower);
-			leftMotorFront.set(leftSetPower);
-			leftMotorBack.set(leftSetPower);
+			rightSetPower = rightWantedSpeed/MAX_SPEED;			        				// In case driver doesn't want PID loop
+			leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
 			
 			break;
 
 		case DISABLED:
 			
-			rightMotorTop.set(STOP_MOTOR_SPEED);
-			rightMotorFront.set(STOP_MOTOR_SPEED);
-			rightMotorBack.set(STOP_MOTOR_SPEED);
-			leftMotorTop.set(STOP_MOTOR_SPEED);
-			leftMotorFront.set(STOP_MOTOR_SPEED);
-			leftMotorBack.set(STOP_MOTOR_SPEED);
+			rightSetPower = STOP_MOTOR_POWER;
+			leftSetPower = STOP_MOTOR_POWER;
 			rightEncoder.reset();
 			rightEncoderData.reset();
 			leftEncoder.reset();
@@ -254,6 +267,13 @@ public class Drives extends GenericSubsystem {
 		default:
 			LOG.logError("ERROR: Current Robot State is: " + currentRobotState);
 		}
+		
+		rightMotorTop.set(rightSetPower);
+		rightMotorFront.set(rightSetPower);
+		rightMotorBack.set(rightSetPower);
+		leftMotorTop.set(leftSetPower);
+		leftMotorFront.set(leftSetPower);
+		leftMotorBack.set(leftSetPower);
 		
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
@@ -275,21 +295,21 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-//		LOG.logMessage("Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
-//		LOG.logMessage("Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
-//		LOG.logMessage("Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-//		LOG.logMessage("Current Angle: " + currentAngle);
-//		LOG.logMessage("Wanted Angle: " + wantedAngle);
-//		LOG.logMessage("Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
-//		LOG.logMessage("Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-//		LOG.logMessage("Current Robot State: " + currentRobotState);
-//		LOG.logMessage("Current Auto State: " + currentAutoState);
-//		LOG.logMessage("Current Position (x,y): (" + currentX + "," + currentY + ")");
-//		if(isInverse){
-//			LOG.logMessage("The drives are inverted");
-//		}else{
-//			LOG.logMessage("The drives are not inverted");
-//		}
+		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
+		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
+		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
+		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+		LOG.logMessage(7, 10, "Current Robot State: " + currentRobotState);
+		LOG.logMessage(8, 10, "Current Auto State: " + currentAutoState);
+		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
+		if(isInverse){
+			LOG.logMessage(10, 10, "The drives are inverted");
+		}else{
+			LOG.logMessage(11, 10, "The drives are not inverted");
+		}
 	}
 
 	/**
@@ -328,12 +348,17 @@ public class Drives extends GenericSubsystem {
 	 * @param speed the speed at which the robot should drive
 	 * @return true if the robot has reached its destination, false otherwise
 	 */
-	public void autoDrive(double distance, double speed){
+	public boolean autoDrive(double distance, double speed){
 		rightEncoderData.reset();
 		leftEncoderData.reset();
 		wantedDistance = distance;
 		wantedSpeed = speed;
 		currentAutoState = AutoState.AUTO_DRIVE;
+		if(!currentAutoState.equals(AutoState.AUTO_DRIVE)){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	/**
@@ -342,23 +367,19 @@ public class Drives extends GenericSubsystem {
 	 * @param speed the speed at which the robot should turn
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
-//	public boolean autoTurn(double angle, double speed){
-//		double offset = angle - currentAngle;
-//
-//		if(Math.abs(offset)<3){
-//			rightWantedSpeed = 0;
-//			leftWantedSpeed = 0;
-//			return true;
-//		}
-//		if((offset>=0 && offset<=180) || (offset<=-180 && offset>=-360)){
-//			rightWantedSpeed = -speed;
-//			leftWantedSpeed = speed;
-//		}else{
-//			rightWantedSpeed = speed;
-//			leftWantedSpeed = -speed;
-//		}
-//		return false;
-//	}
+	public boolean autoTurn(double angle, double speed){
+		gyro.zeroYaw();
+		rightEncoderData.reset();
+		leftEncoderData.reset();
+		wantedAngle = angle;
+		wantedSpeed = speed;
+		currentAutoState = AutoState.AUTO_TURN;
+		if(!currentAutoState.equals(AutoState.AUTO_TURN)){
+			return true;
+		}else{
+			return false;
+		}
+	}
 	
 	/**
 	 * Calculates the wanted angle and wanted distance to travel to a coordinate
@@ -382,7 +403,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double speed){
 		trig(xValue,yValue);
-		//autoTurn(wantedAngle, speed);
+		autoTurn(wantedAngle, speed);
 		autoDrive(wantedDistance, speed);
 		return true;
 	}
