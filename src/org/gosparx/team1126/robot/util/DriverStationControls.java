@@ -5,8 +5,19 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class DriverStationControls {
+
+	// General Joystick Data
 	
-	// Standard Joystick Mapping
+	private static final int maxButtons = 18;
+	private static final int maxAxes = 10;
+	private static final int leftJoystickButtons = 0;
+	private static final int rightJoystickButtons = 4;
+	private static final int xboxControllerButtons = 8;
+	private static final int leftJoystickAxis = 0;
+	private static final int rightJoystickAxis = 4;
+	private static final int xboxControllerAxis = 8;
+
+	// Generic Joystick Mapping
 	
 	public static final int JOY_X_AXIS = 0;
 	public static final int JOY_Y_AXIS = 1;
@@ -16,8 +27,26 @@ public class DriverStationControls {
 	public static final int JOY_RIGHT = 3;
 	public static final int JOY_MIDDLE = 4;
 
-	// XBox Mapping
+	// Specific Joystick Mapping
 	
+	public static final int LEFT_JOY_X_AXIS = leftJoystickAxis + JOY_X_AXIS;
+	public static final int LEFT_JOY_Y_AXIS = leftJoystickAxis + JOY_Y_AXIS;
+
+	public static final int LEFT_JOY_TRIGGER = leftJoystickButtons + JOY_TRIGGER;
+	public static final int LEFT_JOY_LEFT = leftJoystickButtons + JOY_LEFT;
+	public static final int LEFT_JOY_RIGHT = leftJoystickButtons + JOY_RIGHT;
+	public static final int LEFT_JOY_MIDDLE = leftJoystickButtons + JOY_MIDDLE;
+	
+	public static final int RIGHT_JOY_X_AXIS = rightJoystickAxis + JOY_X_AXIS;
+	public static final int RIGHT_JOY_Y_AXIS = rightJoystickAxis + JOY_Y_AXIS;
+
+	public static final int RIGHT_JOY_TRIGGER = rightJoystickButtons + JOY_TRIGGER;
+	public static final int RIGHT_JOY_LEFT = rightJoystickButtons + JOY_LEFT;
+	public static final int RIGHT_JOY_RIGHT = rightJoystickButtons + JOY_RIGHT;
+	public static final int RIGHT_JOY_MIDDLE = rightJoystickButtons + JOY_MIDDLE;
+
+	// Generic XBox Mapping
+
 	public static final int XBOX_LEFT_X = 0;
 	public static final int XBOX_LEFT_Y = 1;
 	public static final int XBOX_L2 = 2;
@@ -36,17 +65,34 @@ public class DriverStationControls {
 	public static final int XBOX_START = 8;
 	public static final int XBOX_L3 = 9;
 	public static final int XBOX_R3 = 10;
+
+	// XBox Mapping
+	
+	public static final int OP_XBOX_LEFT_X = xboxControllerAxis + 0;
+	public static final int OP_XBOX_LEFT_Y = xboxControllerAxis + 1;
+	public static final int OP_XBOX_L2 = xboxControllerAxis + 2;
+	public static final int OP_XBOX_R2 = xboxControllerAxis + 3;
+	public static final int OP_XBOX_RIGHT_X = xboxControllerAxis + 4;
+	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
+	
+	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
+	public static final int OP_XBOX_A = xboxControllerButtons + 1;
+	public static final int OP_XBOX_B = xboxControllerButtons + 2;
+	public static final int OP_XBOX_X = xboxControllerButtons + 3;
+	public static final int OP_XBOX_Y = xboxControllerButtons + 4;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + 5;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + 6;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + 7;
+	public static final int OP_XBOX_START = xboxControllerButtons + 8;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + 9;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + 10;
 		
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
 	private static boolean firstTime = true;
-	private static final int maxButtons = 18;
-	private static final int maxAxes = 10;
-	private static final int joystickButtonStart[] = {0, 4, 8};
-	private static final int joystickAxisStart[] = {0, 2, 4};
-	
+
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
 	private static final int[][] buttons = {							// {Joystick #, Raw Button #}
