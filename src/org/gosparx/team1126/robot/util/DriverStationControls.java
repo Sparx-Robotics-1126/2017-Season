@@ -179,7 +179,7 @@ public class DriverStationControls {
 		{
 			ds = DriverStation.getInstance();							// Get link to driver station object
 			
-			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks
+			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks (XBox = #2)
 			joysticks[1] = new Joystick(1);
 			joysticks[2] = new Joystick(2);
 
