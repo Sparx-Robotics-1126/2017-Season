@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class Logger{
 
+	private int counters[] = new int[26];
+	
 	/**
 	 * A LogWriter to log our messages
 	 */
@@ -62,6 +64,21 @@ public class Logger{
 		logMessage(message, true);
 	}
 
+	// Log every Xth message to reduce logging.  Each unique message must have an separate ID from 0-24
+	
+	public void logMessage(int id, int frequency, String message){
+		if ((id > 0) && (id <= 24)){
+			counters[id]++;
+			
+			if (counters[id] < frequency)
+				return;
+			
+			counters[id] = 0;
+		}
+		
+		logMessage(message);
+	}
+	
 	/**
 	 * Sends the message to the LogWriter with the proper formatting
 	 * @param message - the message to log
