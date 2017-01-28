@@ -6,6 +6,7 @@ package org.gosparx.team1126.robot.subsystem;
  */
 
 import edu.wpi.first.wpilibj.Encoder;
+import com.ctre.CANTalon;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
@@ -47,7 +48,12 @@ public class Shooter extends GenericSubsystem{
 	private double shootingSpeed;
 	
 	/**
-	 * current turret degree
+	 * current turret degree - 2/3 rotation per 30 degrees
+	 */
+	private double turretDegreeCurrent;
+	
+	/**
+	 * the angle the robot is from the target 
 	 */
 	private double turretDegree;
 	
@@ -69,11 +75,19 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double distanceSetPoint;
 	
-	
+	/**
+	 * if the shooter subsystem(speed method) is ready 
+	 */
 	private boolean speedButton;
 	
+	/**
+	 * if the shooter subsystem(turret method) is ready
+	 */
 	private boolean turretButton;
 	
+	/**
+	 * the pentiameter
+	 */
 	private double pot;
 	
 //******************************************Objects**************************************\\
@@ -86,6 +100,13 @@ public class Shooter extends GenericSubsystem{
 	
 	private AbsoluteEncoderData turretSensor;
 	
+	private CANTalon flyWheel;
+	
+	private CANTalon conveyor;
+	
+	private CANTalon turret;
+	
+	
 //*****************************************Constants*************************************\\
 	/**
 	 * the speed wanted for the agitator 
@@ -97,23 +118,32 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private final double CONVEYER_BELT_SPEED = 0;
 	
-	/**
-	 * the case number for shooting
-	 */
-	private final int CASE_SHOOTING = 1;
-	
-	/**
-	 * the case number for the turret
-	 */
-	private final int CASE_TURRET = 2;
-	
-	
 	private final double DEGREE_PER_VOLT = 0;
 	
 	/**
 	 * the value that the speed of the motor is  allowed to be off by.
 	 */
 	private final int SPEED_ALLOWED_OFF = 25;
+	
+	/**
+	 * the max speed for the fly wheel
+	 */
+	private final double FLYWHEEL_MAX = 1;
+	
+	/**
+	 * the speed that slowly decreases the flywheel speed
+	 */
+	private final double FLYWHEEL_DECAY = 0.25;
+	
+	/**
+	 * the speed that allows the balls to go into the flywheel 
+	 */
+	private final double CONVEYOR_BALL_SPEED = 1; //we need to change this maybe
+	
+	/**
+	 * the speed that will turn the turret until it hits the correct degree
+	 */
+	private final double TURRET_SPEED = 0.25;
 	
 //***************************************************************************************\\	
 	
@@ -139,6 +169,9 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init() {
 		encoderData = new EncoderData(encoder, distPerTick); 
 		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
+		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
+		conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
+		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
 		firstAgitatorMoving = false;
 		secondAgitatorMoving = false;
 		conveyerBeltMoving = false;
@@ -159,13 +192,18 @@ public class Shooter extends GenericSubsystem{
 		
 	}
 
-	//need to figure out what else should be updated and stuff
+	//need to figure out what else should be updated and stuff, no where near finished really
 	@Override  
 	protected boolean execute() {
-		//turretButton = isButtonPressed
-		//speedButton = isButtonPressed
+		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
+			speedButton = true;
+			turretButton = true;
+		}else{
+			speedButton = false;
+			turretButton = false;
+		}
 		if(fireCtrl()){
-			//FIRE
+			conveyor.set(CONVEYOR_BALL_SPEED);
 			return true;
 		}
 		return false;
@@ -194,7 +232,7 @@ public class Shooter extends GenericSubsystem{
 		distanceSetPoint = distance;
 	}
 	
-	//framework done
+	//framework done(need to create some equation that calc. the speed needed using the degree and distance from the target)
 	/**
 	 * calculates the required speed needed for shooting 
 	 * @return - the required speed
@@ -204,45 +242,51 @@ public class Shooter extends GenericSubsystem{
 
 	}
 	
-	//framework done
+	//done 
 	/**
 	 * checks if the motors are ready and are at a correct speed
 	 * @param button - if the button is pressed 
 	 * @return - if this system is ready
 	 */
-	private boolean speedCtrl(boolean button){
+	private boolean speedCtrl(){
+		if(!speedButton){
+			return false;
+		}
 		shootingSpeedCurrent = distanceToSpeed();
-		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
-			shooting = true;
-		}else if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
-			//sets power = 100%
+		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
+			flyWheel.set(FLYWHEEL_MAX);
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
-			//sets power = to some value that keeps the wheel turning but isn't increasing the speed
+			flyWheel.set(FLYWHEEL_DECAY);
 		}else{
 			return true;
 		}
-		return false;	
+		return false;	 
 	}
 	
 	//need to have the distance and angle figured out
 	/**
-	 * checks if the turret is ready to fire(correct distance and angle to fire)
+	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
-	private boolean turretCtrl(boolean button){
+	private boolean turretCtrl(){
+		if(!turretButton){
+			return false;
+		}else if(turretDegreeCurrent != turretDegree){
+			turret.set(arg0);
+		}
 		
 		return true;
 	}
 	
-	//framework done
+	//done
 	/**
 	 * checks if the turret is locked on and the shooter is at speed
 	 * @param fire - if turret and speed ctrl. are ready to fire
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		if(speedCtrl(speedButton) && turretCtrl(turretButton)){
+		if(speedCtrl() && turretCtrl()){
 			return true;
 		}
 		return false;
