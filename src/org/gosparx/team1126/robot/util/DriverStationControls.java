@@ -40,7 +40,7 @@ public class DriverStationControls {
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
-	private static Joystick joysticks[];
+	private static Joystick joysticks[] = new Joystick[3];
 	private static boolean firstTime = true;
 	private static final int maxButtons = 18;
 	private static final int maxAxes = 10;
