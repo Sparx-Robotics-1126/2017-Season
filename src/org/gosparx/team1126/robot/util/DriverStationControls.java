@@ -376,6 +376,21 @@ public class DriverStationControls {
 		return false;													// Failure
 	}
 	
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Inverts the joystick axis if the boolean passed in is true  
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public boolean setInverted(int axisNumber, boolean isInverted)
+	{
+		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for valid Axis Number
+		{			
+			axesData[axisNumber][1] = isInverted ? -1.0 : 1.0;			// Update deadband
+			return true;												// Success
+		}
+		return false;													// Failure
+	}
+
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
