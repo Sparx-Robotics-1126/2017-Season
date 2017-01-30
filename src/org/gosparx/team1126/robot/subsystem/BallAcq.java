@@ -8,7 +8,7 @@ import org.gosparx.team1126.robot.sensors.EncoderData;
 import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
-
+//change enum's to booleans today!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	private static final double ROLLER_SPIN = 1.0;
 
 	private static final double ROLLER_STOP = 0;
