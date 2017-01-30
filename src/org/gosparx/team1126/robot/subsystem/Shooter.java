@@ -273,7 +273,7 @@ public class Shooter extends GenericSubsystem{
 		if(!turretButton){
 			return false;
 		}else if(turretDegreeCurrent != turretDegree){
-			turret.set(arg0);
+		
 		}
 		
 		return true;
