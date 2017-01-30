@@ -9,9 +9,8 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
-import org.opencv.imgcodecs.Imgcodecs;
 
-public class HighGoalVision{
+public class AirShipVision {
 	static final int H_MIN = 70; //Hue min
 	static final int H_MAX = 90; //Hue max
 	static final int S_MIN = 150; //Sat min and max
@@ -20,25 +19,23 @@ public class HighGoalVision{
 	static final int V_MAX = 160;
 	static final byte MAX_KERNEL_LENGTH = 4; //For blur
 	static final int threshold = 10; //for in range 
-	static Point topLeft; //top left of rectangle
-	static Point bottomRight; //bottom right of rectangle
+	static Point topLeftRect1; //top left of first rectangle
+	static Point bottomRightRect2; //bottom right of second rectangle
 	static final int SMALLEST_CONTOUR=15; //smallest contour size allowed
 	static final int LARGEST_CONTOUR=600; //largest contour size allowed
 	static {System.loadLibrary(Core.NATIVE_LIBRARY_NAME);}
 	static double centerX = 0;
-	static double height = 0;
 	static int count =0;
-
+	
 	public static void main(String[] args) {
 		WebCam camera = new WebCam();
 		Mat image=new Mat();
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
-		MatOfPoint largestContour;
-		
+		MatOfPoint firstRectContour;
+		MatOfPoint secondRectContour;
 		while (true)  
 		{
 			image = camera.capture();
-			Imgcodecs.imwrite("/home/admin/hello3.jpg", image);
 			//Blurs image with Max kernal length  
 			for(int i=1; i<MAX_KERNEL_LENGTH;i+=2)
 				Imgproc.blur(image, image, new Size(i,i),new Point(-1,-1)); 
@@ -46,55 +43,40 @@ public class HighGoalVision{
 			Imgproc.cvtColor(image, image, Imgproc.COLOR_BGR2HSV); 
 			// Isolate HSV values in range.
 			Core.inRange(image, new Scalar(H_MIN, S_MIN, V_MIN), new Scalar(H_MAX, S_MAX, V_MAX), image);
-			Imgcodecs.imwrite("/home/admin/hello4.jpg", image);
 			//Canny conversion
 			Imgproc.Canny(image, image, 1, 3);
 			//Finds contours		
 			Imgproc.findContours(image, contours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-
-			if(!contours.isEmpty()){
-				largestContour=findLargestContour(contours);
-				
+			 
+			// Contours of rect 1 and rect 2 are found below  
+			if(!contours.isEmpty()&&contours.size()>=3){
+				firstRectContour=findLargestContour(contours);
+				findLargestContour(contours); //removes second contour for rect 1
+				secondRectContour=findLargestContour(contours);
 			}
 			else{
-				largestContour=null;
+				firstRectContour=null;
+				secondRectContour=null;
 			}
-			if (largestContour != null && !largestContour.empty()){ //2 countours for every rectangle
+			//Makes sure rects were found
+			if (firstRectContour != null && !firstRectContour.empty()&&secondRectContour != null && !secondRectContour.empty()){
 				//Finds the Bounding Box
-				Rect boundingRect = Imgproc.boundingRect(largestContour);
-				//Rect boundingRect2 = Imgproc.boundingRect(contours.get(2));
+				Rect boundingRect = Imgproc.boundingRect(firstRectContour);
+				Rect boundingRect2 = Imgproc.boundingRect(secondRectContour);
 				//Finds the top left corner and right corner of bounding box's 
-				topLeft = boundingRect.tl();
-				//Point topLeft2 = boundingRect2.tl(); //For the 2nd target
-				bottomRight = boundingRect.br();
-				//Point bottomRight2 = boundingRect2.br(); //For the 2nd target
-				//Imgproc.rectangle(image,topLeft,bottomRight, new Scalar(255,255,255));
-				height = bottomRight.y-topLeft.y;
-				//findDistanceFromGoal();
-				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,20,100));
-				Imgcodecs.imwrite("/home/admin/hello2.jpg", image);
+				topLeftRect1 = boundingRect.tl();
+				bottomRightRect2 = boundingRect2.br(); //For the 2nd target
+				//Imgproc.rectangle(image,topLeft,bottomRight, new Scalar(255,255,255));			
+				centerX=((topLeftRect1.x+bottomRightRect2.x)/2);
 				degreesOffCenter();
-				//Point = new Point((topLeft.x+bottomRight.x)/2.0,(topLeft.y+bottomRight.y)/2.0);
-				centerX=((topLeft.x+bottomRight.x)/2);
-				//Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,30,255));
-				System.out.println(height);
-				//Imgcodecs.imwrite("/home/admin/Image"+count+".jpg", image );
 			}
 			else 
 			{
 				System.out.println("Error");
 			}
+			//resets contours
 			contours=new ArrayList<MatOfPoint>();
 		}
-	}
-
-	/**
-	 * Determines how far away the camera is from the target in inches
-	 */
-	public static double findDistanceFromGoal(){  //TODO change this once we can take measurements
-		double distanceAway = (.001116531569*(height*height)-.311488390152*height+28.7931405153)*12;
-		System.out.println(distanceAway);
-		return distanceAway;
 	}
 
 	/**
@@ -109,7 +91,7 @@ public class HighGoalVision{
 	}
 
 	/**
-	 * Finds the largest contour in the list
+	 * Finds the largest contour in the list and removes it from list
 	 * @param contour the list of contours
 	 * @return the largest contour
 	 */
@@ -117,12 +99,15 @@ public class HighGoalVision{
 		Point[] largest=contour.get(0).toArray();
 		MatOfPoint greatest = null;
 		int newSize;
+		int index=0;
 		for (int i = 1; i < contour.size(); i++) {
 			newSize=contour.get(i).toArray().length;
 			if(newSize>SMALLEST_CONTOUR && newSize<LARGEST_CONTOUR && contour.get(i).toArray().length>largest.length){
 				greatest=contour.get(i);
+				index=i;
 			}
 		}
+		contour.remove(index);
 		return greatest;
 	} 
 }
