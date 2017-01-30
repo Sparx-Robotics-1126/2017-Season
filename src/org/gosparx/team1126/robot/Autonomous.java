@@ -38,13 +38,13 @@ public class Autonomous extends GenericSubsystem{
 	// Lookup table to identify the index in the commandName array
 	
 	private static final int[] commandNumber = {
-			DRIVES_FORWARD,
-			DRIVES_TURN,
-			DRIVES_MOVE,
+			DRIVES_FORWARD,										// Distance, Speed
+			DRIVES_TURN,										// Degrees, Absolute/Relative
+			DRIVES_MOVE,										// X, Y, Speed
 			DRIVES_STOP,
 			DRIVES_DONE,
-			SETCRITSTEP,
-			DELAY,
+			SETCRITSTEP,										// Crit Step #, Time (msec) 
+			DELAY,												// Time (msec)
 			WAITING,
 			AUTOEND
 	};
@@ -148,17 +148,18 @@ public class Autonomous extends GenericSubsystem{
 				critTime = 0;											// Clear the critical time
 				LOG.logMessage("Crit Step Triggered: " + critStep);
 			}
-
-			if (currStep >= currentAuto.length){						// Check for invalid command step
-				currCommand = AUTOEND;									// Default Step is to END
-				incStep = false;
-			}
 		
 			if (incStep == true){										// Previous command done?
 				currStep++;												// Increment to next step
 				currCommand = currentAuto[currStep][0];					// Get the "next step" command #
+				incStep = false;
 				LOG.logMessage("runAuto step: " + 
 						lookupCommandName(currCommand));				// Log the "next step" Name
+			}
+
+			if ((currStep < 0) || (currStep >= currentAuto.length)){	// Check for invalid command step
+				currCommand = AUTOEND;									// Default Step is to END
+				LOG.logMessage("runAuto invalid step #" + currStep);
 			}
 			
 			switch(currCommand){
@@ -179,15 +180,16 @@ public class Autonomous extends GenericSubsystem{
 					break;
 				
 				case DRIVES_DONE:
-//					Place Drives Command Complete Check Here, if TRUE then set incStep = TRUE
+//					Place Drives Command Complete Check Here, if "done" then set incStep = TRUE
 					break;
 				
 				case DELAY:
 					waitTime = System.currentTimeMillis() + currentAuto[currStep][1];
 					currCommand = WAITING;
+					break;
 
 				case WAITING:
-					if (System.currentTimeMillis() > waitTime)
+					if (System.currentTimeMillis() >= waitTime)
 						incStep = true;
 					break;
 				
@@ -199,6 +201,7 @@ public class Autonomous extends GenericSubsystem{
 
 				case AUTOEND:
 					abortCommands(); 
+					incStep = false;
 					break;
 				
 				default:
