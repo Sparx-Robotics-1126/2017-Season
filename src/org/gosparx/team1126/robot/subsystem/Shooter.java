@@ -18,26 +18,6 @@ public class Shooter extends GenericSubsystem{
 //*****************************************Variables*************************************\\
 	
 	/**
-	 * true if the first agitator is moving
-	 */
-	private boolean firstAgitatorMoving;
-	
-	/**
-	 * true if the second agitator is moving
-	 */
-	private boolean secondAgitatorMoving;
-	
-	/**
-	 * true if conveyer belt is moving
-	 */
-	private boolean conveyerBeltMoving;
-	
-	/**
-	 * true if shooting
-	 */
-	private boolean shooting;
-	
-	/**
 	 * current shooting speed;
 	 */
 	private double shootingSpeedCurrent;
@@ -52,29 +32,12 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double turretDegreeCurrent;
 	
-	/**
-	 * the angle the robot is from the target 
-	 */
-	private double turretDegree;
 	
 	/**
-	 * if the turret motor is moving 
+	 * used for the encoder data
 	 */
-	private boolean turretMotorMoving;
-	
-	/**
-	 * current motor speed 
-	 */
-	private double turretMotorCurrent;
-	
-	
 	private double distPerTick;
-	
-	/**
-	 * distance to boiler
-	 */
-	private double distanceSetPoint;
-	
+		
 	/**
 	 * if the shooter subsystem(speed method) is ready 
 	 */
@@ -89,6 +52,21 @@ public class Shooter extends GenericSubsystem{
 	 * the pentiameter
 	 */
 	private double pot;
+	
+	/**
+	 * the local variable to see if the button is being pressed or turned true if auto is on
+	 */
+	private boolean isPressed;
+	
+	/**
+	 * the degree the turret is off by
+	 */
+	private double degreeOff;
+	
+	/**
+	 * the distance from the target 
+	 */
+	private double distance;
 	
 //******************************************Objects**************************************\\
 	
@@ -108,15 +86,6 @@ public class Shooter extends GenericSubsystem{
 	
 	
 //*****************************************Constants*************************************\\
-	/**
-	 * the speed wanted for the agitator 
-	 */
-	private final double AGITATOR_SPEED = 0;
-	
-	/**
-	 * The speed wanted for the conveyer belt
-	 */
-	private final double CONVEYER_BELT_SPEED = 0;
 	
 	private final double DEGREE_PER_VOLT = 0;
 	
@@ -131,25 +100,25 @@ public class Shooter extends GenericSubsystem{
 	private final double FLYWHEEL_MAX = 1;
 	
 	/**
-	 * the speed that slowly decreases the flywheel speed
+	 * the speed that slowly decreases the fly wheel speed
 	 */
 	private final double FLYWHEEL_DECAY = 0.25;
 	
 	/**
-	 * the speed that allows the balls to go into the flywheel 
+	 * the speed that allows the balls to go into the fly wheel 
 	 */
 	private final double CONVEYOR_BALL_SPEED = 1; //we need to change this maybe
 	
 	/**
-	 * the speed that will turn the turret until it hits the correct degree
+	 * the difference in fly wheel speeds allowed
 	 */
-	private final double TURRET_SPEED = 0.25;
+	private final double FlYWHEEL_DEADBAND = 100;
 	
 //***************************************************************************************\\	
 	
 	
 	
-	
+	//done
 	/**
 	 * Constructs a shooter object
 	 */
@@ -157,6 +126,7 @@ public class Shooter extends GenericSubsystem{
 		super("Shooter", Thread.NORM_PRIORITY);
 	}
 	
+	//done
 	public static synchronized Shooter getInstance(){
 		if(shoot == null){
 			shoot = new Shooter();
@@ -164,7 +134,7 @@ public class Shooter extends GenericSubsystem{
 		return shoot;
 	}
 	
-	//framework done(updated whenever instance values are added) 
+	//done 
 	@Override
 	protected boolean init() {
 		encoderData = new EncoderData(encoder, distPerTick); 
@@ -172,17 +142,14 @@ public class Shooter extends GenericSubsystem{
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
-		firstAgitatorMoving = false;
-		secondAgitatorMoving = false;
-		conveyerBeltMoving = false;
-		turretMotorMoving  = false;
 		shootingSpeedCurrent = 0;
-		turretDegree = 0;
-		turretMotorCurrent = 0;
 		distPerTick = 0;
 		speedButton = false;
 		turretButton = false;
 		pot = 0;
+		isPressed = false;
+		degreeOff = 0;
+		distance =  0;
 		return true;
 	}
 
@@ -192,10 +159,12 @@ public class Shooter extends GenericSubsystem{
 		
 	}
 
-	//need to figure out what else should be updated and stuff, no where near finished really
+	//done
 	@Override  
 	protected boolean execute() {
-		if(dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON)){
+		if(dsc.isOperatorControl())
+			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
+		if(isPressed){
 			speedButton = true;
 			turretButton = true;
 		}else{
@@ -209,11 +178,10 @@ public class Shooter extends GenericSubsystem{
 		return false;
 	}
 
-	//needs to be started
+	//done
 	@Override
 	protected long sleepTime() {
-		
-		return 0;
+		return 20;
 	}
 
 	//needs to be started
@@ -223,23 +191,23 @@ public class Shooter extends GenericSubsystem{
 		
 	}
 	
-	//done
-	/**
-	 * sets the distance variable to the new distance
-	 * @param distance - the new distance from the boiler
-	 */
-	public void setDistance(int distance){
-		distanceSetPoint = distance;
-	}
-	
-	//framework done(need to create some equation that calc. the speed needed using the degree and distance from the target)
+	//framework done
 	/**
 	 * calculates the required speed needed for shooting 
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
-		return distanceSetPoint * 10;
+		return distance * 10;
 
+	}
+	
+	//framework done
+	/**
+	 * calculates the direction to turn
+	 * @return - the degree and direction
+	 */
+	private double turretSettings(){
+		return degreeOff;
 	}
 	
 	//done 
@@ -250,20 +218,22 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean speedCtrl(){
 		if(!speedButton){
+			flyWheel.set(0);
 			return false;
 		}
-		shootingSpeedCurrent = distanceToSpeed();
+		shootingSpeed = distanceToSpeed();
 		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			flyWheel.set(FLYWHEEL_MAX);
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
 			flyWheel.set(FLYWHEEL_DECAY);
-		}else{
-			return true;
 		}
+		if(Math.abs(shootingSpeedCurrent - shootingSpeed) < FlYWHEEL_DEADBAND)
+				return true;
 		return false;	 
 	}
 	
-	//need to have the distance and angle figured out
+	//done
+	//1 can change
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
@@ -271,12 +241,18 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean turretCtrl(){
 		if(!turretButton){
+			turret.set(0);
 			return false;
-		}else if(turretDegreeCurrent != turretDegree){
-		
 		}
-		
-		return true;
+		if(turretDegreeCurrent < turretSettings()-1){
+			turret.set(-.5);
+		}else if(turretDegreeCurrent > turretSettings()+1){
+			turret.set(.5);
+		}else{
+			turret.set(0);
+			return true;
+		}
+		return false;
 	}
 	
 	//done
@@ -290,6 +266,28 @@ public class Shooter extends GenericSubsystem{
 			return true;
 		}
 		return false;
+	}
+	
+	//done
+	/**
+	 * Sets the shooting system on for auto
+	 * @param isOn - if auto is ready to shoot
+	 * @return - true
+	 */
+	public boolean setSystemState(boolean isOn){
+		isPressed = isOn;
+		return true;
+	}
+	
+	//done
+	/**
+	 * Updates the degree and distance from vision
+	 * @param degreeOff - visions degree off from center
+	 * @param distance - the distance from the target
+	 */
+	public void visionUpdate(double degreeOff, double distance){
+		this.degreeOff = degreeOff;
+		this.distance = distance;
 	}
 
 }
