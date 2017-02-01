@@ -1,6 +1,8 @@
 package org.gosparx.team1126.robot.util;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
@@ -11,7 +13,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 
-public class HighGoalVision implements TargetFinder{
+public class HighGoalVision {
 	static final int H_MIN = 70; //Hue min
 	static final int H_MAX = 90; //Hue max
 	static final int S_MIN = 150; //Sat min and max
@@ -34,7 +36,7 @@ public class HighGoalVision implements TargetFinder{
 		Mat image=new Mat();
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		MatOfPoint largestContour;
-	
+		Shooter s=new Shooter();
 		while (true)  
 		{
 			image = camera.capture();
@@ -69,7 +71,7 @@ public class HighGoalVision implements TargetFinder{
 				height = bottomRight.y-topLeft.y;
 				centerX=((topLeft.x+bottomRight.x)/2);
 				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,20,100));
-				Shooter.visionUpdate(degreesOffCenter(), distanceFromGoal());
+				s.visionUpdate(degreesOffCenter(), distanceFromGoal());
 			}
 			else 
 			{
