@@ -80,6 +80,8 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
+	public static final int ABORT_AUTO_DRIVES								= 4;
+	
 	public static final int INVERT_DRIVES_BUTTON							= 1;
 	
 	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
@@ -93,6 +95,5 @@ public class IO {
 	public static final int LEFT_JOY_X										= 0;
 	
 	public static final int LEFT_JOY_Y										= 1;
-	
 	
 }
