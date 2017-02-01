@@ -11,7 +11,7 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.imgcodecs.Imgcodecs;
 
-public class HighGoalVision{
+public class HighGoalVision implements TargetFinder{
 	static final int H_MIN = 70; //Hue min
 	static final int H_MAX = 90; //Hue max
 	static final int S_MIN = 150; //Sat min and max
@@ -29,12 +29,12 @@ public class HighGoalVision{
 	static double height = 0;
 	static int count =0;
 
-	public static void main(String[] args) {
+	public void run() {
 		WebCam camera = new WebCam();
 		Mat image=new Mat();
 		List<MatOfPoint> contours = new ArrayList<MatOfPoint>();
 		MatOfPoint largestContour;
-		
+	
 		while (true)  
 		{
 			image = camera.capture();
@@ -62,23 +62,14 @@ public class HighGoalVision{
 			if (largestContour != null && !largestContour.empty()){ //2 countours for every rectangle
 				//Finds the Bounding Box
 				Rect boundingRect = Imgproc.boundingRect(largestContour);
-				//Rect boundingRect2 = Imgproc.boundingRect(contours.get(2));
-				//Finds the top left corner and right corner of bounding box's 
+				
+				//Finds the top left corner and right corner of bounding box
 				topLeft = boundingRect.tl();
-				//Point topLeft2 = boundingRect2.tl(); //For the 2nd target
 				bottomRight = boundingRect.br();
-				//Point bottomRight2 = boundingRect2.br(); //For the 2nd target
-				//Imgproc.rectangle(image,topLeft,bottomRight, new Scalar(255,255,255));
 				height = bottomRight.y-topLeft.y;
-				//findDistanceFromGoal();
-				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,20,100));
-				Imgcodecs.imwrite("/home/admin/hello2.jpg", image);
-				degreesOffCenter();
-				//Point = new Point((topLeft.x+bottomRight.x)/2.0,(topLeft.y+bottomRight.y)/2.0);
 				centerX=((topLeft.x+bottomRight.x)/2);
-				//Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,30,255));
-				System.out.println(height);
-				//Imgcodecs.imwrite("/home/admin/Image"+count+".jpg", image );
+				Imgproc.rectangle(image, bottomRight, topLeft, new Scalar(30,20,100));
+				Shooter.visionUpdate(degreesOffCenter(), distanceFromGoal());
 			}
 			else 
 			{
@@ -91,7 +82,7 @@ public class HighGoalVision{
 	/**
 	 * Determines how far away the camera is from the target in inches
 	 */
-	public static double findDistanceFromGoal(){  //TODO change this once we can take measurements
+	public double distanceFromGoal(){  //TODO change this once we can take measurements
 		double distanceAway = (.001116531569*(height*height)-.311488390152*height+28.7931405153)*12;
 		System.out.println(distanceAway);
 		return distanceAway;
@@ -102,7 +93,7 @@ public class HighGoalVision{
 	 * If the target is off the the right of the camera a negative number is returned
 	 * If target is to the left a positive angle is returned 
 	 */
-	public static double degreesOffCenter(){
+	public double degreesOffCenter(){
 		double degreesOff = ((320-centerX)*.07984375);
 		System.out.println(degreesOff);
 		return degreesOff;
