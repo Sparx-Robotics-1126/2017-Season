@@ -46,7 +46,7 @@ public class Drives extends GenericSubsystem {
 	private PID rightPID;														// PID for the right speed and such
 	private PID leftPID;														// PID for the left speed and such
 	private RobotState currentRobotState; 			    						// The current state of the robot, ex) disabled
-	private AutoState currentAutoState;											// The current auto state;
+	private DriveState currentDriveState;											// The current auto state;
 
 	/** Variables */
 
@@ -129,7 +129,7 @@ public class Drives extends GenericSubsystem {
 		gyro = new AHRS(SerialPort.Port.kUSB);
 		gyro.zeroYaw();
 		currentRobotState = RobotState.DISABLED;
-		currentAutoState = AutoState.AUTO_STANDBY;
+		currentDriveState = DriveState.STANDBY;
 		currentX = 0;
 		currentY = 0;
 		currentAngle = 0;
@@ -166,12 +166,10 @@ public class Drives extends GenericSubsystem {
 		
 		dsc.update();
 		
-		if(dsc.isAutonomous()){
-			currentRobotState = RobotState.AUTO;
-		}else if(dsc.isDisabled()){
+		if(dsc.isDisabled()){
 			currentRobotState = RobotState.DISABLED;
 		}else{
-			currentRobotState = RobotState.TELEOP;
+			currentRobotState = RobotState.ENABLED;
 		}
 		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
@@ -189,68 +187,47 @@ public class Drives extends GenericSubsystem {
 		
 		switch(currentRobotState){
 
-		case AUTO:
-			switch(currentAutoState){
+		case ENABLED:
+			switch(currentDriveState){
 			
-			case AUTO_STANDBY:
+			case STANDBY:
+				if(dsc.isOperatorControl()){
+					currentDriveState = DriveState.TELEOP;
+				}
 				break;
 				
 			case AUTO_DRIVE:
-				rightSetPower = wantedSpeed/MAX_SPEED;
-				leftSetPower = wantedSpeed/MAX_SPEED;
-				//correction = angleGyro.getAngle() - initialHeading;
-				averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
-
-				if(averageDistance >= Math.abs(wantedDistance - (.05*wantedSpeed)) - .5){
-					rightSetPower = 0;
-					leftSetPower = 0;
-					//correction = 0;
-					LOG.logMessage("Distance Traveled: " + averageDistance);
-					LOG.logMessage("Gryo Angle: " + gyro.getAngle());
-					currentAutoState = AutoState.AUTO_STANDBY;
-				}
+					drive();
 				break;
 				
 			case AUTO_TURN:
-				angleOffset = wantedAngle - currentAngle;
-
-				if(Math.abs(angleOffset)<3){
-					rightSetPower = 0;
-					leftSetPower = 0;
-					currentAutoState = AutoState.AUTO_STANDBY;
+					turn();
+				break;
+				
+			case TELEOP:
+				if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
+					isInverse = !isInverse;
 				}
-				if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
-					rightSetPower = -wantedSpeed/MAX_SPEED;
-					leftSetPower = wantedSpeed/MAX_SPEED;
-				}else{
-					rightWantedSpeed = wantedSpeed/MAX_SPEED;
-					leftWantedSpeed = -wantedSpeed/MAX_SPEED;
-				}
+				
+				//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+				LOG.logMessage("Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
+				LOG.logMessage("Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
+				setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
+						dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+				//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
+				//leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
+				
 				break;
 				
 			default:
-				LOG.logError("ERROR: Current Auto State is: " + currentAutoState);
+				LOG.logError("ERROR: Current Auto State is: " + currentDriveState);
 			}
 			break;
 
-		case TELEOP:
-			currentAutoState = AutoState.AUTO_STANDBY;
 			
-			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
-				isInverse = !isInverse;
-			}
 			
-			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-				LOG.logMessage("Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
-				LOG.logMessage("Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
-			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			rightSetPower = rightWantedSpeed/MAX_SPEED;			        				// In case driver doesn't want PID loop
-			leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
-			
-			break;
 
 		case DISABLED:
 			
@@ -303,7 +280,7 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
 		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
 		LOG.logMessage(7, 10, "Current Robot State: " + currentRobotState);
-		LOG.logMessage(8, 10, "Current Auto State: " + currentAutoState);
+		LOG.logMessage(8, 10, "Current Drive State: " + currentDriveState);
 		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
 		if(isInverse){
 			LOG.logMessage(10, 10, "The drives are inverted");
@@ -353,8 +330,8 @@ public class Drives extends GenericSubsystem {
 		leftEncoderData.reset();
 		wantedDistance = distance;
 		wantedSpeed = speed;
-		currentAutoState = AutoState.AUTO_DRIVE;
-		if(!currentAutoState.equals(AutoState.AUTO_DRIVE)){
+		currentDriveState = DriveState.AUTO_DRIVE;
+		if(!currentDriveState.equals(DriveState.AUTO_DRIVE)){
 			return true;
 		}else{
 			return false;
@@ -373,8 +350,8 @@ public class Drives extends GenericSubsystem {
 		leftEncoderData.reset();
 		wantedAngle = angle;
 		wantedSpeed = speed;
-		currentAutoState = AutoState.AUTO_TURN;
-		if(!currentAutoState.equals(AutoState.AUTO_TURN)){
+		currentDriveState = DriveState.AUTO_TURN;
+		if(!currentDriveState.equals(DriveState.AUTO_TURN)){
 			return true;
 		}else{
 			return false;
@@ -386,7 +363,7 @@ public class Drives extends GenericSubsystem {
 	 * @param newX the x value of the position we're driving to
 	 * @param newY the y value of the position we're driving to 
 	 */
-	public void trig(double newX, double newY){
+	private void trig(double newX, double newY){
 		double xChange, yChange;
 		xChange = newX - currentX;
 		yChange = newY - currentY;
@@ -417,13 +394,67 @@ public class Drives extends GenericSubsystem {
 		currentX = x;
 		currentY = y;
 	}
+	
+	/**
+	 * Helper method for auto turn
+	 */
+	private void turn(){
+		angleOffset = wantedAngle - currentAngle;
+
+		if(Math.abs(angleOffset)<3){
+			rightSetPower = 0;
+			leftSetPower = 0;
+			currentDriveState = DriveState.STANDBY;
+		}
+		if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
+			rightSetPower = -wantedSpeed/MAX_SPEED;
+			leftSetPower = wantedSpeed/MAX_SPEED;
+		}else{
+			rightWantedSpeed = wantedSpeed/MAX_SPEED;
+			leftWantedSpeed = -wantedSpeed/MAX_SPEED;
+		}
+	}
+	
+	/**
+	 * Help method for auto drive
+	 */
+	private void drive(){
+		rightSetPower = wantedSpeed/MAX_SPEED;
+		leftSetPower = wantedSpeed/MAX_SPEED;
+		//correction = angleGyro.getAngle() - initialHeading;
+		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
+
+		if(averageDistance >= Math.abs(wantedDistance - (.05*wantedSpeed)) - .5){
+			rightSetPower = 0;
+			leftSetPower = 0;
+			//correction = 0;
+			LOG.logMessage("Distance Traveled: " + averageDistance);
+			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+			currentDriveState = DriveState.STANDBY;
+		}
+	}
+	
+	/**
+	 * Accessor method for current x position
+	 * @return  current x value
+	 */
+	public double getCurrentX(){
+		return currentX;
+	}
+	
+	/**
+	 * Accessor method for current y position
+	 * @return current y value
+	 */
+	public double getCurrentY(){
+		return currentY;
+	}
 
 	/**
 	 * Enables the Drives to know if the robot is disabled, in auto, or if it's in teleop
 	 */
 	public enum RobotState{
-		AUTO,
-		TELEOP,
+		ENABLED,
 		DISABLED;
 
 		/**
@@ -433,10 +464,8 @@ public class Drives extends GenericSubsystem {
 		@Override
 		public String toString(){
 			switch(this){
-			case AUTO:
-				return "Auto";
-			case TELEOP:
-				return "Teleop";
+			case ENABLED:
+				return "Enabled";
 			case DISABLED:
 				return "Disabled";
 			default:
@@ -448,10 +477,11 @@ public class Drives extends GenericSubsystem {
 	/**
 	 * Enables the Drives to know if the robot is disabled, in auto, or if it's in teleop
 	 */
-	public enum AutoState{
-		AUTO_STANDBY,
+	public enum DriveState{
+		STANDBY,
 		AUTO_DRIVE,
-		AUTO_TURN;
+		AUTO_TURN,
+		TELEOP;
 
 		/**
 		 * Gets the name of the robot state
@@ -460,12 +490,14 @@ public class Drives extends GenericSubsystem {
 		@Override
 		public String toString(){
 			switch(this){
-			case AUTO_STANDBY:
+			case STANDBY:
 				return "Auto Standby";
 			case AUTO_DRIVE:
 				return "Auto Drive";
 			case AUTO_TURN:
 				return "Auto Turn";
+			case TELEOP:
+				return "Teleop";
 			default:
 				return "Error :(";
 			}
