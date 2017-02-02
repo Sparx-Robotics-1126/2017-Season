@@ -6,6 +6,8 @@ package org.gosparx.team1126.robot.subsystem;
  */
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+
 import com.ctre.CANTalon;
 
 import org.gosparx.team1126.robot.IO;
@@ -31,12 +33,6 @@ public class Shooter extends GenericSubsystem{
 	 * current turret degree - 2/3 rotation per 30 degrees
 	 */
 	private double turretDegreeCurrent;
-	
-	
-	/**
-	 * used for the encoder data
-	 */
-	private double distPerTick;
 		
 	/**
 	 * if the shooter subsystem(speed method) is ready 
@@ -47,11 +43,6 @@ public class Shooter extends GenericSubsystem{
 	 * if the shooter subsystem(turret method) is ready
 	 */
 	private boolean turretButton;
-	
-	/**
-	 * the pentiameter
-	 */
-	private double pot;
 	
 	/**
 	 * the local variable to see if the button is being pressed or turned true if auto is on
@@ -87,7 +78,10 @@ public class Shooter extends GenericSubsystem{
 	
 //*****************************************Constants*************************************\\
 	
-	private final double DEGREE_PER_VOLT = 0;
+	/**
+	 * 
+	 */
+	private final double DEGREE_PER_VOLT = 0.1;
 	
 	/**
 	 * the value that the speed of the motor is  allowed to be off by.
@@ -114,6 +108,16 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private final double FlYWHEEL_DEADBAND = 100;
 	
+	/**
+	 * used for the encoder data
+	 */
+	private final double DIST_PER_TICK =  1/256;
+	
+	/**
+	 * turret center position in volts
+	 */
+	private final double ZERO_VOLTAGE = 2.5;
+	
 //***************************************************************************************\\	
 	
 	
@@ -127,6 +131,10 @@ public class Shooter extends GenericSubsystem{
 	}
 	
 	//done
+	/**
+	 * makes sure there is only one instance of shooter
+	 * @return - a shooter object
+	 */
 	public static synchronized Shooter getInstance(){
 		if(shoot == null){
 			shoot = new Shooter();
@@ -135,33 +143,48 @@ public class Shooter extends GenericSubsystem{
 	}
 	
 	//done 
+	/**
+	 * instantiates all the objects and gives data to the variables
+	 */
 	@Override
 	protected boolean init() {
-		encoderData = new EncoderData(encoder, distPerTick); 
+		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
+		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
 		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
+		turretSensor.setZero(ZERO_VOLTAGE);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
 		shootingSpeedCurrent = 0;
-		distPerTick = 0;
 		speedButton = false;
 		turretButton = false;
-		pot = 0;
 		isPressed = false;
 		degreeOff = 0;
 		distance =  0;
 		return true;
 	}
 
-	//needs to be started
+	//done?
+	/**
+	 * used to set data during testing mode
+	 */
 	@Override
 	protected void liveWindow() {
-		
+		String subsystemName = "Shooter";
+		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
+		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
+		LiveWindow.addActuator(subsystemName, "Conveyor", conveyor);
+		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 	}
 
 	//done
+	/**
+	 * makes the robot shoot and turn its turret and stuff
+	 */
 	@Override  
 	protected boolean execute() {
+		shootingSpeedCurrent = encoderData.getSpeed();
+		turretDegreeCurrent = turretSensor.relDegrees();
 		if(dsc.isOperatorControl())
 			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 		if(isPressed){
@@ -179,16 +202,25 @@ public class Shooter extends GenericSubsystem{
 	}
 
 	//done
+	/**
+	 * time to rest the system between loops 
+	 */
 	@Override
 	protected long sleepTime() {
 		return 20;
 	}
 
-	//needs to be started
+	//done
+	/**
+	 * for logging messages
+	 */
 	@Override
 	protected void writeLog() {
-		
-		
+		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+		LOG.logMessage("Turret degree: " + turretDegreeCurrent);
+		LOG.logMessage("Turret Degree Off: " + degreeOff);
+		LOG.logMessage("Distance Away: " + distance);
+		LOG.logMessage("IsPressed: " + isPressed);
 	}
 	
 	//framework done
@@ -233,7 +265,7 @@ public class Shooter extends GenericSubsystem{
 	}
 	
 	//done
-	//1 can change
+	//1 can(and will) change
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
