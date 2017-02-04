@@ -416,7 +416,10 @@ public class DriverStationControls {
 	//-----------------------------------------------------------------------------------------------------------
 	
 	public boolean runDiagnostics(){
-		return isPressed(OP_XBOX_BACK);									// Should consider changing to IO.
+		if ((isFMSAttached() == false) && isPressed(OP_XBOX_BACK))
+			return true;
+
+		return false;
 	}
 	
 	

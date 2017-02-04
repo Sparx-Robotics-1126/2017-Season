@@ -66,6 +66,7 @@ public class Logger{
 	}
 
 	// Log every Xth message to reduce logging.  Each unique message must have an separate ID from 0-24
+	// Logs all messages on an invalid ID
 	
 	public void logMessage(int id, int frequency, String message){
 		if ((id >= 0) && (id < maxUniqueMessages)){
@@ -96,7 +97,7 @@ public class Logger{
 		}
 		String timeFormatted = formatter.format(Timer.getFPGATimestamp());
 		String toLog = (error ? ("ERROR") : ("DEBUG"))+ "[" + status + "]{" + subsystemName + "}(" + timeFormatted + "):" + message+ "\n";
-		writer.logString(toLog);//TODO:UNCOMMENT TO LOG
+//		writer.logString(toLog);			//TODO:UNCOMMENT TO LOG
 		System.out.print(toLog);
 	}
 }
