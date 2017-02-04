@@ -5,8 +5,24 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 
 public class DriverStationControls {
+
+	// General Joystick Data
 	
-	// Standard Joystick Mapping
+	private static final int maxButtons = 18;
+	private static final int maxAxes = 10;
+	private static final int maxPOVs = 8;
+	private static final int leftJoystickButtons = 0;
+	private static final int rightJoystickButtons = 4;
+	private static final int xboxControllerButtons = 8;
+	private static final int leftJoystickAxis = 0;
+	private static final int rightJoystickAxis = 4;
+	private static final int xboxControllerAxis = 8;
+	
+	// General POV Data
+	
+	private int lastPOV;
+	
+	// Generic Joystick Mapping
 	
 	public static final int JOY_X_AXIS = 0;
 	public static final int JOY_Y_AXIS = 1;
@@ -16,8 +32,26 @@ public class DriverStationControls {
 	public static final int JOY_RIGHT = 3;
 	public static final int JOY_MIDDLE = 4;
 
-	// XBox Mapping
+	// Specific Joystick Mapping
 	
+	public static final int LEFT_JOY_X_AXIS = leftJoystickAxis + JOY_X_AXIS;
+	public static final int LEFT_JOY_Y_AXIS = leftJoystickAxis + JOY_Y_AXIS;
+
+	public static final int LEFT_JOY_TRIGGER = leftJoystickButtons + JOY_TRIGGER;
+	public static final int LEFT_JOY_LEFT = leftJoystickButtons + JOY_LEFT;
+	public static final int LEFT_JOY_RIGHT = leftJoystickButtons + JOY_RIGHT;
+	public static final int LEFT_JOY_MIDDLE = leftJoystickButtons + JOY_MIDDLE;
+	
+	public static final int RIGHT_JOY_X_AXIS = rightJoystickAxis + JOY_X_AXIS;
+	public static final int RIGHT_JOY_Y_AXIS = rightJoystickAxis + JOY_Y_AXIS;
+
+	public static final int RIGHT_JOY_TRIGGER = rightJoystickButtons + JOY_TRIGGER;
+	public static final int RIGHT_JOY_LEFT = rightJoystickButtons + JOY_LEFT;
+	public static final int RIGHT_JOY_RIGHT = rightJoystickButtons + JOY_RIGHT;
+	public static final int RIGHT_JOY_MIDDLE = rightJoystickButtons + JOY_MIDDLE;
+
+	// Generic XBox Mapping
+
 	public static final int XBOX_LEFT_X = 0;
 	public static final int XBOX_LEFT_Y = 1;
 	public static final int XBOX_L2 = 2;
@@ -36,17 +70,34 @@ public class DriverStationControls {
 	public static final int XBOX_START = 8;
 	public static final int XBOX_L3 = 9;
 	public static final int XBOX_R3 = 10;
+
+	// XBox Mapping
+	
+	public static final int OP_XBOX_LEFT_X = xboxControllerAxis + 0;
+	public static final int OP_XBOX_LEFT_Y = xboxControllerAxis + 1;
+	public static final int OP_XBOX_L2 = xboxControllerAxis + 2;
+	public static final int OP_XBOX_R2 = xboxControllerAxis + 3;
+	public static final int OP_XBOX_RIGHT_X = xboxControllerAxis + 4;
+	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
+	
+	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
+	public static final int OP_XBOX_A = xboxControllerButtons + 1;
+	public static final int OP_XBOX_B = xboxControllerButtons + 2;
+	public static final int OP_XBOX_X = xboxControllerButtons + 3;
+	public static final int OP_XBOX_Y = xboxControllerButtons + 4;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + 5;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + 6;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + 7;
+	public static final int OP_XBOX_START = xboxControllerButtons + 8;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + 9;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + 10;
 		
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
-	private static Joystick joysticks[];
+	private static Joystick joysticks[] = new Joystick[3];
 	private static boolean firstTime = true;
-	private static final int maxButtons = 18;
-	private static final int maxAxes = 10;
-	private static final int joystickButtonStart[] = {0, 4, 8};
-	private static final int joystickAxisStart[] = {0, 2, 4};
-	
+
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
 	private static final int[][] buttons = {							// {Joystick #, Raw Button #}
@@ -74,6 +125,12 @@ public class DriverStationControls {
 	//	 There is a static version that is continually updated, and a local version used for each object and is updated
 	//	 when called the appropriate routine.
 	
+	private static long[][]POVData = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0}														// Stores falling edge information (right is from update())
+	};
+
 	private static long[][]buttonDataGlobal = {							// {Rising Edge, Falling Edge})
 			{0,0},														// Joystick 0 (Standard)
 			{0,0},
@@ -153,17 +210,28 @@ public class DriverStationControls {
 			{2, XBOX_R2}
 	};
 	
-	private double[][] axesData = {										// { Deadband }
-			{0.05},														// Joystick 0 (Standard)
-			{0.05},
-			{0.05},														// Joystick 1 (Standard)
-			{0.05},
-			{0.05},														// Joystick 2 (XBox)
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05},
-			{0.05}
+	private static final int[][] povs = {
+			{2, 0},
+			{2, 45},
+			{2, 90},
+			{2, 135},
+			{2, 180},
+			{2, 225},
+			{2, 270},
+			{2, 315}
+	};
+	
+	private double[][] axesData = {										// { Deadband, axis invert }
+			{0.05,1.0},													// Joystick 0 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},													// Joystick 1 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},													// Joystick 2 (XBox)
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0}
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -179,16 +247,78 @@ public class DriverStationControls {
 		{
 			ds = DriverStation.getInstance();							// Get link to driver station object
 			
-			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks
+			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks (XBox = #2)
 			joysticks[1] = new Joystick(1);
 			joysticks[2] = new Joystick(2);
-
+			
+			lastPOV = -1;
+			
 			for (i=0; i< maxButtons; i++){								// Set buttons to the current values
 				buttonLastValues[i] = getButton(i);
 			}
 		}
 	}
 	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the specified POV is pressed
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public boolean getPOV(int joy,int POVNumber)
+	{
+		if ((POVNumber >= 0) &&(POVNumber < maxPOVs))
+			if(joysticks[joy].getPOV() == povs[POVNumber][1]){
+				return true;
+			}
+		return false;
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return the current value of the specified POV
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public int getRawPOV(int joy){
+		return joysticks[joy].getPOV();
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is pressed (rising edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVRising(int POVNumber){
+		
+		boolean rising = false;
+		int pov = getRawPOV(2);
+		
+		if (POVData[1][0] < POVData[1][1]){
+			if (POVData[1][0] > 0 && pov == povs[POVNumber][1])
+			{
+				rising = true;
+			}
+			POVData[1][0] = POVData[1][1];
+		}
+		return rising;
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is released (falling edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVFalling(int POVNumber){
+		
+		boolean falling = false;
+		int pov = getRawPOV(2);
+		
+		if (POVData[2][0] < POVData[2][1]){
+			if (POVData[2][0] > 0 && pov == povs[POVNumber][1])
+			{
+				falling = true;
+			}
+			POVData[2][0] = POVData[2][1];
+		}
+		return falling;
+	}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return the current value of the specified button
@@ -231,8 +361,7 @@ public class DriverStationControls {
 	{
 		return joysticks[joy].getRawButton(button);						// Return current value
 	}
-
-
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if there was a button pressed (rising edge) since the last time this method was called by the
 	// owner (subsystem).
@@ -325,11 +454,27 @@ public class DriverStationControls {
 			(deadband >= 0) && (deadband <= 1.0))						//	 and valid deadband (0.0 - 1.0)
 		{
 			axesData[axisNumber][0] = deadband;							// Update deadband
+			
 			return true;												// Success
 		}
 		return false;													// Failure
 	}
 	
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Inverts the joystick axis if the boolean passed in is true  
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public boolean setInverted(int axisNumber, boolean isInverted)
+	{
+		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for valid Axis Number
+		{			
+			axesData[axisNumber][1] = isInverted ? -1.0 : 1.0;			// Update deadband
+			return true;												// Success
+		}
+		return false;													// Failure
+	}
+
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
@@ -356,7 +501,7 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-
+		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
@@ -371,6 +516,14 @@ public class DriverStationControls {
 							System.currentTimeMillis();
 					
 					buttonLastValues[i] = bValue;						// Store updated button value
+				}
+			}
+			if(lastPOV != getRawPOV(2)){
+				POVData[0][1] = getRawPOV(2);
+				if(POVData[0][1] != -1){
+				POVData[1][1] = System.currentTimeMillis(); //rising edge
+				} else {
+				POVData[2][1] = System.currentTimeMillis(); // falling edge
 				}
 			}
 		}
