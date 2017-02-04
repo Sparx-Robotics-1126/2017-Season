@@ -38,13 +38,15 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	public GenericSubsystem(String name, int priority){
 		super(name);
+		
 		if(priority != Thread.MIN_PRIORITY && priority != Thread.NORM_PRIORITY && priority != MAX_PRIORITY)
 			throw new InvalidParameterException();
+
 		setPriority(priority);
-		if(name != "LogWriter"){
-			LOG = new Logger(name);
-		}
 		dsc = new DriverStationControls();
+		
+		if(name != "LogWriter")
+			LOG = new Logger(name);
 	}
 
 	/**
@@ -101,12 +103,16 @@ public abstract class GenericSubsystem extends Thread {
 	public void run(){
 		boolean retVal = false;
 		double lastLogged = 0;
+		
 		if(LOG != null)
 			LOG.logMessage("***Starting: " + getName());
+		
 		init();
 		liveWindow();
+		
 		if(LOG != null)
 			LOG.logMessage("***Executing: " + getName());
+		
 		do{
 			if(!dsc.isTest()){
 				try{
@@ -115,21 +121,24 @@ public abstract class GenericSubsystem extends Thread {
 				}catch(Exception e){
 					if(LOG != null)
 						LOG.logError("Uncaught Exception! " + e.getMessage());
+				
 					e.printStackTrace(System.err);
 				}
+				
 				if(Timer.getFPGATimestamp() >= lastLogged + logTime()){
 					writeLog();
 					lastLogged = Timer.getFPGATimestamp();
 				}
+				
 				try {
 					Thread.sleep(sleepTime());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-			}else{
+			}else
 				retVal = false;
-			}
 		}while(!retVal);
+
 		if(LOG != null)
 			LOG.logMessage("Completing thread: " + getName());
 	}
@@ -139,6 +148,6 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	@Override
 	public String toString(){
-		return  this.getName();
+		return this.getName();
 	}
 }

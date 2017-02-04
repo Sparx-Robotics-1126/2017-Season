@@ -103,7 +103,7 @@ public class LogWriter extends GenericSubsystem{
 			}
 		}
 		write(toWrite.getBytes());
-		System.out.print(toWrite);
+//		System.out.print(toWrite);						// Doubles output to console - keep commented out
 		return false;
 	}
 
