@@ -5,11 +5,11 @@ package org.gosparx.team1126.robot.subsystem;
  * @Author - nphto
  */
 
+//*****************************************Imports***************************************\\
+
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
-
 import com.ctre.CANTalon;
-
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
@@ -64,7 +64,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean ready;
 	
-//******************************************Objects**************************************\\
+//*****************************************Objects***************************************\\
 	
 	private static Shooter shoot;
 	
@@ -79,7 +79,6 @@ public class Shooter extends GenericSubsystem{
 	private CANTalon conveyor;
 	
 	private CANTalon turret;
-	
 	
 //*****************************************Constants*************************************\\
 	
@@ -123,9 +122,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private final double ZERO_VOLTAGE = 2.5;
 	
-//***************************************************************************************\\	
-	
-	
+//*****************************************Methods***************************************\\	
 	
 	//done
 	/**
@@ -152,7 +149,7 @@ public class Shooter extends GenericSubsystem{
 	 * instantiates all the objects and gives data to the variables
 	 */
 	@Override
-	protected boolean init() {
+	protected boolean init(){
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
 		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
@@ -170,12 +167,12 @@ public class Shooter extends GenericSubsystem{
 		return true;
 	}
 
-	//done?
+	//done
 	/**
 	 * used to set data during testing mode
 	 */
 	@Override
-	protected void liveWindow() {
+	protected void liveWindow(){
 		String subsystemName = "Shooter";
 		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
 		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
@@ -188,7 +185,7 @@ public class Shooter extends GenericSubsystem{
 	 * makes the robot shoot and turn its turret and stuff
 	 */
 	@Override  
-	protected boolean execute() {
+	protected boolean execute(){
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
 		if(dsc.isOperatorControl())
@@ -221,7 +218,7 @@ public class Shooter extends GenericSubsystem{
 	 * time to rest the system between loops 
 	 */
 	@Override
-	protected long sleepTime() {
+	protected long sleepTime(){
 		return 20;
 	}
 
@@ -230,7 +227,7 @@ public class Shooter extends GenericSubsystem{
 	 * for logging messages
 	 */
 	@Override
-	protected void writeLog() {
+	protected void writeLog(){
 		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
 		LOG.logMessage("Turret degree: " + turretDegreeCurrent);
 		LOG.logMessage("Turret Degree Off: " + degreeOff);
