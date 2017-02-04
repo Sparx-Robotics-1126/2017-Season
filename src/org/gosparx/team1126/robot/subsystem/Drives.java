@@ -167,15 +167,12 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
-		
 		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
 		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
 		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotorBack);
-		
 		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
 		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotorFront);
 		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotorBack);
-		
 		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
 		LiveWindow.addSensor(sensorName, "Left Encoder", leftEncoder);
 		LiveWindow.addSensor(sensorName, "Gyro", gyro);
@@ -220,10 +217,6 @@ public class Drives extends GenericSubsystem {
 			turn();
 			break;
 			
-		case AUTO_MOVE:
-			
-			break;
-			
 		case AUTO_HOLD:
 			hold();
 			break;
@@ -248,14 +241,13 @@ public class Drives extends GenericSubsystem {
 			}if(dsc.getButtonRising(8888888)){
 				
 			}
+			if(dsc.runDiagnostics()){
+				diagnostics();
+			}
 			
 			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
 			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
 					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
-			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
-			//leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
 			
 			break;
 			
@@ -272,6 +264,11 @@ public class Drives extends GenericSubsystem {
 			LOG.logError("Error :( Current Drive State: " + currentDriveState);
 		}
 	
+		rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+		leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+		//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
+		//leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
+		
 		rightMotorTop.set(rightSetPower);
 		rightMotorFront.set(rightSetPower);
 		rightMotorBack.set(rightSetPower);
@@ -284,6 +281,7 @@ public class Drives extends GenericSubsystem {
 		previousX = currentX;
 		previousY = currentY;
 		previousAngle = currentAngle;
+		
 		return false;
 	}
 
@@ -396,137 +394,10 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
-	 * Calculates the wanted angle and wanted distance to travel to a coordinate
-	 * @param newX the x value of the position we're driving to
-	 * @param newY the y value of the position we're driving to 
-	 */
-	private void trig(double newX, double newY){
-		double xChange, yChange;
-		xChange = newX - currentX;
-		yChange = newY - currentY;
-		wantedDistance = Math.sqrt((xChange * xChange) + (yChange * yChange));
-		wantedAngle = Math.atan(xChange/yChange);
-	}
-	
-	/**
-	 * Moves the robot to a specific coordinate
-	 * @param xValue the x the robot needs to travel to 
-	 * @param yValue the y value the robot needs to travel to
-	 * @param driveSpeed the speed at which the robot needs to drive
-	 * @param turnSpeed the speed at which the robot needs to turn
-	 * @return true if the robot has made it to the coordinate, false otherwise
-	 */
-	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
-		trig(xValue,yValue);
-		autoTurn(wantedAngle, turnSpeed);
-		if(turnDone){;
-			autoDrive(wantedDistance, driveSpeed);
-		}
-		if(driveDone){
-			return true;
-		}
-		return false;
-	}
-	
-	/**
-	 * Allows auto to set the starting coordinate of the robot
-	 * @param x the x value the robot starts in 
-	 * @param y the y value the robot starts in
-	 */
-	public void setStartingCoordinate(double x, double y){
-		currentX = x;
-		currentY = y;
-	}
-	
-	/**
-	 * Helper method for auto turn
-	 */
-	private void turn(){
-		angleOffset = wantedAngle - currentAngle;
-		if(Math.abs(angleOffset)<3){
-			rightSetPower = 0;
-			leftSetPower = 0;
-			currentDriveState = DriveState.STANDBY;
-		}
-		if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
-			rightSetPower = -wantedSpeed/MAX_SPEED;
-			leftSetPower = wantedSpeed/MAX_SPEED;
-		}else{
-			rightWantedSpeed = wantedSpeed/MAX_SPEED;
-			leftWantedSpeed = -wantedSpeed/MAX_SPEED;
-		}
-	}
-	
-	/**
-	 * Help method for auto drive
-	 */
-	private void drive(){
-		rightSetPower = wantedSpeed/MAX_SPEED;
-		leftSetPower = wantedSpeed/MAX_SPEED;
-		//correction = angleGyro.getAngle() - initialHeading;
-		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
-
-		if(averageDistance >= Math.abs(wantedDistance - (.05*wantedSpeed)) - .5){
-			rightSetPower = 0;
-			leftSetPower = 0;
-			//correction = 0;
-			LOG.logMessage("Distance Traveled: " + averageDistance);
-			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
-			currentDriveState = DriveState.STANDBY;
-		}
-
-	}
-	
-	public void hold(){
-		double changeX = currentX - previousX;
-		double changeY = currentY - previousY;
-		double changeAngle = currentAngle - previousAngle;
-		if (Math.abs(changeX) > 3){
-			LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
-		}
-		if(Math.abs(changeY) > 3){
-			autoDrive(changeY, HOLDING_DRIVE_SPEED);
-		}
-		if((Math.abs(changeAngle) > 3) && driveDone){
-			autoTurn(previousAngle, HOLDING_TURN_SPEED);
-		}
-	}
-	
-	/**
-	 * Accessor method for current x position
-	 * @return  current x value
-	 */
-	public double getCurrentX(){
-		return currentX;
-	}
-	
-	/**
-	 * Accessor method for current y position
-	 * @return current y value
-	 */
-	public double getCurrentY(){
-		return currentY;
-	}
-
-	/**
 	 * aborts the current auto function
 	 */
 	public void abortAuto(){
 		currentDriveState = DriveState.AUTO_ABORT;
-	}
-	
-	public void abort(){
-		rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
-		rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
-		rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
-		leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
-		leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
-		leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
-		wantedSpeed = STOP_MOTOR_POWER_SPEED;
-		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
-		leftWantedSpeed = STOP_MOTOR_POWER_SPEED;
-		rightSetPower = STOP_MOTOR_POWER_SPEED;
-		leftSetPower = STOP_MOTOR_POWER_SPEED;
 	}
 	
 	/**
@@ -555,15 +426,135 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
+	 * Allows auto to set the starting coordinate of the robot
+	 * @param x the x value the robot starts in 
+	 * @param y the y value the robot starts in
+	 */
+	public void setStartingCoordinate(double x, double y){
+		currentX = x;
+		currentY = y;
+	}
+	
+	/**
+	 * Moves the robot to a specific coordinate
+	 * @param xValue the x the robot needs to travel to 
+	 * @param yValue the y value the robot needs to travel to
+	 * @param driveSpeed the speed at which the robot needs to drive
+	 * @param turnSpeed the speed at which the robot needs to turn
+	 * @return true if the robot has made it to the coordinate, false otherwise
+	 */
+	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
+		trig(xValue,yValue);
+		autoTurn(wantedAngle, turnSpeed);
+		if(turnDone){;
+			autoDrive(wantedDistance, driveSpeed);
+		}
+		if(driveDone){
+			return true;
+		}
+		return false;
+	}
+	
+	/**
 	 * Checks all the motors
 	 */
-	public void diagnostic(){
+	public void diagnostics(){
 		check(rightMotorTop, rightEncoder, rightEncoderData, CHECK_POWER);
 		check(rightMotorFront, rightEncoder, rightEncoderData, CHECK_POWER);
 		check(rightMotorBack, rightEncoder, rightEncoderData, CHECK_POWER);
 		check(leftMotorTop, leftEncoder, leftEncoderData, CHECK_POWER);
 		check(leftMotorFront, leftEncoder, leftEncoderData, CHECK_POWER);
 		check(leftMotorBack, leftEncoder, leftEncoderData, CHECK_POWER);
+	}
+	
+	/**
+	 * Accessor method for current x position
+	 * @return  current x value
+	 */
+	public double getCurrentX(){
+		return currentX;
+	}
+	
+	/**
+	 * Accessor method for current y position
+	 * @return current y value
+	 */
+	public double getCurrentY(){
+		return currentY;
+	}
+	
+	/**
+	 * Helper method for auto turn
+	 */
+	private void turn(){
+		angleOffset = wantedAngle - currentAngle;
+		if(Math.abs(angleOffset)<3){
+			rightWantedSpeed = 0;
+			leftWantedSpeed = 0;
+			currentDriveState = DriveState.STANDBY;
+		}
+		if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
+			rightWantedSpeed = -wantedSpeed;
+			leftWantedSpeed = wantedSpeed;
+		}else{
+			rightWantedSpeed = wantedSpeed;
+			leftWantedSpeed = -wantedSpeed;
+		}
+	}
+	
+	/**
+	 * Help method for auto drive
+	 */
+	private void drive(){
+		rightWantedSpeed = wantedSpeed;
+		leftWantedSpeed = wantedSpeed;
+		//correction = angleGyro.getAngle() - initialHeading;
+		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
+
+		if(averageDistance >= Math.abs(wantedDistance - (.05*wantedSpeed)) - .5){
+			rightWantedSpeed = 0;
+			leftWantedSpeed = 0;
+			//correction = 0;
+			LOG.logMessage("Distance Traveled: " + averageDistance);
+			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+			currentDriveState = DriveState.STANDBY;
+		}
+	}
+	
+	/**
+	 * holds the drives at a specific y coordinate and angle...nothing can be done to 
+	 * hold the x since we don't have lateral movement
+	 */
+	public void hold(){
+		double changeX = currentX - previousX;
+		double changeY = currentY - previousY;
+		double changeAngle = currentAngle - previousAngle;
+		if (Math.abs(changeX) > 3){
+			LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
+		}
+		if(Math.abs(changeY) > 3){
+			autoDrive(changeY, HOLDING_DRIVE_SPEED);
+		}
+		if((Math.abs(changeAngle) > 3) && driveDone){
+			autoTurn(previousAngle, HOLDING_TURN_SPEED);
+		}
+	}
+	
+	/**
+	 * Aborts the auto drives
+	 */
+	public void abort(){
+		rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
+		rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
+		wantedSpeed = STOP_MOTOR_POWER_SPEED;
+		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
+		leftWantedSpeed = STOP_MOTOR_POWER_SPEED;
+		rightSetPower = STOP_MOTOR_POWER_SPEED;
+		leftSetPower = STOP_MOTOR_POWER_SPEED;
 	}
 	
 	/**
@@ -604,13 +595,25 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
+	 * Calculates the wanted angle and wanted distance to travel to a coordinate
+	 * @param newX the x value of the position we're driving to
+	 * @param newY the y value of the position we're driving to 
+	 */
+	private void trig(double newX, double newY){
+		double xChange, yChange;
+		xChange = newX - currentX;
+		yChange = newY - currentY;
+		wantedDistance = Math.sqrt((xChange * xChange) + (yChange * yChange));
+		wantedAngle = Math.atan(xChange/yChange);
+	}
+	
+	/**
 	 * Enables the Drives to know if the robot is disabled, in auto, or if it's in teleop
 	 */
 	public enum DriveState{
 		STANDBY,
 		AUTO_DRIVE,
 		AUTO_TURN,
-		AUTO_MOVE,
 		AUTO_HOLD,
 		AUTO_ABORT,
 		AUTO_STOP,
@@ -630,8 +633,6 @@ public class Drives extends GenericSubsystem {
 				return "Auto Drive";
 			case AUTO_TURN:
 				return "Auto Turn";
-			case AUTO_MOVE:
-				return "Auto Move";
 			case AUTO_HOLD:
 				return "Auto Hold";
 			case AUTO_ABORT:
