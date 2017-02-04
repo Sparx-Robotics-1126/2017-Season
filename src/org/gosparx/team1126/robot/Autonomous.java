@@ -1,6 +1,7 @@
 package org.gosparx.team1126.robot;
 
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.util.CSVReader;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -20,6 +21,7 @@ public class Autonomous extends GenericSubsystem{
 	private long waitTime = 0;									// When we should stop waiting
 	private long critTime = 0;									// When we need to do this step by
 	private long autoStartTime;									// When we started auto
+	private boolean fromFile = false;							// Check if Autonomous mode should be read from local file.
 	
 	// All genericSubsystems that the Autonomous system needs to interface with will need to be defined.	
 
@@ -67,10 +69,7 @@ public class Autonomous extends GenericSubsystem{
 	// Examples from 2016
 	
 	private final int[][] LOW_BAR_GOAL = {
-			{DRIVES_FORWARD, 168},
-			{DRIVES_FORWARD, 72},
-			{DRIVES_FORWARD, 140},
-			{DRIVES_STOP},
+			{DRIVES_FORWARD, 94},
 			{AUTOEND}
 	};
 
@@ -136,6 +135,15 @@ public class Autonomous extends GenericSubsystem{
 		return false;
 	}
 
+	private int[][] getCurrentAuto(){
+		if(fromFile){
+			return CSVReader.readIntCSV("usr");
+		} else {
+			return chooser.getSelected();
+		}
+		return chooser.getSelected();
+	}
+	
 	/*************************************************************************************************
 	 * Actually loops through auto commands
 	************************************************************************************************/
