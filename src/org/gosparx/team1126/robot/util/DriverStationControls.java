@@ -410,6 +410,16 @@ public class DriverStationControls {
 		return false;													// Failure
 	}
 
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Run System Diagnostics while button is Pressed 
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean runDiagnostics(){
+		return isPressed(OP_XBOX_BACK);
+	}
+	
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
