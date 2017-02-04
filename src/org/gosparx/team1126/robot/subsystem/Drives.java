@@ -21,60 +21,65 @@ public class Drives extends GenericSubsystem {
 	private final double DISTANCE_PER_TICK = 0.00689;							// Last Year's Distance Per Tick
 	//private static final double DISTANCE_PER_TICK = .031219576995;			// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
+	private static final double MAX_SPEED = 60;        							// Maximum speed for the robot
+	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
+	private static final double HOLDING_TURN_SPEED = 30;						// Speed for turning while in hold state
+	private static final double CHECK_POWER = .1;								// Power for diagnostics
 	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
 	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
 	private static final double leftKI = 0.005 * 50;							// Integral for the left PID
 	private static final double leftKP = (1.0 / 50);							// Proportional for the left PID
-	private static final double MAX_SPEED = 60;        							// Maximum speed for the robot
 	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
 	private static final double JOYSTICK_DEADBAND = .06; 						// Axis for the deadband
-
-	/** Objects */
-
-	private static Drives drives;												// An instance of drives
+	
+	/** Right */
+	
 	private CANTalon rightMotorTop;												// Right CANTalon 1
 	private CANTalon rightMotorFront;											// Right CANTalon 2
 	private CANTalon rightMotorBack;											// Right CANTalon 3
+	private Encoder rightEncoder; 												// Right Encoder
+	private EncoderData rightEncoderData;										// Encoder data for the right encoder
+	private PID rightPID;														// PID for the right speed and such
+	private double rightCurrentSpeed;											// Wanted speed for the right motor
+	private double rightWantedSpeed;				    						// Wanted speed for the right motor
+	private double rightPreviousDistance;										// Previous right distance			
+	private double rightCurrentDistance;										// Current right distance	
+	private double rightSetPower;												// Power for the right motor
+
+	/** Left */
+	
 	private CANTalon leftMotorTop;												// Left CANTalon 1
 	private CANTalon leftMotorFront;											// Left CANTalon 2
 	private CANTalon leftMotorBack;												// Left CANTalon 3
-	private Encoder rightEncoder; 												// Right Encoder
 	private Encoder leftEncoder;												// Left Encoder
-	private EncoderData rightEncoderData;										// Encoder data for the right encoder
 	private EncoderData leftEncoderData;										// Encoder data for the left encoder
-	private AHRS gyro; 															// NAVX gyro
-	private PID rightPID;														// PID for the right speed and such
 	private PID leftPID;														// PID for the left speed and such
-	private DriveState currentDriveState;										// The current state
-
-	/** Variables */
-
-	private double rightWantedSpeed;				    						// Wanted speed for the right motor
-	private double leftWantedSpeed;												// Wanted speed for the left motor
-	private double rightCurrentSpeed;											// Wanted speed for the right motor
 	private double leftCurrentSpeed;											// Current speed of the left motor
-	private double rightSetPower;												// Power for the right motor
+	private double leftWantedSpeed;												// Wanted speed for the left motor
+	private double leftPreviousDistance;										// Previous left distance
+	private double leftCurrentDistance;											// Current left distance
 	private double leftSetPower;							    				// Power for the left motor
+	
+	/** Other */
+	
+	private static Drives drives;												// An instance of drives
+	private DriveState currentDriveState;										// The current state
+	private AHRS gyro; 															// NAVX gyro
 	private double currentX;													// Starting x value of the robot
 	private double currentY;													// Starting y value of the robot
-	private double rightPreviousDistance;										// Previous right distance			
-	private double leftPreviousDistance;										// Previous left distance
-	private double rightCurrentDistance;										// Current right distance			
-	private double leftCurrentDistance;											// Current left distance
+	private double previousX;													// Previous X value
+	private double previousY;													// Previous Y value
 	private double currentAngle;												// Current angle
-	private double averageDistance;												// Average Distance
-	private double wantedDistance;												// Wanted Distance
-	private double wantedAngle;													// Wanted Angle
 	private boolean isInverse;													// If the drives is inverted
 	private double wantedSpeed;													// Speed passed in through methods
+	private double wantedDistance;												// Wanted Distance
+	private double wantedAngle;													// Wanted Angle
 	private double angleOffset;													// Offset of the angle
 	private boolean turnDone;													// True if auto turn is done
 	private boolean driveDone;													// True if auto drive is done
 	private double averageSpeed;												// Average Speed
-	private double previousX;													// Previous X value
-	private double previousY;													// Previous Y value
+	private double averageDistance;												// Average Distance
 	private double previousAngle;												// Previous Angle
-	
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -112,6 +117,7 @@ public class Drives extends GenericSubsystem {
 		rightWantedSpeed = 0;
 		rightPreviousDistance = 0;
 		rightCurrentDistance = 0;
+		rightSetPower = 0;
 
 		//Left
 		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
@@ -128,11 +134,12 @@ public class Drives extends GenericSubsystem {
 		leftWantedSpeed = 0;
 		leftPreviousDistance = 0;
 		leftCurrentDistance = 0;
+		leftSetPower = 0;
 
 		//Other
+		currentDriveState = DriveState.STANDBY;
 		gyro = new AHRS(SerialPort.Port.kUSB);
 		gyro.zeroYaw();
-		currentDriveState = DriveState.STANDBY;
 		currentX = 0;
 		currentY = 0;
 		previousX = 0;
@@ -160,12 +167,15 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
+		
 		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
 		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
 		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotorBack);
+		
 		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
 		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotorFront);
 		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotorBack);
+		
 		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
 		LiveWindow.addSensor(sensorName, "Left Encoder", leftEncoder);
 		LiveWindow.addSensor(sensorName, "Gyro", gyro);
@@ -215,13 +225,12 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_HOLD:
-				hold();
+			hold();
 			break;
 			
 		case AUTO_ABORT:
-			if(stopDrives()){
-				currentDriveState = DriveState.STANDBY;
-			}
+			abort();
+			currentDriveState = DriveState.STANDBY;
 			break;
 			
 		case AUTO_STOP:
@@ -233,6 +242,11 @@ public class Drives extends GenericSubsystem {
 		case TELEOP:
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
+			}
+			if(dsc.getButtonRising(IO.ABORT_AUTO_DRIVES)){
+				abortAuto();
+			}if(dsc.getButtonRising(8888888)){
+				
 			}
 			
 			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
@@ -337,7 +351,8 @@ public class Drives extends GenericSubsystem {
 	
 	/**
 	 * Drives the robot in auto
-	 * @param distance the distance the robot will go 
+	 * @param distance the distance the robot will go, if distance > 0 then forward
+	 * if distance < 0 then backward 
 	 * @param speed the speed at which the robot should drive
 	 * @return true if the robot has reached its destination, false otherwise
 	 */
@@ -346,7 +361,11 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData.reset();
 		leftEncoderData.reset();
 		wantedDistance = distance;
-		wantedSpeed = speed;
+		if(distance < 0){
+			wantedSpeed = -speed;
+		}else{
+			wantedSpeed = speed;
+		}
 		currentDriveState = DriveState.AUTO_DRIVE;
 		if(!currentDriveState.equals(DriveState.AUTO_DRIVE)){
 			driveDone = true;
@@ -393,13 +412,15 @@ public class Drives extends GenericSubsystem {
 	 * Moves the robot to a specific coordinate
 	 * @param xValue the x the robot needs to travel to 
 	 * @param yValue the y value the robot needs to travel to
-	 * @param speed the speed at which the robot needs to travel
+	 * @param driveSpeed the speed at which the robot needs to drive
+	 * @param turnSpeed the speed at which the robot needs to turn
 	 * @return true if the robot has made it to the coordinate, false otherwise
 	 */
-	public boolean travelToCoordinate(double xValue, double yValue, double speed){
+	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
 		trig(xValue,yValue);
+		autoTurn(wantedAngle, turnSpeed);
 		if(turnDone){;
-			autoDrive(wantedDistance, speed);
+			autoDrive(wantedDistance, driveSpeed);
 		}
 		if(driveDone){
 			return true;
@@ -451,24 +472,24 @@ public class Drives extends GenericSubsystem {
 			//correction = 0;
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
-		}			currentDriveState = DriveState.STANDBY;
+			currentDriveState = DriveState.STANDBY;
+		}
 
 	}
 	
-	public double hold(){
+	public void hold(){
 		double changeX = currentX - previousX;
 		double changeY = currentY - previousY;
 		double changeAngle = currentAngle - previousAngle;
-		if (Math.abs(changeX) > .5){
-			
+		if (Math.abs(changeX) > 3){
+			LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
 		}
-		if(Math.abs(changeY) > .5){
-			
+		if(Math.abs(changeY) > 3){
+			autoDrive(changeY, HOLDING_DRIVE_SPEED);
 		}
-		if(Math.abs(changeAngle) > .5){
-			
+		if((Math.abs(changeAngle) > 3) && driveDone){
+			autoTurn(previousAngle, HOLDING_TURN_SPEED);
 		}
-		return 88888;
 	}
 	
 	/**
@@ -494,6 +515,20 @@ public class Drives extends GenericSubsystem {
 		currentDriveState = DriveState.AUTO_ABORT;
 	}
 	
+	public void abort(){
+		rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
+		rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
+		leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
+		wantedSpeed = STOP_MOTOR_POWER_SPEED;
+		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
+		leftWantedSpeed = STOP_MOTOR_POWER_SPEED;
+		rightSetPower = STOP_MOTOR_POWER_SPEED;
+		leftSetPower = STOP_MOTOR_POWER_SPEED;
+	}
+	
 	/**
 	 * stops the drives
 	 * @return if the drives have actually stopped
@@ -509,6 +544,62 @@ public class Drives extends GenericSubsystem {
 			return true;
 		}else{
 			return false;
+		}
+	}
+	
+	/**
+	 * holds the drives a certain position
+	 */
+	public void holdDrives(){
+		currentDriveState = DriveState.AUTO_HOLD;
+	}
+	
+	/**
+	 * Checks all the motors
+	 */
+	public void diagnostic(){
+		check(rightMotorTop, rightEncoder, rightEncoderData, CHECK_POWER);
+		check(rightMotorFront, rightEncoder, rightEncoderData, CHECK_POWER);
+		check(rightMotorBack, rightEncoder, rightEncoderData, CHECK_POWER);
+		check(leftMotorTop, leftEncoder, leftEncoderData, CHECK_POWER);
+		check(leftMotorFront, leftEncoder, leftEncoderData, CHECK_POWER);
+		check(leftMotorBack, leftEncoder, leftEncoderData, CHECK_POWER);
+	}
+	
+	/**
+	 * Checks to see if the motor and corresponding encoder are reading the same and logs results
+	 * @param motor the motor to check
+	 * @param encoder the encoder to check
+	 * @param encoderData the encoderData to check
+	 * @param power the power to run the motor
+	 */
+	private void check(CANTalon motor, Encoder encoder, EncoderData encoderData, double power){
+		double encoderSpeed;
+		motor.set(power);
+		encoderData.calculateSpeed();
+		encoderSpeed = encoderData.getSpeed();
+		if(power > 0 && encoderSpeed > 0){
+			LOG.logMessage(motor + "is going forward and " + encoder + " is reading positive - Good");
+		}else if(power > 0 && encoderSpeed < 0){
+			LOG.logMessage(motor + "is going forward and " + encoder + " is reading negative - Bad");
+		}else if(power > 0 && encoderSpeed == 0){
+			LOG.logMessage(motor + "is going forward and " + encoder + " is reading zero - Bad");
+		}
+		
+		else if(power < 0 && encoderSpeed > 0){
+			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading positive - Bad");
+		}else if(power < 0 && encoderSpeed < 0){
+			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading negative - Good");
+		}else if(power < 0 && encoderSpeed == 0){
+			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading zero - Bad");
+		}
+		
+		else if(power == 0 && encoderSpeed > 0){
+			LOG.logMessage(motor + "is not moving and " + encoder + " is reading positive - Bad");
+		}else if(power == 0 && encoderSpeed < 0){
+			LOG.logMessage(motor + "is not moving and " + encoder + " is reading negative - Bad");
+		}else if(power == 0 && encoderSpeed == 0){
+			LOG.logMessage(motor + "is not moving and " + encoder + " is reading zero - Good");
 		}
 	}
 	
