@@ -91,7 +91,7 @@ public class DriverStationControls {
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
-	private static boolean firstTime = true;
+	public static SharedData sharedData;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -221,18 +221,37 @@ public class DriverStationControls {
 	{
 		int i;
 		
-		if (firstTime)													// 1st time run?
-		{
-			ds = DriverStation.getInstance();							// Get link to driver station object
-			
-			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks (XBox = #2)
-			joysticks[1] = new Joystick(1);
-			joysticks[2] = new Joystick(2);
-
-			for (i=0; i< maxButtons; i++){								// Set buttons to the current values
-				buttonLastValues[i] = getButton(i);
-			}
+		createObjects();
+	
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
 		}
+			
+		if (sharedData == null)											// Create the vehicle to share data
+			sharedData = new SharedData();								//  between subsystems.
+	}
+	
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Create the objects if they haven't already been created.
+	//-----------------------------------------------------------------------------------------------------------
+	
+	private void createObjects()
+	{
+		if (ds == null)													// Get Instance of driver station
+			ds = DriverStation.getInstance();
+		
+		if (joysticks[0] == null)
+			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
+		
+		if (joysticks[1] == null)
+			joysticks[1] = new Joystick(1);								// Create the Right Driver Joystick
+		
+		if (joysticks[2] == null)
+			joysticks[2] = new Joystick(2);								// Create the XBox Controller #2
+			
+		if (sharedData == null)											// Create the vehicle to share data
+			sharedData = new SharedData();								//  between subsystems.
 	}
 	
 	
@@ -260,7 +279,7 @@ public class DriverStationControls {
 
 
 	//-----------------------------------------------------------------------------------------------------------
-	// Returns treu if the passed button number is NOT pressed.
+	// Returns true if the passed button number is NOT pressed.
 	//-----------------------------------------------------------------------------------------------------------
 
 	public boolean isReleased(int buttonNumber)
@@ -391,22 +410,36 @@ public class DriverStationControls {
 		return false;													// Failure
 	}
 
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Run System Diagnostics while button is Pressed 
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean runDiagnostics(){
+		return isPressed(OP_XBOX_BACK);									// Should consider changing to IO.
+	}
+	
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
 
-	public boolean isAutonomous()		{	return ds.isAutonomous();		}
-	public boolean isOperatorControl()	{	return ds.isOperatorControl();	}
-	public boolean isDisabled()			{	return ds.isDisabled();			}
-	public boolean isEnabled()			{	return ds.isEnabled();			}
-	public boolean isTest()				{	return ds.isTest();				}
-	public boolean isBrownedOut()		{	return ds.isBrownedOut();		}
-	public boolean isDSAttached()		{	return ds.isDSAttached();		}
-	public boolean isFMSAttached()		{	return ds.isFMSAttached();		}
-	public int getLocation()			{	return ds.getLocation();		}
-	public double getMatchTime()		{	return ds.getMatchTime();		}
-	public double getBatteryVoltage()	{	return ds.getBatteryVoltage();	}
-	public Alliance getAlliance()		{	return ds.getAlliance();		}
+	public boolean isAutonomous()			{	return ds.isAutonomous();			}
+	public boolean isOperatorControl()		{	return ds.isOperatorControl();		}
+	public boolean isDisabled()				{	return ds.isDisabled();				}
+	public boolean isEnabled()				{	return ds.isEnabled();				}
+	public boolean isTest()					{	return ds.isTest();					}
+	public boolean isBrownedOut()			{	return ds.isBrownedOut();			}
+	public boolean isDSAttached()			{	return ds.isDSAttached();			}
+	public boolean isFMSAttached()			{	return ds.isFMSAttached();			}
+	public int getLocation()				{	return ds.getLocation();			}
+	public int getJoystickType(int st) 		{	return ds.getJoystickType(st);		}
+	public int kJoystickPorts()				{	return ds.kJoystickPorts;			}
+	public boolean getJoystickIsXbox(int st){	return ds.getJoystickIsXbox(st);	}
+	public double getMatchTime()			{	return ds.getMatchTime();			}
+	public double getBatteryVoltage()		{	return ds.getBatteryVoltage();		}
+	public String getJoystickName(int st)	{	return ds.getJoystickName(st);		}
+	public Alliance getAlliance()			{	return ds.getAlliance();			}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// General update routine called by each subsystem at the beginning of each loop.  This routine updates the
@@ -418,6 +451,8 @@ public class DriverStationControls {
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
 
+		createObjects();												// Ensure all objects have been created.
+		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
@@ -437,3 +472,4 @@ public class DriverStationControls {
 		}
 	}
 }
+
