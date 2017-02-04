@@ -36,18 +36,23 @@ public class IO {
 
 	/**********************************CAN********************************************/
 
-	public static final int CAN_DRIVES_LEFT_FRONT                           = 0;
-
-	public static final int CAN_DRIVES_LEFT_BACK                            = 1;
-	
-	public static final int CAN_DRIVES_LEFT_TOP								= 2;
-
-	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
-	
+	// CAN 2016 - Redefined for execution on the 2016 robot base
+	public static final int CAN_DRIVES_LEFT_FRONT                           = 1;
+	public static final int CAN_DRIVES_LEFT_BACK                            = 2;
+	public static final int CAN_DRIVES_LEFT_TOP								= 4;	// Old Acquisition Shoulder
+	public static final int CAN_DRIVES_RIGHT_FRONT                          = 9;
 	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
-	
+	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder
+
+	// CAN 2017 - New definitions for 2017 robot
+/*	
+	public static final int CAN_DRIVES_LEFT_FRONT                           = 0;
+	public static final int CAN_DRIVES_LEFT_BACK                            = 1;
+	public static final int CAN_DRIVES_LEFT_TOP								= 2;
+	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
+	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
 	public static final int CAN_DRIVES_RIGHT_TOP							= 5;
-	
+*/	
 	public static final int CAN_BALLACQ_ROLLER								= 6;
 	
 	public static final int CAN_BALLACQ_CONVEYOR							= 7;
@@ -74,6 +79,8 @@ public class IO {
 	                                                                        };
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
+	
+	public static final int ABORT_AUTO_DRIVES								= 4;
 	
 	public static final int INVERT_DRIVES_BUTTON							= 1;
 	

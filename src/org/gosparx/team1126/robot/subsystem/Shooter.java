@@ -206,9 +206,13 @@ public class Shooter extends GenericSubsystem{
 				conveyor.set(CONVEYOR_BALL_SPEED);
 			else
 				conveyor.set(0);
-			return true;
-		}else
+		}else{
+			ready = false;
 			conveyor.set(0);
+		}
+		dsc.sharedData.systemReady = ready;
+		dsc.sharedData.turretAngle = turretDegreeCurrent;
+		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
 		return false;
 	}
 
