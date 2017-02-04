@@ -109,7 +109,7 @@ public class Drives extends GenericSubsystem {
 		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
 		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);									
-		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
+		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC,IO.DIO_RIGHT_DRIVES_ENC);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	
 		rightPID = new PID(rightKI, rightKP);
 		rightPID.breakMode(true);
@@ -126,7 +126,7 @@ public class Drives extends GenericSubsystem {
 		leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
 		leftMotorBack.setInverted(true);
-		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
+		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC,IO.DIO_LEFT_DRIVES_ENC);
 		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
@@ -238,8 +238,9 @@ public class Drives extends GenericSubsystem {
 			}
 			if(dsc.getButtonRising(IO.ABORT_AUTO_DRIVES)){
 				abortAuto();
-			}if(dsc.getButtonRising(8888888)){
-				
+			}
+			if(dsc.getButtonRising(IO.HOLD_DRIVES)){
+				holdDrives();
 			}
 			if(dsc.runDiagnostics()){
 				diagnostics();

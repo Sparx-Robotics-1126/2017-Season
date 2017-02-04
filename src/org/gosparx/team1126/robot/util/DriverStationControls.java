@@ -10,13 +10,14 @@ public class DriverStationControls {
 	
 	private static final int maxButtons = 18;
 	private static final int maxAxes = 10;
+	private static final int maxPOVs = 8;
 	private static final int leftJoystickButtons = 0;
 	private static final int rightJoystickButtons = 4;
 	private static final int xboxControllerButtons = 8;
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
-
+	
 	// Generic Joystick Mapping
 	
 	public static final int JOY_X_AXIS = 0;
@@ -91,7 +92,7 @@ public class DriverStationControls {
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
-	public static SharedData sharedData;
+	private static boolean firstTime = true;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -119,6 +120,39 @@ public class DriverStationControls {
 	// Time (in milliseconds - from the system.CurrentTimeMillis()) that the last press or release of a button occurred
 	//	 There is a static version that is continually updated, and a local version used for each object and is updated
 	//	 when called the appropriate routine.
+	
+	private static long[][]POVData = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
+	};
+	
+	private static long[][]POVDataGlobal = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
+	};
+
+	private static boolean[] POVLastValues = {
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false
+	};
 	
 	private static long[][]buttonDataGlobal = {							// {Rising Edge, Falling Edge})
 			{0,0},														// Joystick 0 (Standard)
@@ -199,6 +233,17 @@ public class DriverStationControls {
 			{2, XBOX_R2}
 	};
 	
+	private static final int[][] povs = {
+			{2, 0},
+			{2, 45},
+			{2, 90},
+			{2, 135},
+			{2, 180},
+			{2, 225},
+			{2, 270},
+			{2, 315}
+	};
+	
 	private double[][] axesData = {										// { Deadband, axis invert }
 			{0.05,1.0},													// Joystick 0 (Standard)
 			{0.05,1.0},
@@ -221,39 +266,78 @@ public class DriverStationControls {
 	{
 		int i;
 		
-		createObjects();
-	
-		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-			buttonLastValues[i] = getButton(i);
+		if (firstTime)													// 1st time run?
+		{
+			ds = DriverStation.getInstance();							// Get link to driver station object
+			
+			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks (XBox = #2)
+			joysticks[1] = new Joystick(1);
+			joysticks[2] = new Joystick(2);
+			
+			for (i=0; i< maxButtons; i++){								// Set buttons to the current values
+				buttonLastValues[i] = getButton(i);
+			}
 		}
-			
-		if (sharedData == null)											// Create the vehicle to share data
-			sharedData = new SharedData();								//  between subsystems.
 	}
 	
-	
 	//-----------------------------------------------------------------------------------------------------------
-	// Create the objects if they haven't already been created.
+	// Return if the specified POV is pressed
 	//-----------------------------------------------------------------------------------------------------------
-	
-	private void createObjects()
+		
+	public boolean getPOV(int POVNumber)
 	{
-		if (ds == null)													// Get Instance of driver station
-			ds = DriverStation.getInstance();
-		
-		if (joysticks[0] == null)
-			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
-		
-		if (joysticks[1] == null)
-			joysticks[1] = new Joystick(1);								// Create the Right Driver Joystick
-		
-		if (joysticks[2] == null)
-			joysticks[2] = new Joystick(2);								// Create the XBox Controller #2
-			
-		if (sharedData == null)											// Create the vehicle to share data
-			sharedData = new SharedData();								//  between subsystems.
+		if ((POVNumber >= 0) &&(POVNumber < maxPOVs))
+			if(joysticks[2].getPOV() == povs[POVNumber][1]){
+				return true;
+			}
+		return false;
 	}
 	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return the current value of the specified POV
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public int getRawPOV(){
+		return joysticks[2].getPOV();
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is pressed (rising edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVRising(int POVNumber){
+		
+		boolean rising = false;
+		
+		if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
+			if (POVData[POVNumber][0] > 0)
+			{
+				rising = true;
+			}
+			POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
+		}
+		return rising;
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is released (falling edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVFalling(int POVNumber){
+		
+		boolean falling = false;
+		
+		if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
+			if (POVData[POVNumber][1] > 0)
+			{
+				falling = true;
+			}
+			POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
+		}
+		return falling;
+	}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return the current value of the specified button
@@ -279,7 +363,7 @@ public class DriverStationControls {
 
 
 	//-----------------------------------------------------------------------------------------------------------
-	// Returns true if the passed button number is NOT pressed.
+	// Returns treu if the passed button number is NOT pressed.
 	//-----------------------------------------------------------------------------------------------------------
 
 	public boolean isReleased(int buttonNumber)
@@ -296,8 +380,7 @@ public class DriverStationControls {
 	{
 		return joysticks[joy].getRawButton(button);						// Return current value
 	}
-
-
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if there was a button pressed (rising edge) since the last time this method was called by the
 	// owner (subsystem).
@@ -390,6 +473,7 @@ public class DriverStationControls {
 			(deadband >= 0) && (deadband <= 1.0))						//	 and valid deadband (0.0 - 1.0)
 		{
 			axesData[axisNumber][0] = deadband;							// Update deadband
+			
 			return true;												// Success
 		}
 		return false;													// Failure
@@ -409,37 +493,34 @@ public class DriverStationControls {
 		}
 		return false;													// Failure
 	}
-
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Run System Diagnostics while button is Pressed 
 	//-----------------------------------------------------------------------------------------------------------
 	
 	public boolean runDiagnostics(){
-		return isPressed(OP_XBOX_BACK);									// Should consider changing to IO.
+		if ((isFMSAttached() == false) && isPressed(OP_XBOX_BACK))
+			return true;
+
+		return false;
 	}
-	
-	
+
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
 
-	public boolean isAutonomous()			{	return ds.isAutonomous();			}
-	public boolean isOperatorControl()		{	return ds.isOperatorControl();		}
-	public boolean isDisabled()				{	return ds.isDisabled();				}
-	public boolean isEnabled()				{	return ds.isEnabled();				}
-	public boolean isTest()					{	return ds.isTest();					}
-	public boolean isBrownedOut()			{	return ds.isBrownedOut();			}
-	public boolean isDSAttached()			{	return ds.isDSAttached();			}
-	public boolean isFMSAttached()			{	return ds.isFMSAttached();			}
-	public int getLocation()				{	return ds.getLocation();			}
-	public int getJoystickType(int st) 		{	return ds.getJoystickType(st);		}
-	public int kJoystickPorts()				{	return ds.kJoystickPorts;			}
-	public boolean getJoystickIsXbox(int st){	return ds.getJoystickIsXbox(st);	}
-	public double getMatchTime()			{	return ds.getMatchTime();			}
-	public double getBatteryVoltage()		{	return ds.getBatteryVoltage();		}
-	public String getJoystickName(int st)	{	return ds.getJoystickName(st);		}
-	public Alliance getAlliance()			{	return ds.getAlliance();			}
+	public boolean isAutonomous()		{	return ds.isAutonomous();		}
+	public boolean isOperatorControl()	{	return ds.isOperatorControl();	}
+	public boolean isDisabled()			{	return ds.isDisabled();			}
+	public boolean isEnabled()			{	return ds.isEnabled();			}
+	public boolean isTest()				{	return ds.isTest();				}
+	public boolean isBrownedOut()		{	return ds.isBrownedOut();		}
+	public boolean isDSAttached()		{	return ds.isDSAttached();		}
+	public boolean isFMSAttached()		{	return ds.isFMSAttached();		}
+	public int getLocation()			{	return ds.getLocation();		}
+	public double getMatchTime()		{	return ds.getMatchTime();		}
+	public double getBatteryVoltage()	{	return ds.getBatteryVoltage();	}
+	public Alliance getAlliance()		{	return ds.getAlliance();		}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// General update routine called by each subsystem at the beginning of each loop.  This routine updates the
@@ -450,8 +531,7 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-
-		createObjects();												// Ensure all objects have been created.
+		boolean POVValue;
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
@@ -467,6 +547,16 @@ public class DriverStationControls {
 							System.currentTimeMillis();
 					
 					buttonLastValues[i] = bValue;						// Store updated button value
+				}
+			}
+			for (i=0; i<maxPOVs; i++){
+				POVValue = getPOV(i);
+				if (POVValue != POVLastValues[i]){
+					if(POVValue)
+						POVDataGlobal[i][0] = System.currentTimeMillis();
+					else
+						POVDataGlobal[i][1] = System.currentTimeMillis();
+					POVLastValues[i] = POVValue;
 				}
 			}
 		}
