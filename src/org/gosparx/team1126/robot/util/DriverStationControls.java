@@ -18,10 +18,6 @@ public class DriverStationControls {
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
 	
-	// General POV Data
-	
-	private int lastPOV;
-	
 	// Generic Joystick Mapping
 	
 	public static final int JOY_X_AXIS = 0;
@@ -128,9 +124,36 @@ public class DriverStationControls {
 	private static long[][]POVData = {
 			{0,0},														// Stores last POV from update()
 			{0,0},														// Stores rising edge information (right is from update())
-			{0,0}														// Stores falling edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
+	};
+	
+	private static long[][]POVDataGlobal = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
 	};
 
+	private static boolean[] POVLastValues = {
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false
+	};
+	
 	private static long[][]buttonDataGlobal = {							// {Rising Edge, Falling Edge})
 			{0,0},														// Joystick 0 (Standard)
 			{0,0},
@@ -251,8 +274,6 @@ public class DriverStationControls {
 			joysticks[1] = new Joystick(1);
 			joysticks[2] = new Joystick(2);
 			
-			lastPOV = -1;
-			
 			for (i=0; i< maxButtons; i++){								// Set buttons to the current values
 				buttonLastValues[i] = getButton(i);
 			}
@@ -263,10 +284,10 @@ public class DriverStationControls {
 	// Return if the specified POV is pressed
 	//-----------------------------------------------------------------------------------------------------------
 		
-	public boolean getPOV(int joy,int POVNumber)
+	public boolean getPOV(int POVNumber)
 	{
 		if ((POVNumber >= 0) &&(POVNumber < maxPOVs))
-			if(joysticks[joy].getPOV() == povs[POVNumber][1]){
+			if(joysticks[2].getPOV() == povs[POVNumber][1]){
 				return true;
 			}
 		return false;
@@ -276,8 +297,8 @@ public class DriverStationControls {
 	// Return the current value of the specified POV
 	//-----------------------------------------------------------------------------------------------------------
 		
-	public int getRawPOV(int joy){
-		return joysticks[joy].getPOV();
+	public int getRawPOV(){
+		return joysticks[2].getPOV();
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -288,14 +309,13 @@ public class DriverStationControls {
 	public boolean getPOVRising(int POVNumber){
 		
 		boolean rising = false;
-		int pov = getRawPOV(2);
 		
-		if (POVData[1][0] < POVData[1][1]){
-			if (POVData[1][0] > 0 && pov == povs[POVNumber][1])
+		if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
+			if (POVData[POVNumber][0] > 0)
 			{
 				rising = true;
 			}
-			POVData[1][0] = POVData[1][1];
+			POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 		}
 		return rising;
 	}
@@ -308,14 +328,13 @@ public class DriverStationControls {
 	public boolean getPOVFalling(int POVNumber){
 		
 		boolean falling = false;
-		int pov = getRawPOV(2);
 		
-		if (POVData[2][0] < POVData[2][1]){
-			if (POVData[2][0] > 0 && pov == povs[POVNumber][1])
+		if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
+			if (POVData[POVNumber][1] > 0)
 			{
 				falling = true;
 			}
-			POVData[2][0] = POVData[2][1];
+			POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 		}
 		return falling;
 	}
@@ -501,6 +520,7 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
+		boolean POVValue;
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
@@ -518,12 +538,14 @@ public class DriverStationControls {
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
 			}
-			if(lastPOV != getRawPOV(2)){
-				POVData[0][1] = getRawPOV(2);
-				if(POVData[0][1] != -1){
-				POVData[1][1] = System.currentTimeMillis(); //rising edge
-				} else {
-				POVData[2][1] = System.currentTimeMillis(); // falling edge
+			for (i=0; i<maxPOVs; i++){
+				POVValue = getPOV(i);
+				if (POVValue != POVLastValues[i]){
+					if(POVValue)
+						POVDataGlobal[i][0] = System.currentTimeMillis();
+					else
+						POVDataGlobal[i][1] = System.currentTimeMillis();
+					POVLastValues[i] = POVValue;
 				}
 			}
 		}
