@@ -20,8 +20,10 @@ public class SharedData {
 	
 	// Camera SubSystem Shared Data
 	
+	public enum Target { BOILER, LIFT };
+	
 	public static double distanceToTarget;
 	public static double angleToTarget;
-	public static int targetType;
+	public static Target targetType;
 
 }

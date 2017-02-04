@@ -279,7 +279,7 @@ public class DriverStationControls {
 
 
 	//-----------------------------------------------------------------------------------------------------------
-	// Returns treu if the passed button number is NOT pressed.
+	// Returns true if the passed button number is NOT pressed.
 	//-----------------------------------------------------------------------------------------------------------
 
 	public boolean isReleased(int buttonNumber)
@@ -414,18 +414,22 @@ public class DriverStationControls {
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
 
-	public boolean isAutonomous()		{	return ds.isAutonomous();		}
-	public boolean isOperatorControl()	{	return ds.isOperatorControl();	}
-	public boolean isDisabled()			{	return ds.isDisabled();			}
-	public boolean isEnabled()			{	return ds.isEnabled();			}
-	public boolean isTest()				{	return ds.isTest();				}
-	public boolean isBrownedOut()		{	return ds.isBrownedOut();		}
-	public boolean isDSAttached()		{	return ds.isDSAttached();		}
-	public boolean isFMSAttached()		{	return ds.isFMSAttached();		}
-	public int getLocation()			{	return ds.getLocation();		}
-	public double getMatchTime()		{	return ds.getMatchTime();		}
-	public double getBatteryVoltage()	{	return ds.getBatteryVoltage();	}
-	public Alliance getAlliance()		{	return ds.getAlliance();		}
+	public boolean isAutonomous()			{	return ds.isAutonomous();			}
+	public boolean isOperatorControl()		{	return ds.isOperatorControl();		}
+	public boolean isDisabled()				{	return ds.isDisabled();				}
+	public boolean isEnabled()				{	return ds.isEnabled();				}
+	public boolean isTest()					{	return ds.isTest();					}
+	public boolean isBrownedOut()			{	return ds.isBrownedOut();			}
+	public boolean isDSAttached()			{	return ds.isDSAttached();			}
+	public boolean isFMSAttached()			{	return ds.isFMSAttached();			}
+	public int getLocation()				{	return ds.getLocation();			}
+	public int getJoystickType(int st) 		{	return ds.getJoystickType(st);		}
+	public int kJoystickPorts()				{	return ds.kJoystickPorts;			}
+	public boolean getJoystickIsXbox(int st){	return ds.getJoystickIsXbox(st);	}
+	public double getMatchTime()			{	return ds.getMatchTime();			}
+	public double getBatteryVoltage()		{	return ds.getBatteryVoltage();		}
+	public String getJoystickName(int st)	{	return ds.getJoystickName(st);		}
+	public Alliance getAlliance()			{	return ds.getAlliance();			}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// General update routine called by each subsystem at the beginning of each loop.  This routine updates the
