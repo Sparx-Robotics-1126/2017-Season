@@ -59,6 +59,11 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double distance;
 	
+	/**
+	 * if the system is ready to fire
+	 */
+	private boolean ready;
+	
 //******************************************Objects**************************************\\
 	
 	private static Shooter shoot;
@@ -161,6 +166,7 @@ public class Shooter extends GenericSubsystem{
 		isPressed = false;
 		degreeOff = 0;
 		distance =  0;
+		ready = false;
 		return true;
 	}
 
@@ -195,9 +201,14 @@ public class Shooter extends GenericSubsystem{
 			turretButton = false;
 		}
 		if(fireCtrl()){
-			conveyor.set(CONVEYOR_BALL_SPEED);
+			ready = true;
+			if(dsc.isPressed(IO.BUTTON_FIRE))
+				conveyor.set(CONVEYOR_BALL_SPEED);
+			else
+				conveyor.set(0);
 			return true;
-		}
+		}else
+			conveyor.set(0);
 		return false;
 	}
 
