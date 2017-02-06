@@ -121,13 +121,13 @@ public class Drives extends GenericSubsystem {
 
 		//Left
 		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
-		leftMotorTop.setInverted(true);
+		//leftMotorTop.setInverted(true);
 		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
-		leftMotorFront.setInverted(true);
+		//leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
-		leftMotorBack.setInverted(true);
+		//leftMotorBack.setInverted(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
-		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
+		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
