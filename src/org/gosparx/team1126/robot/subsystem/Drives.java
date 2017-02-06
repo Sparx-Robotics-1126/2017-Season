@@ -109,7 +109,7 @@ public class Drives extends GenericSubsystem {
 		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
 		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);									
-		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC,IO.DIO_RIGHT_DRIVES_ENC);
+		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	
 		rightPID = new PID(rightKI, rightKP);
 		rightPID.breakMode(true);
@@ -126,7 +126,7 @@ public class Drives extends GenericSubsystem {
 		leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
 		leftMotorBack.setInverted(true);
-		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC,IO.DIO_LEFT_DRIVES_ENC);
+		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
@@ -246,9 +246,9 @@ public class Drives extends GenericSubsystem {
 				diagnostics();
 			}
 			
-			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
+			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			
 			break;
 			
@@ -265,10 +265,10 @@ public class Drives extends GenericSubsystem {
 			LOG.logError("Error :( Current Drive State: " + currentDriveState);
 		}
 	
-		rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-		leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-		//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
-		//leftSetPower = leftWantedSpeed/MAX_SPEED;									// In case driver doesn't want PID loop
+		//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+		//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+		rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
+		leftSetPower = leftWantedSpeed/MAX_SPEED;								// In case driver doesn't want PID loop
 		
 		rightMotorTop.set(rightSetPower);
 		rightMotorFront.set(rightSetPower);
