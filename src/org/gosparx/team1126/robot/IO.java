@@ -16,23 +16,23 @@ public class IO {
 	
 	/************************************DIO*******************************************/
 
-	public static final int DIO_SHOOTER_ENC_A                               = 12;
+	public static final int DIO_SHOOTER_ENC_A                               = 22;
 	
-	public static final int DIO_SHOOTER_ENC_B								= 13;
+	public static final int DIO_SHOOTER_ENC_B								= 23;
 	
-	public static final int DIO_GEARACQ_ENC									= 4;
+	public static final int DIO_GEARACQ_ENC									= 14;
 	
-	public static final int DIO_SHOOTER_POT									= 5;
+	public static final int DIO_SHOOTER_POT									= 15;
 	
-	public static final int DIO_CLIMBING_LIMITSWITCH						= 6;
+	public static final int DIO_CLIMBING_LIMITSWITCH						= 16;
 	
-	public static final int DIO_LEFT_DRIVES_ENC_A                           = 2;
+	public static final int DIO_LEFT_DRIVES_ENC_A                           = 12;
 
-	public static final int DIO_LEFT_DRIVES_ENC_B	                        = 3;
+	public static final int DIO_LEFT_DRIVES_ENC_B	                        = 13;
 
-	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 0;
+	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 10;
 
-	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 1;
+	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 11;
 
 	/**********************************CAN********************************************/
 

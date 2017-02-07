@@ -18,10 +18,9 @@ public class Drives extends GenericSubsystem {
 	/** Constants */
 
 	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
-	private final double DISTANCE_PER_TICK = 0.00689;							// Last Year's Distance Per Tick
-	//private static final double DISTANCE_PER_TICK = .031219576995;			// The Formula: (Gear Ratio * Circumference)/ticks
+	private static final double DISTANCE_PER_TICK = .031219576995;				// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
-	private static final double MAX_SPEED = 60;        							// Maximum speed for the robot
+	private static final double MAX_SPEED = 180;        							// Maximum speed for the robot
 	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
 	private static final double HOLDING_TURN_SPEED = 30;						// Speed for turning while in hold state
 	private static final double CHECK_POWER = .1;								// Power for diagnostics
@@ -107,8 +106,11 @@ public class Drives extends GenericSubsystem {
 	protected boolean init(){
 		//Right
 		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
+		rightMotorTop.setInverted(true);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
-		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);									
+		rightMotorFront.setInverted(true);
+		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);
+		rightMotorBack.setInverted(true);
 		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	
 		rightPID = new PID(rightKI, rightKP);
@@ -121,13 +123,10 @@ public class Drives extends GenericSubsystem {
 
 		//Left
 		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
-		//leftMotorTop.setInverted(true);
 		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
-		//leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
-		//leftMotorBack.setInverted(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
-		leftEncoderData = new EncoderData(leftEncoder, DISTANCE_PER_TICK);		
+		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
 		leftPID = new PID(leftKI, leftKP);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
@@ -138,8 +137,12 @@ public class Drives extends GenericSubsystem {
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
-		gyro = new AHRS(SerialPort.Port.kUSB);
-		gyro.zeroYaw();
+		try{
+			gyro = new AHRS(SerialPort.Port.kUSB);
+			gyro.zeroYaw();
+		}catch (RuntimeException ex ) {
+            LOG.logError("Error instantiating navX MXP:  " + ex.getMessage());
+        }
 		currentX = 0;
 		currentY = 0;
 		previousX = 0;
@@ -187,10 +190,16 @@ public class Drives extends GenericSubsystem {
 		dsc.update();
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
+		if(gyro.equals(null)){
+			gyro = new AHRS(SerialPort.Port.kUSB);
+		}
+		
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
+		LOG.logMessage("Right Speed " + rightCurrentSpeed);
 		leftCurrentSpeed = leftEncoderData.getSpeed();
+		LOG.logMessage("Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
@@ -267,8 +276,8 @@ public class Drives extends GenericSubsystem {
 	
 		//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 		//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-		rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
-		leftSetPower = leftWantedSpeed/MAX_SPEED;								// In case driver doesn't want PID loop
+		//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
+		//leftSetPower = leftWantedSpeed/MAX_SPEED;								// In case driver doesn't want PID loop
 		
 		rightMotorTop.set(rightSetPower);
 		rightMotorFront.set(rightSetPower);
@@ -300,22 +309,22 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
-		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
-		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
-		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
-		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
-		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-		LOG.logMessage(8, 10, "Current Drive State: " + currentDriveState);
-		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
-		if(isInverse){
-			LOG.logMessage(10, 10, "The drives are inverted");
-		}else{
-			LOG.logMessage(11, 10, "The drives are not inverted");
-		}
-		LOG.logMessage(12, 5, "Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
-		LOG.logMessage(13, 5, "Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
+//		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+//		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
+//		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
+//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+//		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
+//		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+//		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+//		LOG.logMessage(8, 10, "Current Drive State: " + currentDriveState);
+//		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
+//		if(isInverse){
+//			LOG.logMessage(10, 10, "The drives are inverted");
+//		}else{
+//			LOG.logMessage(11, 10, "The drives are not inverted");
+//		}
+//		LOG.logMessage(12, 5, "Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
+//		LOG.logMessage(13, 5, "Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
 	}
 
 	/**
@@ -324,13 +333,15 @@ public class Drives extends GenericSubsystem {
 	 * @param left the power from the left joystick
 	 */
 	public void setTankSpeed(double right, double left, boolean isInverted){
-		if(!isInverted){
-			rightWantedSpeed = right * MAX_SPEED;
-			leftWantedSpeed = left * MAX_SPEED;
-		}else{
-			rightWantedSpeed = -(left * MAX_SPEED);
-			leftWantedSpeed = -(right * MAX_SPEED);
-		}
+		rightSetPower = right;
+		leftSetPower = left;
+//		if(!isInverted){
+//			rightWantedSpeed = right * MAX_SPEED;
+//			leftWantedSpeed = left * MAX_SPEED;
+//		}else{
+//			rightWantedSpeed = -(left * MAX_SPEED);
+//			leftWantedSpeed = -(right * MAX_SPEED);
+//		}
 	}
 
 	/**
