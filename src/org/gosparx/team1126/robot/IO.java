@@ -15,10 +15,14 @@ public class IO {
 	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 3;
 	
 	/************************************DIO*******************************************/
-
-	public static final int DIO_SHOOTER_ENC_A                               = 0;
 	
-//	public static final int DIO_SHOOTER_ENC_B								= 1;
+	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 0;
+
+	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 1;
+	
+	public static final int DIO_LEFT_DRIVES_ENC_A                           = 2;
+
+	public static final int DIO_LEFT_DRIVES_ENC_B	                        = 3;
 	
 	public static final int DIO_GEARACQ_ENC									= 4;
 	
@@ -26,14 +30,10 @@ public class IO {
 	
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 6;
 	
-	public static final int DIO_LEFT_DRIVES_ENC                             = 12;
-
-	public static final int DIO_RIGHT_DRIVES_ENC	                        = 13;
-
-//	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 14;
-
-//	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 15;
-
+	public static final int DIO_SHOOTER_ENC_A                               = 12;
+	
+	public static final int DIO_SHOOTER_ENC_B								= 13;
+	
 	/**********************************CAN********************************************/
 
 	// CAN 2016 - Redefined for execution on the 2016 robot base
@@ -45,19 +45,19 @@ public class IO {
 //	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder
 
 	// CAN 2017 - New definitions for 2017 robot
-
-	public static final int CAN_DRIVES_LEFT_FRONT                           = 0;
-	
-	public static final int CAN_DRIVES_LEFT_BACK                            = 1;
-	
-	public static final int CAN_DRIVES_LEFT_TOP								= 2;
-	
-	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
 	
 	public static final int CAN_DRIVES_RIGHT_BACK                           = 4;
 	
-	public static final int CAN_DRIVES_RIGHT_TOP							= 5;
+	public static final int CAN_DRIVES_RIGHT_FRONT                          = 5;
+	
+	public static final int CAN_DRIVES_RIGHT_TOP							= 6;
 
+	public static final int CAN_DRIVES_LEFT_BACK                            = 10;
+	
+	public static final int CAN_DRIVES_LEFT_FRONT                           = 11;
+	
+	public static final int CAN_DRIVES_LEFT_TOP								= 12;
+/*
 	public static final int CAN_BALLACQ_ROLLER								= 6;
 	
 	public static final int CAN_BALLACQ_CONVEYOR							= 7;
@@ -67,7 +67,7 @@ public class IO {
 	public static final int CAN_CLIMBING	   								= 9;
 	
 	public static final int CAN_SHOOTER_TURNING								= 10;
-
+*/
 	/**********************************USB********************************************/
 	
 	public static final int USB_DRIVER_LEFT                                 = 0;
