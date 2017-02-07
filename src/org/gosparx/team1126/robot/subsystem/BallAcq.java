@@ -1,6 +1,8 @@
 package org.gosparx.team1126.robot.subsystem;
 
+import edu.wpi.first.wpilibj.DigitalInput; 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
@@ -12,6 +14,10 @@ public class BallAcq extends GenericSubsystem{
 	private static final double ROLLER_SPIN = 1.0;
 
 	private static final double ROLLER_STOP = 0;
+	
+	private static final double CONVEYOR_SPIN = 1.0;
+	
+	private static final double CONVEYOR_STOP = 0;
 
 	private static State currentAcqstatus;
 
@@ -26,6 +32,8 @@ public class BallAcq extends GenericSubsystem{
 	private static CANTalon conveyor;
 
 	private static double distPerTick;
+	
+	private DigitalInput GearAcqSensor;
 
 	private BallAcq(){
 		super("BallAcq", Thread.NORM_PRIORITY);
@@ -56,7 +64,7 @@ public class BallAcq extends GenericSubsystem{
 			case ACQING:
 				return "Acquiring balls";
 			default:
-				return "Acqing Status Unknown";
+				return "Acquiring Status Unknown";
 			}
 		}
 		protected boolean init() {
@@ -68,7 +76,9 @@ public class BallAcq extends GenericSubsystem{
 	}
 
 	protected void liveWindow() {
-		// TODO Auto-generated method stub
+		String subsystemName = "Gear Acq";
+		LiveWindow.addSensor(subsystemName, "Gear Acq Sensor", GearAcqSensor);
+		
 
 	}
 
@@ -76,14 +86,18 @@ public class BallAcq extends GenericSubsystem{
 		switch(currentAcqstatus){
 		case STANDBY:{
 			roller.set(ROLLER_STOP);
+			conveyor.set(CONVEYOR_STOP);
+			currentAcqstatus = State.STANDBY;
 			break;
 		}
 		case ACQING:{
 			roller.set(ROLLER_SPIN);
 			currentAcqstatus = State.ACQING;
-
-			break;
-		}
+			conveyor.set(CONVEYOR_SPIN);
+			currentAcqstatus = State.ACQING;
+				break;
+			}
+		
 		default:
 			break;
 		}
@@ -97,7 +111,10 @@ public class BallAcq extends GenericSubsystem{
 
 	@Override
 	protected boolean init() {
-		// TODO Auto-generated method stub
+		GearAcqSensor = new DigitalInput(IO.DIO_GEARACQ_ENC);
+		encoderData = new EncoderData(encoder, distPerTick);
+		roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
+		conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
 		return false;
 	}
 
