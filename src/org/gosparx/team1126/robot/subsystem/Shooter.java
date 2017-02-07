@@ -45,7 +45,7 @@ public class Shooter extends GenericSubsystem{
 	private boolean turretButton;
 	
 	/**
-	 * the local variable to see if the button is being pressed or turned true if auto is on
+	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
 	
@@ -183,6 +183,7 @@ public class Shooter extends GenericSubsystem{
 	//done
 	/**
 	 * makes the robot shoot and turn its turret and stuff
+	 * @return - does not mean anything
 	 */
 	@Override  
 	protected boolean execute(){
@@ -210,7 +211,7 @@ public class Shooter extends GenericSubsystem{
 		dsc.sharedData.systemReady = ready;
 		dsc.sharedData.turretAngle = turretDegreeCurrent;
 		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
-		return false;
+		return true;
 	}
 
 	//done
@@ -241,7 +242,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
-		return distance * 10;
+		return 1;
 
 	}
 	
@@ -277,7 +278,6 @@ public class Shooter extends GenericSubsystem{
 	}
 	
 	//done
-	//1 can(and will) change
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
@@ -302,7 +302,6 @@ public class Shooter extends GenericSubsystem{
 	//done
 	/**
 	 * checks if the turret is locked on and the shooter is at speed
-	 * @param fire - if turret and speed ctrl. are ready to fire
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
