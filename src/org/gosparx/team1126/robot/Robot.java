@@ -1,6 +1,7 @@
 package org.gosparx.team1126.robot;
 
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.subsystem.TestSubsystem;
 import org.gosparx.team1126.robot.util.LogWriter;
 
 import edu.wpi.first.wpilibj.SampleRobot;
@@ -17,6 +18,7 @@ public class Robot extends SampleRobot{
 	 */
 	public Robot() {
 		subsystems = new GenericSubsystem[]{
+			TestSubsystem.getInstance(),
 //        	Drives.getInstance(),
 //			Autonomous.getInstance(),
 //        	BallAcqNew.getInstance(),

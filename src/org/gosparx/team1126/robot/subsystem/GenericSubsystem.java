@@ -28,6 +28,7 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	protected DriverStationControls dsc;
 
+
 	/**
 	 * This constructs a new subsystem with the given name and priority.
 	 * 
@@ -46,7 +47,7 @@ public abstract class GenericSubsystem extends Thread {
 		dsc = new DriverStationControls();
 		
 		if(name != "LogWriter")
-			LOG = new Logger(name);
+			LOG = new Logger(name);		
 	}
 
 	/**
@@ -101,6 +102,7 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	@Override
 	public void run(){
+		long lastStartTime, startTime, executionTime, adjustedSleep;
 		boolean retVal = false;
 		double lastLogged = 0;
 		
@@ -109,11 +111,17 @@ public abstract class GenericSubsystem extends Thread {
 		
 		init();
 		liveWindow();
+		lastStartTime = System.currentTimeMillis();
 		
 		if(LOG != null)
 			LOG.logMessage("***Executing: " + getName());
 		
 		do{
+			startTime = System.currentTimeMillis();
+
+//			if (startTime - lastStartTime > 100)
+//				LOG.logMessage("Excessive thread delay " + (startTime - lastStartTime) + " msec");
+			
 			if(!dsc.isTest()){
 				try{
 					retVal = execute();
@@ -130,8 +138,17 @@ public abstract class GenericSubsystem extends Thread {
 					lastLogged = Timer.getFPGATimestamp();
 				}
 				
+				executionTime = System.currentTimeMillis() - startTime;
+				adjustedSleep = sleepTime() - executionTime;
+				lastStartTime = startTime;
+				
+				if (adjustedSleep < sleepTime() / 2)
+					adjustedSleep = sleepTime() / 2;
+				
+				LOG.logMessage("Execution " + executionTime);
+				
 				try {
-					Thread.sleep(sleepTime());
+					Thread.sleep(1000);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}

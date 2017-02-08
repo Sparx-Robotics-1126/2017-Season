@@ -3,7 +3,8 @@ package org.gosparx.team1126.robot.subsystem;
 public class TestSubsystem extends GenericSubsystem {
 	
 	private static TestSubsystem test;
-	
+	private int i;
+	private int j = 25;
 	/**
 	 * Constructors a drives object with normal priority
 	 */
@@ -28,7 +29,12 @@ public class TestSubsystem extends GenericSubsystem {
 
 	@Override
 	protected boolean execute() {
-		return true;
+		for (i=0; i<j; i++)
+			LOG.logMessage("message " + j + " " + i);
+
+//		j++;
+		
+		return false;
 	}
 
 	/**
@@ -45,7 +51,7 @@ public class TestSubsystem extends GenericSubsystem {
 	 */
 	@Override
 	protected long sleepTime() {
-		return 20;
+		return 50;
 	}
 
 	/**
