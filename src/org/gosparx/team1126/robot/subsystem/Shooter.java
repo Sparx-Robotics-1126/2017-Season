@@ -328,7 +328,7 @@ public class Shooter extends GenericSubsystem{
 	 * @param degreeOff - visions degree off from center
 	 * @param distance - the distance from the target
 	 */
-	public void visionUpdate(double degreeOff, double distance, ){
+	public void visionUpdate(double degreeOff, double distance){
 		this.degreeOff = degreeOff;
 		this.distance = distance;
 	}
