@@ -10,7 +10,7 @@ import org.gosparx.team1126.robot.sensors.EncoderData;
 import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
-//change enum's to booleans today!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
 	private static final double ROLLER_SPIN = 1.0;
 
 	private static final double ROLLER_STOP = 0;
@@ -23,16 +23,10 @@ public class BallAcq extends GenericSubsystem{
 
 	public static BallAcq ballacq;
 
-	private static Encoder encoder;
-
-	private static  EncoderData encoderData;
-
 	private static CANTalon roller;
 
 	private static CANTalon conveyor;
 
-	private static double distPerTick;
-	
 	private DigitalInput GearAcqSensor;
 
 	private BallAcq(){
@@ -68,7 +62,6 @@ public class BallAcq extends GenericSubsystem{
 			}
 		}
 		protected boolean init() {
-			encoderData = new EncoderData(encoder, distPerTick);
 			roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
 			conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
 			return false;
@@ -87,14 +80,11 @@ public class BallAcq extends GenericSubsystem{
 		case STANDBY:{
 			roller.set(ROLLER_STOP);
 			conveyor.set(CONVEYOR_STOP);
-			currentAcqstatus = State.STANDBY;
 			break;
 		}
 		case ACQING:{
 			roller.set(ROLLER_SPIN);
-			currentAcqstatus = State.ACQING;
 			conveyor.set(CONVEYOR_SPIN);
-			currentAcqstatus = State.ACQING;
 				break;
 			}
 		
@@ -112,7 +102,6 @@ public class BallAcq extends GenericSubsystem{
 	@Override
 	protected boolean init() {
 		GearAcqSensor = new DigitalInput(IO.DIO_GEARACQ_ENC);
-		encoderData = new EncoderData(encoder, distPerTick);
 		roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
 		conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
 		return false;
