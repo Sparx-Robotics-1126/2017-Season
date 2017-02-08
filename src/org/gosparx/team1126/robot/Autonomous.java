@@ -1,5 +1,7 @@
 package org.gosparx.team1126.robot;
 
+import java.awt.List;
+
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.CSVReader;
 
@@ -142,6 +144,26 @@ public class Autonomous extends GenericSubsystem{
 			return chooser.getSelected();
 		}
 		return chooser.getSelected();
+	}
+	
+	private int[][] parseCSV(String filePath);
+	{
+		CSVReader csv;
+		String[][] string = null;
+		try {
+			csv = new CSVReader(new FileReader("C:/Users/Definitive/Documents/csv.csv"));
+			List<String[]> list = csv.readAll();
+			
+			string = new String[list.size()][];
+			string = list.toArray(string);
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 
 	}
 	
 	/*************************************************************************************************
