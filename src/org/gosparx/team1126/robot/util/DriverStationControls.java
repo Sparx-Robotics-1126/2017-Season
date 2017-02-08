@@ -213,22 +213,18 @@ public class DriverStationControls {
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
-	// Constructor - If the first one created, then create the static objects, get a pointer
-	//	to the driver station object and initialize variables
+	// Constructors - If the first one created, then create the static objects, get a pointer to the driver
+	//	station object and initialize variables
 	//-----------------------------------------------------------------------------------------------------------
+	
+	public DriverStationControls(boolean reset)
+	{
+		createObjects(reset);
+	}
 	
 	public DriverStationControls()
 	{
-		int i;
-		
-		createObjects();
-	
-		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-			buttonLastValues[i] = getButton(i);
-		}
-			
-		if (sharedData == null)											// Create the vehicle to share data
-			sharedData = new SharedData();								//  between subsystems.
+		createObjects(false);
 	}
 	
 	
@@ -236,19 +232,28 @@ public class DriverStationControls {
 	// Create the objects if they haven't already been created.
 	//-----------------------------------------------------------------------------------------------------------
 	
-	private void createObjects()
+	private void createObjects(boolean reset)
 	{
-		if (ds == null)													// Get Instance of driver station
+		int i;
+
+		if ((ds == null) || (reset == true))							// Get Instance of driver station
 			ds = DriverStation.getInstance();
 		
-		if (joysticks[0] == null)
+		if ((joysticks[0] == null) || (reset == true))
 			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
 		
-		if (joysticks[1] == null)
+		if ((joysticks[1] == null) || (reset == true))
 			joysticks[1] = new Joystick(1);								// Create the Right Driver Joystick
 		
-		if (joysticks[2] == null)
+		if ((joysticks[2] == null) || (reset == true))
 			joysticks[2] = new Joystick(2);								// Create the XBox Controller #2
+			
+		if (sharedData == null)											// Create the vehicle to share data
+			sharedData = new SharedData();								//  between subsystems.
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 			
 		if (sharedData == null)											// Create the vehicle to share data
 			sharedData = new SharedData();								//  between subsystems.
@@ -454,7 +459,7 @@ public class DriverStationControls {
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
 
-		createObjects();												// Ensure all objects have been created.
+		createObjects(false);												// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
