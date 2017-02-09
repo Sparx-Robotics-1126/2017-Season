@@ -66,7 +66,7 @@ public class DriverStationControls {
 	public static final int XBOX_START = 8;
 	public static final int XBOX_L3 = 9;
 	public static final int XBOX_R3 = 10;
-
+	
 	// XBox Mapping
 	
 	public static final int OP_XBOX_LEFT_X = xboxControllerAxis + 0;

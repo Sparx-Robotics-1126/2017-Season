@@ -11,14 +11,22 @@ import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
 
-	private static final double ROLLER_SPIN = 1.0;
+	private static final double ROLLER_SPIN_FOWARD = 1.0;
 
+	private static final double ROLLER_SPIN_BACKWARD = 1.0;
+	
 	private static final double ROLLER_STOP = 0;
 	
-	private static final double CONVEYOR_SPIN = 1.0;
+	private static final double CONVEYOR_SPIN_FOWARD = 1.0;
+	
+	private static final double CONVEYOR_SPIN_BACKWARD = 1.0;
 	
 	private static final double CONVEYOR_STOP = 0;
 
+	private double wantedRollerSpeed;
+	
+	private double wantedConveyorSpeed;
+	
 	private static State currentAcqstatus;
 
 	public static BallAcq ballacq;
@@ -27,6 +35,10 @@ public class BallAcq extends GenericSubsystem{
 
 	private static CANTalon conveyor;
 
+	private static Encoder encoder;
+	
+	private static EncoderData encoderData;
+	
 	private DigitalInput GearAcqSensor;
 
 	private BallAcq(){
@@ -48,22 +60,25 @@ public class BallAcq extends GenericSubsystem{
 	}
 	public enum State{
 		STANDBY,
-		ACQING;
+		FORWARD,
+		BACKWARD;
 	
 		@Override
 		public String toString(){
 			switch(this){
 			case STANDBY:
 				return "Ready to acquire";
-			case ACQING:
-				return "Acquiring balls";
+			case FORWARD:
+				return "BallAcq foward";
+			case BACKWARD:
+				return "BallAcq backward";	
 			default:
 				return "Acquiring Status Unknown";
 			}
 		}
-		protected boolean init() {
+	protected boolean init() {
 			roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
-			conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
+			conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
 			return false;
 		}
 	}
@@ -72,26 +87,34 @@ public class BallAcq extends GenericSubsystem{
 		String subsystemName = "Gear Acq";
 		LiveWindow.addSensor(subsystemName, "Gear Acq Sensor", GearAcqSensor);
 		
-
 	}
 
 	protected boolean execute() {
+		dsc.update();
+		setAcqState();
 		switch(currentAcqstatus){
 		case STANDBY:{
-			roller.set(ROLLER_STOP);
-			conveyor.set(CONVEYOR_STOP);
+			wantedRollerSpeed = ROLLER_STOP;
+			wantedConveyorSpeed = CONVEYOR_STOP;
 			break;
 		}
-		case ACQING:{
-			roller.set(ROLLER_SPIN);
-			conveyor.set(CONVEYOR_SPIN);
+		case FORWARD:{
+			wantedRollerSpeed = ROLLER_SPIN_FOWARD;
+			wantedConveyorSpeed = CONVEYOR_SPIN_BACKWARD;
 				break;
 			}
-		
+		case BACKWARD:{
+			wantedRollerSpeed = ROLLER_SPIN_BACKWARD;
+			wantedConveyorSpeed =  CONVEYOR_SPIN_BACKWARD;
+				break;
+			}
 		default:
 			break;
 		}
 
+		roller.set(wantedRollerSpeed);
+		conveyor.set(wantedConveyorSpeed);
+		
 		return false;
 	}
 	protected long sleepTime() {
@@ -99,6 +122,40 @@ public class BallAcq extends GenericSubsystem{
 		return 20;
 	}
 
+	private void setAcqState(){
+		if(dsc.isAutonomous()){
+			//
+		}
+		if(dsc.isOperatorControl()){
+			switch(dsc.getRawPOV()){
+			case 0:
+				if(dsc.getPOVRising(0)){
+					currentAcqstatus = State.FORWARD;
+				}
+				break;
+			case 90:
+				if(dsc.getPOVRising(2)){
+					currentAcqstatus = State.FORWARD;
+				}
+				break;
+			case 180:
+				if(dsc.getPOVRising(4)){
+					currentAcqstatus = State.STANDBY;
+				}
+				break;
+			case 270:
+				if(dsc.getPOVRising(6)){
+					currentAcqstatus = State.BACKWARD;
+				}
+				break;
+				
+			}
+			
+		} else {
+			currentAcqstatus = State.STANDBY;
+		}
+	}
+	
 	@Override
 	protected boolean init() {
 		GearAcqSensor = new DigitalInput(IO.DIO_GEARACQ_ENC);
