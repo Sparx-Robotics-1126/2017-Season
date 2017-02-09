@@ -162,7 +162,7 @@ public class Shooter extends GenericSubsystem{
 		turretButton = false;
 		isPressed = false;
 		degreeOff = 0;
-		distance =  0;
+		distance =  100;
 		ready = false;
 		return true;
 	}
@@ -208,9 +208,9 @@ public class Shooter extends GenericSubsystem{
 			ready = false;
 			conveyor.set(0);
 		}
-		dsc.sharedData.systemReady = ready;
-		dsc.sharedData.turretAngle = turretDegreeCurrent;
-		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
+//		dsc.sharedData.systemReady = ready;
+//		dsc.sharedData.turretAngle = turretDegreeCurrent;
+//		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
 		return true;
 	}
 
@@ -242,7 +242,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
-		return 1;
+		return 1500;
 
 	}
 	
