@@ -16,9 +16,9 @@ public class IO {
 	
 	/************************************DIO*******************************************/
 
-	public static final int DIO_SHOOTER_ENC_A                               = 0;
+	public static final int DIO_SHOOTER_ENC_A                               = 16;
 	
-	public static final int DIO_SHOOTER_ENC_B								= 1;
+	public static final int DIO_SHOOTER_ENC_B								= 17;
 	
 	public static final int DIO_GEARACQ_ENC									= 4;
 	
@@ -26,33 +26,35 @@ public class IO {
 	
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 6;
 	
+	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 10;
+	public static final int DIO_RIGHT_DRIVES_ENC_B	                        = 11;
 	public static final int DIO_LEFT_DRIVES_ENC_A                           = 12;
-
 	public static final int DIO_LEFT_DRIVES_ENC_B                           = 13;
-
-	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 14;
-
-	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 15;
 
 	/**********************************CAN********************************************/
 
 	// CAN 2016 - Redefined for execution on the 2016 robot base
-	public static final int CAN_DRIVES_LEFT_FRONT                           = 1;
-	public static final int CAN_DRIVES_LEFT_BACK                            = 2;
-	public static final int CAN_DRIVES_LEFT_TOP								= 4;	// Old Acquisition Shoulder
-	public static final int CAN_DRIVES_RIGHT_FRONT                          = 9;
-	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
-	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder
+//	public static final int CAN_DRIVES_LEFT_FRONT                           = 1;
+//	public static final int CAN_DRIVES_LEFT_BACK                            = 2;
+//	public static final int CAN_DRIVES_LEFT_TOP								= 4;	// Old Acquisition Shoulder
+//	public static final int CAN_DRIVES_RIGHT_FRONT                          = 9;
+//	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
+//	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder
 
 	// CAN 2017 - New definitions for 2017 robot
-/*	
+
 	public static final int CAN_DRIVES_LEFT_FRONT                           = 0;
+	
 	public static final int CAN_DRIVES_LEFT_BACK                            = 1;
+	
 	public static final int CAN_DRIVES_LEFT_TOP								= 2;
+	
 	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
-	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
+	
+	public static final int CAN_DRIVES_RIGHT_BACK                           = 4;
+	
 	public static final int CAN_DRIVES_RIGHT_TOP							= 5;
-*/	
+
 	public static final int CAN_BALLACQ_ROLLER								= 6;
 	
 	public static final int CAN_BALLACQ_CONVEYOR							= 7;
@@ -80,13 +82,17 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
-	public static final int ABORT_AUTO_DRIVES								= 4;
+	public static final int ABORT_AUTO_DRIVES								= 1;
 	
-	public static final int INVERT_DRIVES_BUTTON							= 1;
+	public static final int INVERT_DRIVES_BUTTON							= 4;
+	
+	public static final int HOLD_DRIVES										= 6;
 	
 	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
 	
-	public static final int BUTTON_FIRE										= 9;
+	public static final int BUTTON_FIRE										= 11;
+	
+	public static final int SCALING_RT										= 9;
 	
 	public static final int RIGHT_JOY_X										= 2;
 	
@@ -96,5 +102,14 @@ public class IO {
 	
 	public static final int LEFT_JOY_Y										= 1;
 	
+	public static final int DIAGNOSTICS										= 14;
+	
+	public static final int ACQ_ON											= 0;
+	
+	public static final int ACQ_OFF											= 4;
+	
+	public static final int ACQ_FOWARD										= 2;
+	
+	public static final int ACQ_BACKWARD									= 6;
 	
 }

@@ -10,6 +10,7 @@ public class DriverStationControls {
 	
 	private static final int maxButtons = 18;
 	private static final int maxAxes = 10;
+	private static final int maxPOVs = 8;
 	private static final int leftJoystickButtons = 0;
 	private static final int rightJoystickButtons = 4;
 	private static final int xboxControllerButtons = 8;
@@ -120,6 +121,39 @@ public class DriverStationControls {
 	//	 There is a static version that is continually updated, and a local version used for each object and is updated
 	//	 when called the appropriate routine.
 	
+	private static long[][]POVData = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
+	};
+	
+	private static long[][]POVDataGlobal = {
+			{0,0},														// Stores last POV from update()
+			{0,0},														// Stores rising edge information (right is from update())
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},
+			{0,0}								// Stores falling edge information (right is from update())
+	};
+
+	private static boolean[] POVLastValues = {
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false,
+			false
+	};
+	
 	private static long[][]buttonDataGlobal = {							// {Rising Edge, Falling Edge})
 			{0,0},														// Joystick 0 (Standard)
 			{0,0},
@@ -199,6 +233,17 @@ public class DriverStationControls {
 			{2, XBOX_R2}
 	};
 	
+	private static final int[][] povs = {
+			{2, 0},
+			{2, 45},
+			{2, 90},
+			{2, 135},
+			{2, 180},
+			{2, 225},
+			{2, 270},
+			{2, 315}
+	};
+	
 	private double[][] axesData = {										// { Deadband, axis invert }
 			{0.05,1.0},													// Joystick 0 (Standard)
 			{0.05,1.0},
@@ -213,45 +258,104 @@ public class DriverStationControls {
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
-	// Constructor - If the first one created, then create the static objects, get a pointer
-	//	to the driver station object and initialize variables
+	// Constructors - If the first one created, then create the static objects, get a pointer to the driver
+	//	station object and initialize variables
 	//-----------------------------------------------------------------------------------------------------------
+	
+	public DriverStationControls(boolean reset)
+	{
+		createObjects(reset);
+	}
 	
 	public DriverStationControls()
 	{
-		int i;
-		
-		createObjects();
-	
-		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-			buttonLastValues[i] = getButton(i);
-		}
-			
-		if (sharedData == null)											// Create the vehicle to share data
-			sharedData = new SharedData();								//  between subsystems.
+		createObjects(false);
 	}
 	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the specified POV is pressed
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public boolean getPOV(int POVNumber)
+	{
+		if ((POVNumber >= 0) &&(POVNumber < maxPOVs))
+			if(joysticks[2].getPOV() == povs[POVNumber][1]){
+				return true;
+			}
+		return false;
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return the current value of the specified POV
+	//-----------------------------------------------------------------------------------------------------------
+		
+	public int getRawPOV(){
+		return joysticks[2].getPOV();
+	}
+		//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is pressed (rising edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVRising(int POVNumber){
+		
+		boolean rising = false;
+		
+		if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
+			if (POVData[POVNumber][0] > 0)
+			{
+				rising = true;
+			}
+			POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
+		}
+		return rising;
+	}
+	
+	//-----------------------------------------------------------------------------------------------------------
+	// Return if the POV is released (falling edge) since the last time this method was called by the
+	// owner (subsystem).
+	//-----------------------------------------------------------------------------------------------------------
+	
+	public boolean getPOVFalling(int POVNumber){
+		
+		boolean falling = false;
+		
+		if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
+			if (POVData[POVNumber][1] > 0)
+			{
+				falling = true;
+			}
+			POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
+		}
+		return falling;
+	}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Create the objects if they haven't already been created.
 	//-----------------------------------------------------------------------------------------------------------
 	
-	private void createObjects()
+	private void createObjects(boolean reset)
 	{
-		if (ds == null)													// Get Instance of driver station
+		int i;
+
+		if ((ds == null) || (reset == true))							// Get Instance of driver station
 			ds = DriverStation.getInstance();
 		
-		if (joysticks[0] == null)
+		if ((joysticks[0] == null) || (reset == true))
 			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
 		
-		if (joysticks[1] == null)
+		if ((joysticks[1] == null) || (reset == true))
 			joysticks[1] = new Joystick(1);								// Create the Right Driver Joystick
 		
-		if (joysticks[2] == null)
+		if ((joysticks[2] == null) || (reset == true))
 			joysticks[2] = new Joystick(2);								// Create the XBox Controller #2
 			
 		if (sharedData == null)											// Create the vehicle to share data
 			sharedData = new SharedData();								//  between subsystems.
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 	}
 	
 	
@@ -297,7 +401,7 @@ public class DriverStationControls {
 		return joysticks[joy].getRawButton(button);						// Return current value
 	}
 
-
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if there was a button pressed (rising edge) since the last time this method was called by the
 	// owner (subsystem).
@@ -454,7 +558,7 @@ public class DriverStationControls {
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
 
-		createObjects();												// Ensure all objects have been created.
+		createObjects(false);												// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{

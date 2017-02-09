@@ -29,10 +29,9 @@ public class TestSubsystem extends GenericSubsystem {
 
 	@Override
 	protected boolean execute() {
-		for (i=0; i<j; i++)
-			LOG.logMessage("message " + j + " " + i);
 
-//		j++;
+		LOG.logMessage(1, 20, "Button" + dsc.getButton(1));
+		LOG.logMessage(2,20,"FMS" + dsc.isFMSAttached());
 		
 		return false;
 	}
