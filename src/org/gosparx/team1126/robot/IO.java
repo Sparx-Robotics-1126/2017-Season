@@ -27,11 +27,8 @@ public class IO {
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 6;
 	
 	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 10;
-
 	public static final int DIO_RIGHT_DRIVES_ENC_B	                        = 11;
-
 	public static final int DIO_LEFT_DRIVES_ENC_A                           = 12;
-
 	public static final int DIO_LEFT_DRIVES_ENC_B                           = 13;
 
 	/**********************************CAN********************************************/

@@ -57,6 +57,7 @@ public class Robot extends SampleRobot{
 	public void test() {
 	}
 	
+	
 	@Override
 	public void disabled(){
 	}

@@ -401,7 +401,7 @@ public class DriverStationControls {
 		return joysticks[joy].getRawButton(button);						// Return current value
 	}
 
-
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if there was a button pressed (rising edge) since the last time this method was called by the
 	// owner (subsystem).
