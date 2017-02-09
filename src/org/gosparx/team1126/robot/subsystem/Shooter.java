@@ -305,7 +305,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		if(speedCtrl() && turretCtrl()){
+		if(speedCtrl()){
 			return true;
 		}
 		return false;
