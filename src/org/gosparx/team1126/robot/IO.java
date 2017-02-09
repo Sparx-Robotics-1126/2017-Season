@@ -84,6 +84,7 @@ public class IO {
 	                                                                        };
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
+	public static final int RESET_ENCODER									= 2;
 	
 	public static final int ABORT_AUTO_DRIVES								= 1;
 	

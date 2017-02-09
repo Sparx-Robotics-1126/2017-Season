@@ -197,13 +197,15 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
-		LOG.logMessage("Right Speed " + rightCurrentSpeed);
+			LOG.logMessage("Right Speed " + rightCurrentSpeed);
 		leftCurrentSpeed = leftEncoderData.getSpeed();
-		LOG.logMessage("Left Speed " + leftCurrentSpeed);
+			LOG.logMessage("Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
+			LOG.logMessage("Right Current Distance: " + rightCurrentDistance);
 		leftCurrentDistance = leftEncoderData.getDistance();
+			LOG.logMessage("Left Current Distance: " + leftCurrentDistance);
 		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
@@ -242,6 +244,12 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
+			if(dsc.getButtonRising(IO.RESET_ENCODER)){
+				rightEncoder.reset();
+				rightEncoderData.reset();
+				leftEncoder.reset();
+				leftEncoderData.reset();
+			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
 			}
@@ -252,12 +260,13 @@ public class Drives extends GenericSubsystem {
 				holdDrives();
 			}
 			if(dsc.runDiagnostics()){
+				LOG.logMessage("Running Diagnostics");
 				diagnostics();
 			}
 			
-			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
+					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			
 			break;
 			
@@ -309,10 +318,10 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-//		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
 //		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
 //		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
 //		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
 //		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
 //		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
@@ -350,13 +359,15 @@ public class Drives extends GenericSubsystem {
 	 * @param yAxis value from the yAxis on the joystick
 	 */
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
-		if(!isInverted){
-			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
-			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
-		}else{
-			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
-			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
-		}
+		rightSetPower = (yAxis + xAxis/X_SENSITIVITY);
+		leftSetPower = (yAxis - xAxis/X_SENSITIVITY);
+//		if(!isInverted){
+//			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
+//			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+//		}else{
+//			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+//			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+//		}
 	}
 	
 	/**
