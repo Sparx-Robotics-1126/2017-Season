@@ -3,10 +3,13 @@ package org.gosparx.team1126.robot.subsystem;
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.sensors.PID;
+import org.gosparx.team1126.robot.util.DriverStationControls;
+
 import com.ctre.CANTalon;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SerialPort;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 /**
@@ -23,7 +26,7 @@ public class Drives extends GenericSubsystem {
 	private static final double MAX_SPEED = 180;        							// Maximum speed for the robot
 	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
 	private static final double HOLDING_TURN_SPEED = 30;						// Speed for turning while in hold state
-	private static final double CHECK_POWER = .1;								// Power for diagnostics
+	private static final double CHECK_POWER = .2;								// Power for diagnostics
 	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
 	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
 	private static final double leftKI = 0.005 * 50;							// Integral for the left PID
@@ -197,15 +200,15 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
-			LOG.logMessage("Right Speed " + rightCurrentSpeed);
+			//LOG.logMessage("Right Speed " + rightCurrentSpeed);
 		leftCurrentSpeed = leftEncoderData.getSpeed();
-			LOG.logMessage("Left Speed " + leftCurrentSpeed);
+			//LOG.logMessage("Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
-			LOG.logMessage("Right Current Distance: " + rightCurrentDistance);
+			//LOG.logMessage("Right Current Distance: " + rightCurrentDistance);
 		leftCurrentDistance = leftEncoderData.getDistance();
-			LOG.logMessage("Left Current Distance: " + leftCurrentDistance);
+			//LOG.logMessage("Left Current Distance: " + leftCurrentDistance);
 		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
@@ -259,7 +262,7 @@ public class Drives extends GenericSubsystem {
 			if(dsc.getButtonRising(IO.HOLD_DRIVES)){
 				holdDrives();
 			}
-			if(dsc.runDiagnostics()){
+			if(dsc.getRawButton(2, DriverStationControls.XBOX_BACK)){
 				LOG.logMessage("Running Diagnostics");
 				diagnostics();
 			}
@@ -483,11 +486,12 @@ public class Drives extends GenericSubsystem {
 	 */
 	public void diagnostics(){
 		check(rightMotorTop, rightEncoder, rightEncoderData, CHECK_POWER);
-		check(rightMotorFront, rightEncoder, rightEncoderData, CHECK_POWER);
-		check(rightMotorBack, rightEncoder, rightEncoderData, CHECK_POWER);
-		check(leftMotorTop, leftEncoder, leftEncoderData, CHECK_POWER);
-		check(leftMotorFront, leftEncoder, leftEncoderData, CHECK_POWER);
-		check(leftMotorBack, leftEncoder, leftEncoderData, CHECK_POWER);
+		check(rightMotorTop, rightEncoder, rightEncoderData, -CHECK_POWER);
+		//check(rightMotorFront, rightEncoder, rightEncoderData, CHECK_POWER);
+		//check(rightMotorBack, rightEncoder, rightEncoderData, CHECK_POWER);
+		//check(leftMotorTop, leftEncoder, leftEncoderData, CHECK_POWER);
+		//check(leftMotorFront, leftEncoder, leftEncoderData, CHECK_POWER);
+		//check(leftMotorBack, leftEncoder, leftEncoderData, CHECK_POWER);
 	}
 	
 	/**
@@ -589,6 +593,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void check(CANTalon motor, Encoder encoder, EncoderData encoderData, double power){
 		double encoderSpeed;
+		String motorName;
 		motor.set(power);
 		encoderData.calculateSpeed();
 		encoderSpeed = encoderData.getSpeed();
@@ -615,6 +620,8 @@ public class Drives extends GenericSubsystem {
 		}else if(power == 0 && encoderSpeed == 0){
 			LOG.logMessage(motor + "is not moving and " + encoder + " is reading zero - Good");
 		}
+		Timer.delay(.25);
+		motor.set(STOP_MOTOR_POWER_SPEED);
 	}
 	
 	/**
