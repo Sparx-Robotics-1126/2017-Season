@@ -1,5 +1,7 @@
 package org.gosparx.team1126.robot.subsystem;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+
 /**
  * 
  * @Author - nphto
@@ -72,13 +74,17 @@ public class Shooter extends GenericSubsystem{
 	
 	private EncoderData encoderData;
 	
-	private AbsoluteEncoderData turretSensor;
+	//private AbsoluteEncoderData turretSensor;
 	
 	private CANTalon flyWheel;
 	
 	private CANTalon conveyor;
 	
 	private CANTalon turret;
+	
+	//private DigitalInput A;
+	
+	//private DigitalInput B;
 	
 //*****************************************Constants*************************************\\
 	
@@ -95,7 +101,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the max speed for the fly wheel
 	 */
-	private final double FLYWHEEL_MAX = 1;
+	private final double FLYWHEEL_MAX = 0.5;
 	
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -115,7 +121,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * used for the encoder data
 	 */
-	private final double DIST_PER_TICK =  1/256;
+	private final double DIST_PER_TICK = (1.0/256.0)*60.0;
 	
 	/**
 	 * turret center position in volts
@@ -152,8 +158,10 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init(){
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
-		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
-		turretSensor.setZero(ZERO_VOLTAGE);
+		//turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
+		//turretSensor.setZero(ZERO_VOLTAGE);
+		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
+		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
@@ -183,12 +191,13 @@ public class Shooter extends GenericSubsystem{
 	//done
 	/**
 	 * makes the robot shoot and turn its turret and stuff
-	 * @return - does not mean anything
+	 * @return - does not mean anything //turretDegreeCurrent = turretSensor.relDegrees();
 	 */
 	@Override  
 	protected boolean execute(){
+		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
-		turretDegreeCurrent = turretSensor.relDegrees();
+		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 		if(dsc.isOperatorControl())
 			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 		if(isPressed){
@@ -211,7 +220,8 @@ public class Shooter extends GenericSubsystem{
 //		dsc.sharedData.systemReady = ready;
 //		dsc.sharedData.turretAngle = turretDegreeCurrent;
 //		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
-		return true;
+		//System.out.println("t");
+		return false;
 	}
 
 	//done
@@ -220,7 +230,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected long sleepTime(){
-		return 20;
+		return 25;
 	}
 
 	//done
@@ -230,8 +240,8 @@ public class Shooter extends GenericSubsystem{
 	@Override
 	protected void writeLog(){
 		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
-		LOG.logMessage("Turret degree: " + turretDegreeCurrent);
-		LOG.logMessage("Turret Degree Off: " + degreeOff);
+		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
+		//LOG.logMessage("Turret Degree Off: " + degreeOff);
 		LOG.logMessage("Distance Away: " + distance);
 		LOG.logMessage("IsPressed: " + isPressed);
 	}

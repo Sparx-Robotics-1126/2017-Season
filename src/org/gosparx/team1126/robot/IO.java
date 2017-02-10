@@ -97,9 +97,9 @@ public class IO {
 	
 	public static final int HOLD_DRIVES										= 6;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
+	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 11;
 	
-	public static final int BUTTON_FIRE										= 11;
+	public static final int BUTTON_FIRE										= 8;
 	
 	public static final int SCALING_RT										= 9;
 	
