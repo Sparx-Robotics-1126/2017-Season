@@ -266,7 +266,7 @@ public class DriverStationControls {
 	{
 		int i;
 		
-		if (firstTime)													// 1st time run?
+		if (true)													// 1st time run?
 		{
 			ds = DriverStation.getInstance();							// Get link to driver station object
 			

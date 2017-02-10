@@ -9,7 +9,6 @@ import com.ctre.CANTalon;
 import com.kauailabs.navx.frc.AHRS;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 /**
@@ -23,16 +22,18 @@ public class Drives extends GenericSubsystem {
 	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
 	private static final double DISTANCE_PER_TICK = .031219576995;				// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
-	private static final double MAX_SPEED = 180;        							// Maximum speed for the robot
+	private static final double MAX_SPEED = 175;        						// Maximum speed for the robot
 	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
 	private static final double HOLDING_TURN_SPEED = 30;						// Speed for turning while in hold state
-	private static final double CHECK_POWER = .2;								// Power for diagnostics
-	private static final double rightKI = 0.005 * 50;							// Integral for the right PID
-	private static final double rightKP = (1.0 / 50);							// Proportional for the right PID
-	private static final double leftKI = 0.005 * 50;							// Integral for the left PID
-	private static final double leftKP = (1.0 / 50);							// Proportional for the left PID
+	private static final double CHECK_POWER = .3;								// Power for diagnostics
+	private static final double RIGHT_KI = .08;									// Integral for the right PID
+	private static final double RIGHT_KP = .015;								// Proportional for the right PID
+	private static final double LEFT_KI = .08;									// Integral for the left PID
+	private static final double left_KP = .015;									// Proportional for the left PID
 	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
 	private static final double JOYSTICK_DEADBAND = .06; 						// Axis for the deadband
+	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
+	private static final double LEFT_FF = .00538;								// Feed forward for left PID
 	
 	/** Right */
 	
@@ -82,6 +83,9 @@ public class Drives extends GenericSubsystem {
 	private double averageSpeed;												// Average Speed
 	private double averageDistance;												// Average Distance
 	private double previousAngle;												// Previous Angle
+	private DiagnosticState currentDiagnosticState;
+	private boolean isDiagnostic;
+	private long diagnosticTime;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -109,14 +113,14 @@ public class Drives extends GenericSubsystem {
 	protected boolean init(){
 		//Right
 		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
-		rightMotorTop.setInverted(true);
+		rightMotorTop.setInverted(false);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
-		rightMotorFront.setInverted(true);
+		rightMotorFront.setInverted(false);
 		rightMotorBack = new CANTalon(IO.CAN_DRIVES_RIGHT_BACK);
-		rightMotorBack.setInverted(true);
+		rightMotorBack.setInverted(false);
 		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, DISTANCE_PER_TICK);	
-		rightPID = new PID(rightKI, rightKP);
+		rightPID = new PID(RIGHT_KI, RIGHT_KP, RIGHT_FF);
 		rightPID.breakMode(true);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
@@ -126,11 +130,14 @@ public class Drives extends GenericSubsystem {
 
 		//Left
 		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
+		leftMotorTop.setInverted(true);
 		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
+		leftMotorFront.setInverted(true);
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
+		leftMotorBack.setInverted(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, -DISTANCE_PER_TICK);		
-		leftPID = new PID(leftKI, leftKP);
+		leftPID = new PID(LEFT_KI, left_KP, LEFT_FF);
 		leftPID.breakMode(true);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
@@ -140,6 +147,7 @@ public class Drives extends GenericSubsystem {
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
+		currentDiagnosticState = DiagnosticState.DONE;
 		try{
 			gyro = new AHRS(SerialPort.Port.kUSB);
 			gyro.zeroYaw();
@@ -161,6 +169,8 @@ public class Drives extends GenericSubsystem {
 		averageSpeed = 0;
 		averageDistance = 0;
 		previousAngle = 0;
+		isDiagnostic = false;
+		diagnosticTime = 0;
 		
 		return true;
 	}
@@ -200,9 +210,9 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
-			//LOG.logMessage("Right Speed " + rightCurrentSpeed);
+			LOG.logMessage(14, 25, "Right Speed " + rightCurrentSpeed);
 		leftCurrentSpeed = leftEncoderData.getSpeed();
-			//LOG.logMessage("Left Speed " + leftCurrentSpeed);
+			LOG.logMessage(14, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
@@ -263,14 +273,20 @@ public class Drives extends GenericSubsystem {
 				holdDrives();
 			}
 			if(dsc.getRawButton(2, DriverStationControls.XBOX_BACK)){
-				LOG.logMessage("Running Diagnostics");
+				isDiagnostic = true;
 				diagnostics();
+			}else{
+				currentDiagnosticState = DiagnosticState.TOP;
+				isDiagnostic = false;
 			}
 			
 			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
 			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
 					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
-			
+			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
+				rightWantedSpeed = 50;
+				leftWantedSpeed = 50;
+			}
 			break;
 			
 		case DISABLED:
@@ -286,24 +302,25 @@ public class Drives extends GenericSubsystem {
 			LOG.logError("Error :( Current Drive State: " + currentDriveState);
 		}
 	
-		//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-		//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-		//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
-		//leftSetPower = leftWantedSpeed/MAX_SPEED;								// In case driver doesn't want PID loop
+		if(!isDiagnostic){
+			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        			// In case driver doesn't want PID loop
+			//leftSetPower = leftWantedSpeed/MAX_SPEED;								// In case driver doesn't want PID loop
 		
-		rightMotorTop.set(rightSetPower);
-		rightMotorFront.set(rightSetPower);
-		rightMotorBack.set(rightSetPower);
-		leftMotorTop.set(leftSetPower);
-		leftMotorFront.set(leftSetPower);
-		leftMotorBack.set(leftSetPower);
-		
+			rightMotorTop.set(rightSetPower);
+			rightMotorFront.set(rightSetPower);
+			rightMotorBack.set(rightSetPower);
+			leftMotorTop.set(leftSetPower);
+			leftMotorFront.set(leftSetPower);
+			leftMotorBack.set(leftSetPower);
+		}
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
 		previousX = currentX;
 		previousY = currentY;
 		previousAngle = currentAngle;
-		
+
 		return false;
 	}
 
@@ -321,7 +338,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-		LOG.logMessage(0, 10, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+		LOG.logMessage(0, 25, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
 //		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
 //		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
 		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
@@ -362,8 +379,10 @@ public class Drives extends GenericSubsystem {
 	 * @param yAxis value from the yAxis on the joystick
 	 */
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
-		rightSetPower = (yAxis + xAxis/X_SENSITIVITY);
-		leftSetPower = (yAxis - xAxis/X_SENSITIVITY);
+//		rightSetPower = (-yAxis - xAxis/X_SENSITIVITY);
+//		leftSetPower = (-yAxis + xAxis/X_SENSITIVITY);
+		rightWantedSpeed = (-yAxis - xAxis/X_SENSITIVITY)*MAX_SPEED;
+		leftWantedSpeed = (-yAxis + xAxis/X_SENSITIVITY)*MAX_SPEED;
 //		if(!isInverted){
 //			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 //			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
@@ -485,13 +504,70 @@ public class Drives extends GenericSubsystem {
 	 * Checks all the motors
 	 */
 	public void diagnostics(){
-		check(rightMotorTop, rightEncoder, rightEncoderData, CHECK_POWER);
-		check(rightMotorTop, rightEncoder, rightEncoderData, -CHECK_POWER);
-		//check(rightMotorFront, rightEncoder, rightEncoderData, CHECK_POWER);
-		//check(rightMotorBack, rightEncoder, rightEncoderData, CHECK_POWER);
-		//check(leftMotorTop, leftEncoder, leftEncoderData, CHECK_POWER);
-		//check(leftMotorFront, leftEncoder, leftEncoderData, CHECK_POWER);
-		//check(leftMotorBack, leftEncoder, leftEncoderData, CHECK_POWER);
+		switch(currentDiagnosticState){
+		case DONE:
+			rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+			rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
+			rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
+			leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+			leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
+			leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
+			return;
+		case TOP:
+			rightMotorTop.set(CHECK_POWER);
+			leftMotorTop.set(CHECK_POWER);
+			diagnosticTime = System.currentTimeMillis();
+			currentDiagnosticState = DiagnosticState.TOP_WAIT;
+			break;
+		case TOP_WAIT:
+			if(System.currentTimeMillis() < diagnosticTime + 500){
+				return;
+			}else{
+				check("Top Right", rightCurrentSpeed, CHECK_POWER);
+				check("Top Left", leftCurrentSpeed, CHECK_POWER);
+				rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+				leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+				currentDiagnosticState = DiagnosticState.FRONT;
+			}
+			break;
+		case FRONT:
+			rightMotorFront.set(CHECK_POWER);
+			leftMotorFront.set(CHECK_POWER);
+			diagnosticTime = System.currentTimeMillis();
+			currentDiagnosticState = DiagnosticState.FRONT_WAIT;
+			break;
+		case FRONT_WAIT:
+			if(System.currentTimeMillis() < diagnosticTime + 500){
+				return;
+			}else{
+				check("Front Right", rightCurrentSpeed, CHECK_POWER);
+				check("Front Left", leftCurrentSpeed, CHECK_POWER);
+				rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
+				leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
+				currentDiagnosticState = DiagnosticState.BACK;
+			}
+			break;
+		case BACK:
+			rightMotorBack.set(CHECK_POWER);
+			leftMotorBack.set(CHECK_POWER);
+			diagnosticTime = System.currentTimeMillis();
+			currentDiagnosticState = DiagnosticState.BACK_WAIT;
+			break;
+		case BACK_WAIT:
+			if(System.currentTimeMillis() < diagnosticTime + 500){
+				return;
+			}else{
+				check("Back Right", rightCurrentSpeed, CHECK_POWER);
+				check("Back Left", leftCurrentSpeed, CHECK_POWER);
+				rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
+				leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
+				currentDiagnosticState = DiagnosticState.DONE;
+			}
+			break;
+		default:
+			LOG.logError("Error, we are in the default diagnostic state");
+			currentDiagnosticState = DiagnosticState.DONE;
+		}
 	}
 	
 	/**
@@ -591,37 +667,23 @@ public class Drives extends GenericSubsystem {
 	 * @param encoderData the encoderData to check
 	 * @param power the power to run the motor
 	 */
-	private void check(CANTalon motor, Encoder encoder, EncoderData encoderData, double power){
-		double encoderSpeed;
-		String motorName;
-		motor.set(power);
-		encoderData.calculateSpeed();
-		encoderSpeed = encoderData.getSpeed();
-		if(power > 0 && encoderSpeed > 0){
-			LOG.logMessage(motor + "is going forward and " + encoder + " is reading positive - Good");
-		}else if(power > 0 && encoderSpeed < 0){
-			LOG.logMessage(motor + "is going forward and " + encoder + " is reading negative - Bad");
-		}else if(power > 0 && encoderSpeed == 0){
-			LOG.logMessage(motor + "is going forward and " + encoder + " is reading zero - Bad");
+	private void check(String motorName, double encoderSpeed, double power){
+		LOG.logMessage(motorName + " speed: " + encoderSpeed);
+		if(power > 0 && encoderSpeed > 5){
+			LOG.logMessage(motorName + " is going forward and the encoder is reading positive - Good");
+		}else if(power > 0 && encoderSpeed < -5){
+			LOG.logMessage(motorName + " is going forward and the encoder is reading negative - Bad");
+		}else if(power > 0 && Math.abs(encoderSpeed) <= 5){
+			LOG.logMessage(motorName + " is going forward and the encoder is reading zero - Bad");
 		}
 		
-		else if(power < 0 && encoderSpeed > 0){
-			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading positive - Bad");
-		}else if(power < 0 && encoderSpeed < 0){
-			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading negative - Good");
-		}else if(power < 0 && encoderSpeed == 0){
-			LOG.logMessage(motor + "is going backwards and " + encoder + " is reading zero - Bad");
+		else if(power < 0 && encoderSpeed > 5){
+			LOG.logMessage(motorName + " is going backwards and the encoder is reading positive - Bad");
+		}else if(power < 0 && encoderSpeed < -5){
+			LOG.logMessage(motorName + " is going backwards and the encoder is reading negative - Good");
+		}else if(power < 0 && Math.abs(encoderSpeed) <= 5){
+			LOG.logMessage(motorName + " is going backwards and encoder is reading zero - Bad");
 		}
-		
-		else if(power == 0 && encoderSpeed > 0){
-			LOG.logMessage(motor + "is not moving and " + encoder + " is reading positive - Bad");
-		}else if(power == 0 && encoderSpeed < 0){
-			LOG.logMessage(motor + "is not moving and " + encoder + " is reading negative - Bad");
-		}else if(power == 0 && encoderSpeed == 0){
-			LOG.logMessage(motor + "is not moving and " + encoder + " is reading zero - Good");
-		}
-		Timer.delay(.25);
-		motor.set(STOP_MOTOR_POWER_SPEED);
 	}
 	
 	/**
@@ -677,5 +739,16 @@ public class Drives extends GenericSubsystem {
 				return "Error :(";
 			}
 		}
+	}
+	
+	public enum DiagnosticState{
+		DONE,
+		TOP,
+		TOP_WAIT,
+		FRONT,
+		FRONT_WAIT,
+		BACK,
+		BACK_WAIT;
+		
 	}
 }
