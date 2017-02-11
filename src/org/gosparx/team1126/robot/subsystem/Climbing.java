@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.Timer;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-//import org.gosparx.team1126.robot.subsystem.Drives;
 
 
 public class Climbing extends GenericSubsystem {
@@ -35,9 +34,10 @@ public class Climbing extends GenericSubsystem {
 	
 	private CANTalon ClimbingMotor;
 	
-	private static int MotorSpeed = 0;
+	private int MotorSpeed;
 	
-	//private Drives drives;
+	private boolean isStarted = false;
+	
 	
 	public Climbing(String name, int priority){
 		super(name, priority);
@@ -70,6 +70,7 @@ public class Climbing extends GenericSubsystem {
 
 	@Override
 	protected boolean execute() {
+		readControls();
 		switch(currentClimbingStatus){
 		case STANDBY:{
 			ClimbingMotor.set(MOTOR_STOP);
@@ -84,7 +85,7 @@ public class Climbing extends GenericSubsystem {
 		}
 		case CLIMBING:	
 			ClimbingMotor.set(MOTOR_SPIN);
-			if(ClimbingSensor.get() == true){
+			if(ClimbingSensor.get()){
 				LOG.logMessage("Rope Has Been Climbed");
 				currentClimbingStatus = State.STANDBY;
 			}
@@ -99,9 +100,9 @@ public class Climbing extends GenericSubsystem {
 	@Override
 	protected boolean init() {
 		ClimbingSensor = new DigitalInput(IO.DIO_CLIMBING_LIMITSWITCH);
-		
+		currentClimbingStatus = State.STANDBY;
 		ClimbingMotor = new CANTalon(IO.CAN_CLIMBING);
-		return false;
+		return true;
 	}
 
 	@Override
@@ -110,7 +111,13 @@ public class Climbing extends GenericSubsystem {
 		
 	}
 
-
+	private void readControls(){
+		if(dsc.getRawAxis(10) >= 0.5 && !isStarted){
+			isStarted = true;
+			currentClimbingStatus = State.ATTATCHING;
+		}
+	}
+	
 
 	@Override
 	protected long sleepTime() {
