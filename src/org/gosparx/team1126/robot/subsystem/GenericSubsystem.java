@@ -120,6 +120,7 @@ public abstract class GenericSubsystem extends Thread {
 		
 		do{
 			if(!dsc.isTest()){
+				dsc.update();
 				try{
 					retVal = execute();
 					updateSmartStatus();
