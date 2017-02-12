@@ -1,6 +1,6 @@
 package org.gosparx.team1126.robot.sensors;
 
-import edu.wpi.first.wpilibj.DriverStation;
+//import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * Logic of a Proportional Integral Derivative loop. Must be constructed first,
@@ -131,7 +131,8 @@ public class PID {
 		outMaxMinEna = enabled;
 	}
 	
-	public void setMaxMin(double min, double max){
+	public void setMinMax(double min, double max){
+		outMaxMinEna = true;
 		outMin = min;
 		outMax = max;
 	}

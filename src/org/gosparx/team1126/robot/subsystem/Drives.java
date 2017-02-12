@@ -130,6 +130,7 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData = new EncoderData(rightEncoder, RIGHT_DISTANCE_PER_TICK);	
 		rightPID = new PID(RIGHT_KI, RIGHT_KP, RIGHT_FF);
 		rightPID.breakMode(true);
+		rightPID.setMinMax(-0.95, 0.95);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
 		rightPreviousDistance = 0;
@@ -150,6 +151,7 @@ public class Drives extends GenericSubsystem {
 		leftEncoderData = new EncoderData(leftEncoder, -LEFT_DISTANCE_PER_TICK);		
 		leftPID = new PID(LEFT_KI, left_KP, LEFT_FF);
 		leftPID.breakMode(true);
+		leftPID.setMinMax(-0.95, 0.95);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
 		leftPreviousDistance = 0;
