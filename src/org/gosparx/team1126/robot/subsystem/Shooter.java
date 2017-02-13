@@ -66,6 +66,8 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean ready;
 	
+	private int speed;
+	
 //*****************************************Objects***************************************\\
 	
 	private static Shooter shoot;
@@ -78,7 +80,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private CANTalon flyWheel;
 	
-	private CANTalon conveyor;
+	private CANTalon intake;
 	
 	private CANTalon turret;
 	
@@ -101,7 +103,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the max speed for the fly wheel
 	 */
-	private final double FLYWHEEL_MAX = 0.5;
+	private final double FLYWHEEL_MAX = 1;
 	
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -111,7 +113,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the speed that allows the balls to go into the fly wheel 
 	 */
-	private final double CONVEYOR_BALL_SPEED = 1; //we need to change this maybe
+	private final double INTAKE_BALL_SPEED = 0.5; //we need to change this maybe
 	
 	/**
 	 * the difference in fly wheel speeds allowed
@@ -121,12 +123,13 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * used for the encoder data
 	 */
-	private final double DIST_PER_TICK = (1.0/256.0)*60.0;
+	private final double DIST_PER_TICK = 0.154194079; //0.146484375; //(1.0/256.0)*60.0;
 	
 	/**
 	 * turret center position in volts
 	 */
 	private final double ZERO_VOLTAGE = 2.5;
+	
 	
 //*****************************************Methods***************************************\\	
 	
@@ -163,7 +166,7 @@ public class Shooter extends GenericSubsystem{
 		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
 		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
-		conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
+		intake = new CANTalon(IO.CAN_BALLACQ_INTAKE);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
 		shootingSpeedCurrent = 0;
 		speedButton = false;
@@ -172,6 +175,7 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		distance =  100;
 		ready = false;
+		speed = 2500;
 		return true;
 	}
 
@@ -184,7 +188,7 @@ public class Shooter extends GenericSubsystem{
 		String subsystemName = "Shooter";
 		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
 		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
-		LiveWindow.addActuator(subsystemName, "Conveyor", conveyor);
+		LiveWindow.addActuator(subsystemName, "Intake", intake);
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 	}
 
@@ -207,15 +211,22 @@ public class Shooter extends GenericSubsystem{
 			speedButton = false;
 			turretButton = false;
 		}
+		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
+			speed += 50;
+			LOG.logMessage("up");
+		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
+			LOG.logMessage("Down");
+			speed -= 50;
+		}
 		if(fireCtrl()){
 			ready = true;
 			if(dsc.isPressed(IO.BUTTON_FIRE))
-				conveyor.set(CONVEYOR_BALL_SPEED);
+				intake.set(INTAKE_BALL_SPEED);
 			else
-				conveyor.set(0);
+				intake.set(0);
 		}else{
 			ready = false;
-			conveyor.set(0);
+			intake.set(0);
 		}
 //		dsc.sharedData.systemReady = ready;
 //		dsc.sharedData.turretAngle = turretDegreeCurrent;
@@ -252,7 +263,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
-		return 1500;
+		return speed;
 
 	}
 	
@@ -284,7 +295,7 @@ public class Shooter extends GenericSubsystem{
 		}
 		if(Math.abs(shootingSpeedCurrent - shootingSpeed) < FlYWHEEL_DEADBAND)
 				return true;
-		return false;	 
+		return true;	 
 	}
 	
 	//done
@@ -294,7 +305,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		if(!turretButton){
+/*		if(!turretButton){
 			turret.set(0);
 			return false;
 		}
@@ -305,8 +316,8 @@ public class Shooter extends GenericSubsystem{
 		}else{
 			turret.set(0);
 			return true;
-		}
-		return false;
+		}*/
+		return true;
 	}
 	
 	//done
@@ -315,7 +326,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		if(speedCtrl()){
+		if(speedCtrl() && turretCtrl()){
 			return true;
 		}
 		return false;

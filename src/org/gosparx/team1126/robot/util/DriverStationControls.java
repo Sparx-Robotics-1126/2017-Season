@@ -77,16 +77,16 @@ public class DriverStationControls {
 	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
 	
 	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
-	public static final int OP_XBOX_A = xboxControllerButtons + 1;
-	public static final int OP_XBOX_B = xboxControllerButtons + 2;
-	public static final int OP_XBOX_X = xboxControllerButtons + 3;
-	public static final int OP_XBOX_Y = xboxControllerButtons + 4;
-	public static final int OP_XBOX_L1 = xboxControllerButtons + 5;
-	public static final int OP_XBOX_R1 = xboxControllerButtons + 6;
-	public static final int OP_XBOX_BACK = xboxControllerButtons + 7;
-	public static final int OP_XBOX_START = xboxControllerButtons + 8;
-	public static final int OP_XBOX_L3 = xboxControllerButtons + 9;
-	public static final int OP_XBOX_R3 = xboxControllerButtons + 10;
+	public static final int OP_XBOX_A = xboxControllerButtons + 0;
+	public static final int OP_XBOX_B = xboxControllerButtons + 1;
+	public static final int OP_XBOX_X = xboxControllerButtons + 2;
+	public static final int OP_XBOX_Y = xboxControllerButtons + 3;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + 4;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + 5;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + 6;
+	public static final int OP_XBOX_START = xboxControllerButtons + 7;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + 8;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + 9;
 		
 	// Internal private variables (static - Global for all objects)
 	

@@ -1,5 +1,7 @@
 package org.gosparx.team1126.robot;
 
+import org.gosparx.team1126.robot.util.DriverStationControls;
+
 /**
  * Stores all of the IO information
  */
@@ -33,6 +35,7 @@ public class IO {
 	public static final int DIO_RIGHT_DRIVES_ENC_A	                        = 10;
 	
 	public static final int DIO_RIGHT_DRIVES_ENC_B                          = 11;
+	
 
 //	public static final int DIO_RIGHT_DRIVES_ENC_A                          = 14;
 
@@ -64,13 +67,14 @@ public class IO {
 
 	public static final int CAN_BALLACQ_ROLLER								= 6;
 	
-	public static final int CAN_BALLACQ_CONVEYOR							= 2;
+	public static final int CAN_BALLACQ_INTAKE								= 2;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 0;
 	
 	public static final int CAN_CLIMBING	   								= 9;
 	
 	public static final int CAN_SHOOTER_TURNING								= 10;
+	
 	
 	
 
@@ -120,5 +124,14 @@ public class IO {
 	public static final int ACQ_FOWARD										= 2;
 	
 	public static final int ACQ_BACKWARD									= 6;
+	
+	public static final int FLYWHEEL_INCREASE = DriverStationControls.OP_XBOX_X;
+	
+	public static final int FLYWHEEL_DECREASE = DriverStationControls.OP_XBOX_B;
+	
+	
+	
+	
+	
 	
 }
