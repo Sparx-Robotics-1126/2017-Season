@@ -1,7 +1,5 @@
 package org.gosparx.team1126.robot.subsystem;
 
-import edu.wpi.first.wpilibj.DigitalInput;
-
 /**
  * 
  * @Author - nphto
@@ -10,6 +8,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 //*****************************************Imports***************************************\\
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import com.ctre.CANTalon;
 import org.gosparx.team1126.robot.IO;
