@@ -12,14 +12,14 @@ import com.ctre.CANTalon;
 public class BallAcq extends GenericSubsystem{
 
 	private static final double ROLLER_SPIN_FOWARD = 1.0;
-
-	private static final double ROLLER_SPIN_BACKWARD = 1.0;
-	
-	private static final double ROLLER_STOP = 0;
 	
 	private static final double CONVEYOR_SPIN_FOWARD = 1.0;
+
+	private static final double ROLLER_SPIN_BACKWARD = -1.0;
 	
-	private static final double CONVEYOR_SPIN_BACKWARD = 1.0;
+	private static final double CONVEYOR_SPIN_BACKWARD = -1.0;
+	
+	private static final double ROLLER_STOP = 0;
 	
 	private static final double CONVEYOR_STOP = 0;
 
@@ -59,15 +59,15 @@ public class BallAcq extends GenericSubsystem{
 		LOG.logMessage("Acqusition Status" + currentAcqstatus);
 	}
 	public enum State{
-		STANDBY,
+		BALLACQON,
 		FORWARD,
 		BACKWARD;
 	
 		@Override
 		public String toString(){
 			switch(this){
-			case STANDBY:
-				return "Ready to acquire";
+			case BALLACQON:
+				return "BallAcq on";
 			case FORWARD:
 				return "BallAcq foward";
 			case BACKWARD:
@@ -93,14 +93,14 @@ public class BallAcq extends GenericSubsystem{
 		dsc.update();
 		setAcqState();
 		switch(currentAcqstatus){
-		case STANDBY:{
+		case BALLACQON:{
 			wantedRollerSpeed = ROLLER_STOP;
 			wantedConveyorSpeed = CONVEYOR_STOP;
 			break;
 		}
 		case FORWARD:{
 			wantedRollerSpeed = ROLLER_SPIN_FOWARD;
-			wantedConveyorSpeed = CONVEYOR_SPIN_BACKWARD;
+			wantedConveyorSpeed = CONVEYOR_SPIN_FOWARD;
 				break;
 			}
 		case BACKWARD:{
@@ -140,7 +140,7 @@ public class BallAcq extends GenericSubsystem{
 				break;
 			case 180:
 				if(dsc.getPOVRising(4)){
-					currentAcqstatus = State.STANDBY;
+					currentAcqstatus = State.BALLACQON;
 				}
 				break;
 			case 270:
@@ -152,7 +152,7 @@ public class BallAcq extends GenericSubsystem{
 			}
 			
 		} else {
-			currentAcqstatus = State.STANDBY;
+			currentAcqstatus = State.BALLACQON;
 		}
 	}
 	
