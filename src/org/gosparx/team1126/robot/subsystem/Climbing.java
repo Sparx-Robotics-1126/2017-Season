@@ -39,10 +39,21 @@ public class Climbing extends GenericSubsystem {
 	private boolean isStarted = false;
 	
 	
-	public Climbing(String name, int priority){
-		super(name, priority);
+	public Climbing(){
+		super("Climbing", Thread.NORM_PRIORITY);
 	}
 	
+	/**
+	 * This creates a drives object with a name and its priority
+	 */
+	public static synchronized Climbing getInstance() {
+		if(climbing == null){
+			climbing = new Climbing();
+		}
+		return climbing;
+	}
+
+
 	@Override
 	protected void writeLog() {
 		LOG.logMessage("Climbing Status" + currentClimbingStatus);

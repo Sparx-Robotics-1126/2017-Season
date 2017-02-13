@@ -49,7 +49,7 @@ public class IO {
 	
 	public static final int CAN_DRIVES_LEFT_TOP								= 2;
 	
-	public static final int CAN_DRIVES_RIGHT_FRONT                          = 3;
+	public static final int CAN_DRIVES_RIGHT_FRONT                          = 9;
 	
 	public static final int CAN_DRIVES_RIGHT_BACK                           = 4;
 	
@@ -61,7 +61,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 8;
 	
-	public static final int CAN_CLIMBING	   								= 9;
+	public static final int CAN_CLIMBING	   								= 3;
 	
 	public static final int CAN_SHOOTER_TURNING								= 10;
 
