@@ -17,7 +17,7 @@ public class DriverStationControls {
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
-	
+
 	// Generic Joystick Mapping
 	
 	public static final int JOY_X_AXIS = 0;
@@ -92,7 +92,7 @@ public class DriverStationControls {
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
-	private static boolean firstTime = true;
+	public static SharedData sharedData;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -258,26 +258,18 @@ public class DriverStationControls {
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
-	// Constructor - If the first one created, then create the static objects, get a pointer
-	//	to the driver station object and initialize variables
+	// Constructors - If the first one created, then create the static objects, get a pointer to the driver
+	//	station object and initialize variables
 	//-----------------------------------------------------------------------------------------------------------
+	
+	public DriverStationControls(boolean reset)
+	{
+		createObjects(reset);
+	}
 	
 	public DriverStationControls()
 	{
-		int i;
-		
-		if (true)													// 1st time run?
-		{
-			ds = DriverStation.getInstance();							// Get link to driver station object
-			
-			joysticks[0] = new Joystick(0);								// Create the 3 Joysticks (XBox = #2)
-			joysticks[1] = new Joystick(1);
-			joysticks[2] = new Joystick(2);
-			
-			for (i=0; i< maxButtons; i++){								// Set buttons to the current values
-				buttonLastValues[i] = getButton(i);
-			}
-		}
+		createObjects(false);
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -300,8 +292,7 @@ public class DriverStationControls {
 	public int getRawPOV(){
 		return joysticks[2].getPOV();
 	}
-	
-	//-----------------------------------------------------------------------------------------------------------
+		//-----------------------------------------------------------------------------------------------------------
 	// Return if the POV is pressed (rising edge) since the last time this method was called by the
 	// owner (subsystem).
 	//-----------------------------------------------------------------------------------------------------------
@@ -340,6 +331,35 @@ public class DriverStationControls {
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
+	// Create the objects if they haven't already been created.
+	//-----------------------------------------------------------------------------------------------------------
+	
+	private void createObjects(boolean reset)
+	{
+		int i;
+
+		if ((ds == null) || (reset == true))							// Get Instance of driver station
+			ds = DriverStation.getInstance();
+		
+		if ((joysticks[0] == null) || (reset == true))
+			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
+		
+		if ((joysticks[1] == null) || (reset == true))
+			joysticks[1] = new Joystick(1);								// Create the Right Driver Joystick
+		
+		if ((joysticks[2] == null) || (reset == true))
+			joysticks[2] = new Joystick(2);								// Create the XBox Controller #2
+			
+		if (sharedData == null)											// Create the vehicle to share data
+			sharedData = new SharedData();								//  between subsystems.
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
+	}
+	
+	
+	//-----------------------------------------------------------------------------------------------------------
 	// Return the current value of the specified button
 	//-----------------------------------------------------------------------------------------------------------
 	
@@ -363,7 +383,7 @@ public class DriverStationControls {
 
 
 	//-----------------------------------------------------------------------------------------------------------
-	// Returns treu if the passed button number is NOT pressed.
+	// Returns true if the passed button number is NOT pressed.
 	//-----------------------------------------------------------------------------------------------------------
 
 	public boolean isReleased(int buttonNumber)
@@ -380,6 +400,7 @@ public class DriverStationControls {
 	{
 		return joysticks[joy].getRawButton(button);						// Return current value
 	}
+
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if there was a button pressed (rising edge) since the last time this method was called by the
@@ -473,7 +494,6 @@ public class DriverStationControls {
 			(deadband >= 0) && (deadband <= 1.0))						//	 and valid deadband (0.0 - 1.0)
 		{
 			axesData[axisNumber][0] = deadband;							// Update deadband
-			
 			return true;												// Success
 		}
 		return false;													// Failure
@@ -493,6 +513,7 @@ public class DriverStationControls {
 		}
 		return false;													// Failure
 	}
+
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Run System Diagnostics while button is Pressed 
@@ -504,23 +525,28 @@ public class DriverStationControls {
 
 		return false;
 	}
-
+	
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Pass-Thru of driver station methods - Note: isNewControlData is purposely omitted
 	//-----------------------------------------------------------------------------------------------------------
 
-	public boolean isAutonomous()		{	return ds.isAutonomous();		}
-	public boolean isOperatorControl()	{	return ds.isOperatorControl();	}
-	public boolean isDisabled()			{	return ds.isDisabled();			}
-	public boolean isEnabled()			{	return ds.isEnabled();			}
-	public boolean isTest()				{	return ds.isTest();				}
-	public boolean isBrownedOut()		{	return ds.isBrownedOut();		}
-	public boolean isDSAttached()		{	return ds.isDSAttached();		}
-	public boolean isFMSAttached()		{	return ds.isFMSAttached();		}
-	public int getLocation()			{	return ds.getLocation();		}
-	public double getMatchTime()		{	return ds.getMatchTime();		}
-	public double getBatteryVoltage()	{	return ds.getBatteryVoltage();	}
-	public Alliance getAlliance()		{	return ds.getAlliance();		}
+	public boolean isAutonomous()			{	return ds.isAutonomous();			}
+	public boolean isOperatorControl()		{	return ds.isOperatorControl();		}
+	public boolean isDisabled()				{	return ds.isDisabled();				}
+	public boolean isEnabled()				{	return ds.isEnabled();				}
+	public boolean isTest()					{	return ds.isTest();					}
+	public boolean isBrownedOut()			{	return ds.isBrownedOut();			}
+	public boolean isDSAttached()			{	return ds.isDSAttached();			}
+	public boolean isFMSAttached()			{	return ds.isFMSAttached();			}
+	public int getLocation()				{	return ds.getLocation();			}
+	public int getJoystickType(int st) 		{	return ds.getJoystickType(st);		}
+	public int kJoystickPorts()				{	return ds.kJoystickPorts;			}
+	public boolean getJoystickIsXbox(int st){	return ds.getJoystickIsXbox(st);	}
+	public double getMatchTime()			{	return ds.getMatchTime();			}
+	public double getBatteryVoltage()		{	return ds.getBatteryVoltage();		}
+	public String getJoystickName(int st)	{	return ds.getJoystickName(st);		}
+	public Alliance getAlliance()			{	return ds.getAlliance();			}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// General update routine called by each subsystem at the beginning of each loop.  This routine updates the
@@ -531,7 +557,8 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-		boolean POVValue;
+
+		createObjects(false);												// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
@@ -549,17 +576,6 @@ public class DriverStationControls {
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
 			}
-			for (i=0; i<maxPOVs; i++){
-				POVValue = getPOV(i);
-				if (POVValue != POVLastValues[i]){
-					if(POVValue)
-						POVDataGlobal[i][0] = System.currentTimeMillis();
-					else
-						POVDataGlobal[i][1] = System.currentTimeMillis();
-					POVLastValues[i] = POVValue;
-				}
-			}
 		}
 	}
 }
-

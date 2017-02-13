@@ -1,5 +1,6 @@
 package org.gosparx.team1126.robot.util;
 
+
 public class SharedData {
 
 	// Drives Subsystem Shared Data
@@ -44,4 +45,3 @@ public class SharedData {
 		return (Math.sqrt(Math.pow(targetX - x, 2) + Math.pow(targetY - y, 2)));
 	}
 }
-

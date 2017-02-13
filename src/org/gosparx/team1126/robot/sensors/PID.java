@@ -131,8 +131,7 @@ public class PID {
 		outMaxMinEna = enabled;
 	}
 	
-	public void setMinMax(double min, double max){
-		outMaxMinEna = true;
+	public void setMaxMin(double min, double max){
 		outMin = min;
 		outMax = max;
 	}
