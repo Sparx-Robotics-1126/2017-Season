@@ -44,7 +44,7 @@ public class IO {
 	public static final int CAN_DRIVES_LEFT_TOP								= 4;	// Old Acquisition Shoulder
 	public static final int CAN_DRIVES_RIGHT_FRONT                          = 9;
 	public static final int CAN_DRIVES_RIGHT_BACK                           = 8;
-	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder
+	public static final int CAN_DRIVES_RIGHT_TOP							= 5;	// Old Acquisition Shoulder 
 	 */
 	
 	// CAN 2017 - New definitions for 2017 robot
