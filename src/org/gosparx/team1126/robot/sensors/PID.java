@@ -1,370 +1,157 @@
 package org.gosparx.team1126.robot.sensors;
 
 import edu.wpi.first.wpilibj.DriverStation;
+
 /**
  * Logic of a Proportional Integral Derivative loop. Must be constructed first,
  * then it must receive continual updates in order to receive accurate output
  * values.
  */
+
 public class PID {
 	
-	/*
-	 * P, I, D 
+	private double kp;							        // Proportional Constant
+	private double ki;						 	        // Integral Constant
+	private double kf = 0;						        // Linear Feedforward Constant
+	private double error = 0;					        // Delta between setpoint and PV
+	private double integral = 0;					    // Integral portion of the output
+	private double proportional = 0;				    // Proportional portion of the output
+	private double feedForward = 0;				        // Feedforward portion of the output
+	private double totalizer = 0;				        // Cumulative sum of the error for integral calc
+	private double currentTime = 0;				        // Current time (in seconds)
+	private double outMax = 1.0;						// Default Maximum Output
+	private double outMin = -1.0;						// Default Minimum Output
+	private double pastTime = 0;					    // Last time the loop was run (in seconds)
+	private double spRampLimit = 0;						// Setpoint Ramp Limit
+	private double internalSP = 0;						// Internal Setpoint
+	private boolean spRamping = false;					// Setpoint ramping
+	private boolean outMaxMinEna = false;				// Output Max/Min Enabled
+	private boolean stopFunction = false;		        // Use speed controller brake mode flag
+
+	/* PID Constructors */
+	
+	public PID(double kI, double kP){
+		ki = kI;
+		kp = kP;
+	}
+	
+	public PID(double kI, double kP, double ff){
+		ki = kI;
+		kp = kP;
+		kf = ff;
+	}
+    
+	/* Main PID loop routine - This routine should be called periodically to update the output
+	 * based on the current feedback from the sensor.  The maximum interval is currently 0.1
+	 * seconds, which is hardcoded into the loop.  This value was chosen so in the event that
+	 * the loop call is significantly delayed, a large value is not added to the cumulative sum
+	 * used for the integral.
 	 */
-    private double error, integral, derivative, lastInput;
-    
-    /**
-     * Scaling factors
-     */
-    private double pGain, iGain, dGain;
-    
-    /**
-     * Integral limit
-     */
-    private double iMax;
-    
-    /**
-     * Output limit
-     */
-    private double lowerLimit, upperLimit;
-    
-    /**
-     * Booleans to set correct output
-     */
-    private boolean updated_FLAG, reverse_FLAG, brake_FLAG;
-    
-    /**
-     *SetPoint
-     */
-    private double goal;
-    
-    /**
-     * Output value
-     */
-    private double output;
-    
-    /**
-     * Last time in MS when PID loop ran
-     */
-    private long lasttime;
-    
-    /**
-     * The time since the last run of the PID loop
-     */
-    private double elapsedtime;
+	
+	public double loop(double speed, double setPoint){
 
-    /**
-     * Limitless Constructor - initializes PID
-     * @param pScale - the modifier for the Proportional calculation
-     * @param iScale - the modifier for the integral calculation
-     * @param dScale - the modifier for the derivative calculation, give the 
-     * dScale as 0 if you wish to ignore the derivative
-     * @param iMax - the maximum absolute value the integral should rise to.
-     * @param fastBrake - whether or not to set output to 0 when goal is 0.
-     * @param reversed - whether or not the output should be inverted: 
-     * true if invert, false if not
-     * **NOTE** the modifiers are all multiplicative. Use fractions for divisors.
-     */
-    public PID(double pScale, double iScale, double iMax, double dScale, 
-                                        boolean fastBrake, boolean reversed){
-        error = 0;
-        integral = 0;
-        derivative = 0;
-        output = 0;
-        lastInput = 0;
-        pGain = pScale;
-        iGain = iScale;
-        dGain = dScale;
-        upperLimit = 1.0;
-        lowerLimit = -1.0;
-        this.iMax = iMax;
+		double elapsedTime;								// Elapsed time since last call
+		double output;									// Calculated Output
+		
+		// Acquire the current time (in milliseconds), convert to seconds and calculate the
+		// elapsed time since the last call, and store the current time for the next loop.
+		// The elapsed time is used in the I (and D) terms to make the calculation time
+		// independent.  That is, not influenced by the execution frequency of the PID loop.
+		
+		currentTime = (double)(System.currentTimeMillis()) / 1000;
+		elapsedTime = currentTime - pastTime;
+		pastTime = currentTime;						
+		
+		// Check to see if the speed control brake mode is to be used.  If so, as determined by the
+		// stopFunction flag, and the desired setpoint is zero, then immediately return a zero output.
+		// Setting the speed controller to zero (0), will cause it to enter brake mode if set.  Zero
+		// the cumulative error term so that the next time a non-zero setpoint is used, the loop doesn't
+		// use an old I component.
+		
+		if((setPoint == 0) && (stopFunction == true)){
+			totalizer = 0;
+			return 0;
+		}
+		
+		if(elapsedTime > .1)							// Limit the maximum elapsed time to 0.1 sec
+			elapsedTime = .1;
 
-        brake_FLAG = fastBrake;
-        reverse_FLAG = reversed;
-        lasttime = System.currentTimeMillis();
-    }
-    
-    /**
-     * Limited Constructor
-     * @param pScale - the modifier for the Proportional calculation
-     * @param iScale - the modifier for the integral calculation
-     * @param iMax - the maximum absolute value the integral should rise to.
-     * @param dScale - the modifier for the derivative calculation, give the 
-     * dScale as 0 if you wish to ignore the derivative
-     * @param upperLimit - the upper limit of the output.
-     * @param lowerLimit - the lower limit of the output.
-     * @param fastBrake - whether or not to set output to 0 when goal is 0.
-     * @param reversed - whether or not the output should be inverted: 
-     * true if invert, false if not
-     * **NOTE** the modifiers are all multiplicative. Use fractions for divisors.
-     */
-    public PID(double pScale, double iScale, double iMax, double dScale, 
-                              double upperLimit, double lowerLimit, 
-                              boolean fastBrake, boolean reversed){
-        error = 0;
-        integral = 0;
-        derivative = 0;
-        lastInput = 0;
-        output = 0;
-        pGain = pScale;
-        iGain = iScale;
-        dGain = dScale;
-        this.iMax = iMax;
-        this.upperLimit = upperLimit;
-        this.lowerLimit = lowerLimit;
-        brake_FLAG = fastBrake;
-        reverse_FLAG = reversed;
-        lasttime = System.currentTimeMillis();
-    }
-    
-    /**
-     * Runs through update calculations. Drives the PID.
-     * @param input - the current input value for the loop
-     * @return the output generated by this update.
-     */
-    public double update(double input){
-        long currenttime;
-
-        // Calculate the last time the update routine was run and store this
-        // in a variable as seconds (or fraction of seconds).  This will be
-        // used as a multiplier to convert each of the PID components into
-        // change/second and make the it less sensitive to variations in
-        // interval (either through delays in processing or changes in Sleep
-        // time between executions).
-        
-        currenttime = System.currentTimeMillis();
-        elapsedtime = ((double) (currenttime - lasttime)) / 1000.0;
-
-        // The brake flag automatically sets the output to zero when the goal
-        // is zero.  This allows the victor/jaguar to provide the breaking
-        // by shorting the motor leads.  (in brake mode, not coast mode)
-        
-        if (brake_FLAG && goal == 0) {
-            lasttime = currenttime;
-            error = 0;
-            integral = 0;
-            derivative = 0;
-            lastInput = input;
-            updated_FLAG = true;
-            return (output = 0);
-        }
-
-        // If more than 1/2 second has passed since the last execution (which
-        // typically will mean something unexpected happened within the cRIO or
-        // is the first update after bootup), assume a base elaped time of
-        // 40 milliseconds and ignore the derivative.
-        
-        if (elapsedtime > .5) {
-            elapsedtime = 0.04;
-            lastInput = input;
-        }
-        
-        // If 1 millisecond or less has passed since last execution, just
-        // return the current output value.
-        
-        if (elapsedtime <= 0.0011)
-            return (output);
-
-        lasttime = currenttime;
-
-        // Calculate the offset between the current value and the goal and
-        // add this amount (x iGain) to the integral (cumulative error)
-        
-        error = (goal - input);
-        integral += (error * iGain * elapsedtime);
-        error *= pGain;
-
-        // Check the integral against the absolute integral maximum.
-        
-        if (integral > iMax)
-            integral = iMax;
-        else if (integral < -iMax)
-            integral = -iMax;
-
-        // If derivative is required, calculate the D component - rate of
-        // change in the input.  The division by elapsedtime is done in order
-        // to convert the change in input into a rate per second.
-        
-        if (dGain != 0.0)
-            derivative = (lastInput - input) * dGain / elapsedtime;
-        else
-            derivative = 0.0;
-
-        lastInput = input;
-        
-        // Calculates the raw output of the 3 components
-        
-        output = error + integral + derivative;
-
-        // Checks the limits for the output and integral against the
-        // upper and lower specified limits and adjusts the two values
-        // accordingly.
-        
-        if (output > upperLimit) {
-            if (integral > 0)
-                integral -= (output - upperLimit);
-
-            output = upperLimit;
-            
-            if (integral < 0)
-                integral = 0;
-        }
-        else if (output < lowerLimit) {
-            if (integral < 0)
-                integral -= (output - lowerLimit);
-
-            output = lowerLimit;
-            
-            if (integral > 0)
-                integral = 0;
-        }
-
-        // If the motor needs to work opposite normal way (increasing motor
-        // output increases the input), then negate the value.
-        
-        if (reverse_FLAG)
-            output *= -1;
-
-        // Set up updated flag to true.
-        
-        updated_FLAG = true;
-
-        // Check to see if the robot is disabled.  If so, then zero out the
-        // intgral and output.
-        
-        if (!DriverStation.getInstance().isEnabled()) {
-            integral = 0;
-            output = 0;
-        }
-
-        // Return the new motor output speed.
-        
-        return output;
-    }
-    
-    /**
-     * Sets the goal to work towards. Drives the entire PID loop.
-     * @param goal - the requested goal to move toward.
-     */
-    public void setGoal(double goal){
-        this.goal = goal;
-    }
-
-    /**
-     * Changes the pGain to a different value to change the responsiveness of the PID.
-     * @param pScale - the requested pGain
-     * @param iScale - the requested iGain
-     * @param dScale - the requested dGain
-     */
-    public void setGains(double pScale, double iScale, double dScale){
-        pGain = pScale;
-        iGain = iScale;
-        dGain = dScale;        
-    }
-    
-    /**
-     * Sets the lower and upper limits of the integral value.
-     * @param upperLimit - the requested upper limit
-     * @param lowerLimit - the requested lower limit
-     */
-    public void setLimits(double upperLimit, double lowerLimit){
-        this.upperLimit = upperLimit;
-        this.lowerLimit = lowerLimit;
-    }
-    
-    /**
-     * Getter for the output of the loop.
-     * @return the currently calculated output of the PID loop.
-     */
-    public double getOutput(){
-        if (!updated_FLAG)
-            System.out.println("Old PID output returned! Has not been updated!");
-        updated_FLAG = false;
-        return output;
-    }
-    
-    /**
-     * Sets the output manually.
-     * **NOTE** Output will be overwritten by update(double) if it is called.
-     * @param value 
-     */
-    public void setOutput(double value){
-        output = value;
-    }
-    
-    /**
-     * Resets the PID to initial state.
-     */
-    public void reset(){
-        error = 0;
-        integral = 0;
-        derivative = 0;
-        lastInput = 0;
-        goal = 0;
-        output = 0;
-    }
-    
-    /**
-     * Getter for the goal value.
-     * @return 
-     */
-    public double getGoal(){
-        return goal;
-    }
-    
-    /**
-     * Getter for the current error.
-     * @return 
-     */
-    public double getInternalP(){
-        return error;
-    }
+		if ((spRamping == true) &&						// Check for SP Ramping enabled,
+				(Math.abs(setPoint - internalSP) > 		// and over the limit
+				(spRampLimit * elapsedTime)))
+		{
+			if (setPoint - internalSP > 0)				// Are we ramping UP?
+				internalSP += spRampLimit * elapsedTime;// Add the maximum ramp limit
+			else
+				internalSP -= spRampLimit * elapsedTime;// Else subtract the maximum limit
+		}else
+			internalSP = setPoint;
+		
+		error = internalSP - speed;						// Calculate the error between the setpoint and PV
+		proportional = error * kp;						// Proportional calculation
+		totalizer += error * (elapsedTime);				// Add the error to the cumulative error sum
+		integral = totalizer * ki;						// Integral calculation
+		feedForward = kf * setPoint;					// Linear feedforward calculation
+		
+		output = proportional + integral + feedForward;	// Calculate output valule
+		
+		if (outMaxMinEna == true){						// Is Min/Max limiting enabled?
+			if (output > outMax){						// Are we above the maximum output value?
+				if (integral > output - outMax)			// Is compensating with i term possible?
+					totalizer -= (output - outMax) / ki;// Adjust i term to the maximum limit;
+				else if (integral > 0)					// Otherwise the i term must be 0 if positive
+					totalizer = 0;
+				
+				output = outMax;						// Set output to max limit
+			}
+			if (output < outMin){						// Are we less than the minimum value?
+				if (integral < output - outMin)			// Is compensating with the i term possible?
+					totalizer -= (output - outMin) / ki;// Adjust i term to maximum (negative) value
+				else if (integral < 0)					// Otherwise the i term must be 0 if negative
+					totalizer = 0;
+				
+				output = outMin;
+			}
+		}		
+		return (output);								// returns output power
+	}
+	
+	/* Set the speed controller brake mode flag.  When TRUE, the PID loop will return a zero (0) output
+	 * when the setpoint is zero (0), otherwise the loop will try to control to a zero (0) setpoint.
+	 */
+	
+	public void breakMode(boolean condition){
+		stopFunction = condition;
+	}
    
-    /**
-     * Getter for the current integral.
-     * @return 
-     */
-    public double getInternalI(){
-        return integral;
-    }
-
-    /**
-     * Getter for the current derivative.
-     * @return 
-     */
-    public double getInternalD(){
-        return derivative;
-    }
-    
-    /**
-     * Getter for the elapsed time between current and previous iterations.
-     * @return 
-     */
-    public double getInternalET(){
-        return elapsedtime;
-    }
-    
-    /**
-     * Getter for the current proportional gain.
-     * @return 
-     */
-    public double getP(){
-        return pGain;
-    }
-
-    /**
-     * Getter for the current integral gain.
-     * @return 
-     */
-    public double getI(){
-        return iGain;
-    }
-    
-    /**
-     * Getter for the current derivative gain.
-     * @return 
-     */
-    public double getD(){
-        return dGain;
+	// Output Maximum/Minimum limiting routines.  The output max/min places limits on the output so that it does
+	// not exceed the specified value.  This feature also limits the 'i' term.
+	
+	public void maxMinMode(boolean enabled){
+		outMaxMinEna = enabled;
+	}
+	
+	public void setMaxMin(double min, double max){
+		outMin = min;
+		outMax = max;
+	}
+	
+	// Enable/Disable set point ramping.  SP ramping can be useful to limit the acceleration on the robot.  When
+	// both drives are saturated (at 100%), it is not possible to correct for heading variation and ramping the
+	// setpoint when a large change is desired is one way to compensate for this.  The limit is in EU/sec.
+	
+	public void spRampMode(boolean enabled){
+		spRamping = enabled;
+	}
+	
+	public void setSPRamp(double ramp){
+		spRampLimit = ramp;
+	}
+	
+	/* Routine to allow for changes/updates to the PID constants */
+	
+    public void pidconstants (double newkp, double newki){
+    	kp = newkp;
+    	ki = newki;
     }
 }

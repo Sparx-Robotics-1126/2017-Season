@@ -112,7 +112,7 @@ public class Climbing extends GenericSubsystem {
 	protected boolean init() {
 		ClimbingSensor = new DigitalInput(IO.DIO_CLIMBING_LIMITSWITCH);
 		currentClimbingStatus = State.STANDBY;
-		ClimbingMotor = new CANTalon(IO.CAN_CLIMBING);
+		ClimbingMotor = new CANTalon(IO.CAN_CLIMBING_WINCH);
 		return true;
 	}
 
