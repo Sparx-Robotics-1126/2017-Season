@@ -24,11 +24,11 @@ public class Climbing extends GenericSubsystem {
 	
 	private static Climbing climbing;
 	
-	private static final double MOTOR_SPIN = 1.0;
+	private static final double MOTOR_SPIN = -1.1;
 	
 	private static final double MOTOR_STOP = 0;
 	
-	private static final double MOTOR_ATTATCH = 0.5;
+	private static final double MOTOR_ATTATCH = -1.1;
 	
 	private DigitalInput ClimbingSensor;
 	
