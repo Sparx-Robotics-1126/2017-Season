@@ -8,8 +8,9 @@ public class DriverStationControls {
 
 	// General Joystick Data
 	
+	private static final int maxJoysticks = 3;
 	private static final int maxButtons = 18;
-	private static final int maxAxes = 10;
+	private static final int maxAxes = 14;
 	private static final int maxPOVs = 8;
 	private static final int leftJoystickButtons = 0;
 	private static final int rightJoystickButtons = 4;
@@ -22,6 +23,8 @@ public class DriverStationControls {
 	
 	public static final int JOY_X_AXIS = 0;
 	public static final int JOY_Y_AXIS = 1;
+	public static final int JOY_Z_AXIS = 2;
+	public static final int JOY_W_AXIS = 3;
 
 	public static final int JOY_TRIGGER = 1;
 	public static final int JOY_LEFT = 2;
@@ -32,6 +35,8 @@ public class DriverStationControls {
 	
 	public static final int LEFT_JOY_X_AXIS = leftJoystickAxis + JOY_X_AXIS;
 	public static final int LEFT_JOY_Y_AXIS = leftJoystickAxis + JOY_Y_AXIS;
+	public static final int LEFT_JOY_Z_AXIS = leftJoystickAxis + JOY_Z_AXIS;
+	public static final int LEFT_JOY_W_AXIS = leftJoystickAxis + JOY_W_AXIS;
 
 	public static final int LEFT_JOY_TRIGGER = leftJoystickButtons + JOY_TRIGGER;
 	public static final int LEFT_JOY_LEFT = leftJoystickButtons + JOY_LEFT;
@@ -40,6 +45,8 @@ public class DriverStationControls {
 	
 	public static final int RIGHT_JOY_X_AXIS = rightJoystickAxis + JOY_X_AXIS;
 	public static final int RIGHT_JOY_Y_AXIS = rightJoystickAxis + JOY_Y_AXIS;
+	public static final int RIGHT_JOY_Z_AXIS = rightJoystickAxis + JOY_Z_AXIS;
+	public static final int RIGHT_JOY_W_AXIS = rightJoystickAxis + JOY_W_AXIS;
 
 	public static final int RIGHT_JOY_TRIGGER = rightJoystickButtons + JOY_TRIGGER;
 	public static final int RIGHT_JOY_LEFT = rightJoystickButtons + JOY_LEFT;
@@ -77,16 +84,16 @@ public class DriverStationControls {
 	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
 	
 	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
-	public static final int OP_XBOX_A = xboxControllerButtons + 1;
-	public static final int OP_XBOX_B = xboxControllerButtons + 2;
-	public static final int OP_XBOX_X = xboxControllerButtons + 3;
-	public static final int OP_XBOX_Y = xboxControllerButtons + 4;
-	public static final int OP_XBOX_L1 = xboxControllerButtons + 5;
-	public static final int OP_XBOX_R1 = xboxControllerButtons + 6;
-	public static final int OP_XBOX_BACK = xboxControllerButtons + 7;
-	public static final int OP_XBOX_START = xboxControllerButtons + 8;
-	public static final int OP_XBOX_L3 = xboxControllerButtons + 9;
-	public static final int OP_XBOX_R3 = xboxControllerButtons + 10;
+	public static final int OP_XBOX_A = xboxControllerButtons + 0;
+	public static final int OP_XBOX_B = xboxControllerButtons + 1;
+	public static final int OP_XBOX_X = xboxControllerButtons + 2;
+	public static final int OP_XBOX_Y = xboxControllerButtons + 3;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + 4;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + 5;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + 6;
+	public static final int OP_XBOX_START = xboxControllerButtons + 7;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + 8;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + 9;
 		
 	// Internal private variables (static - Global for all objects)
 	
@@ -171,6 +178,7 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},
+			{0,0},
 			{0,0}
 	};
 	
@@ -184,6 +192,7 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},														// Joystick 2 (XBox)
+			{0,0},
 			{0,0},
 			{0,0},
 			{0,0},
@@ -223,8 +232,12 @@ public class DriverStationControls {
 	private static final int[][] axes = {								// { Joystick #, Axis # }
 			{0, JOY_X_AXIS},											// Joystick 0 (Standard)
 			{0, JOY_Y_AXIS},
+			{0, JOY_Z_AXIS},
+			{0, JOY_W_AXIS},
 			{1, JOY_X_AXIS},											// Joystick 1 (Standard)
 			{1, JOY_Y_AXIS},
+			{1, JOY_Z_AXIS},
+			{1, JOY_W_AXIS},
 			{2, XBOX_LEFT_X},											// Joystick 2 (Standard)
 			{2, XBOX_LEFT_Y},
 			{2, XBOX_RIGHT_X},
@@ -247,7 +260,11 @@ public class DriverStationControls {
 	private double[][] axesData = {										// { Deadband, axis invert }
 			{0.05,1.0},													// Joystick 0 (Standard)
 			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
 			{0.05,1.0},													// Joystick 1 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},
 			{0.05,1.0},
 			{0.05,1.0},													// Joystick 2 (XBox)
 			{0.05,1.0},
@@ -301,14 +318,16 @@ public class DriverStationControls {
 		
 		boolean rising = false;
 		
-		if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
-			if (POVData[POVNumber][0] > 0)
-			{
-				rising = true;
+		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
+			if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
+				if (POVData[POVNumber][0] > 0)
+				{
+					rising = true;
+				}
+				POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 			}
-			POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 		}
-		return rising;
+			return rising;
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -319,13 +338,15 @@ public class DriverStationControls {
 	public boolean getPOVFalling(int POVNumber){
 		
 		boolean falling = false;
-		
-		if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
-			if (POVData[POVNumber][1] > 0)
-			{
-				falling = true;
+				
+		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
+			if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
+				if (POVData[POVNumber][1] > 0)
+				{
+					falling = true;
+				}
+				POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 			}
-			POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 		}
 		return falling;
 	}
@@ -378,7 +399,10 @@ public class DriverStationControls {
 
 	public boolean isPressed(int buttonNumber)
 	{
-		return (getButton(buttonNumber));								// Return True if pressed
+		if ((buttonNumber >= 0) && (buttonNumber < maxButtons))			// Check for valid button number
+			return (getButton(buttonNumber));							// Return True if pressed
+
+		return false;
 	}
 
 
@@ -388,7 +412,10 @@ public class DriverStationControls {
 
 	public boolean isReleased(int buttonNumber)
 	{
-		return (!getButton(buttonNumber));								// Return True if not pressed
+		if ((buttonNumber >= 0) && (buttonNumber < maxButtons))			// Check for valid button number
+			return (!getButton(buttonNumber));							// Return True if not pressed
+
+		return false;
 	}
 
 
@@ -398,7 +425,11 @@ public class DriverStationControls {
 
 	public boolean getRawButton(int joy, int button)
 	{
-		return joysticks[joy].getRawButton(button);						// Return current value
+		if ((joy >= 0) && (joy < maxJoysticks) && (button >= 0) && 
+				(button < maxButtons))
+			return joysticks[joy].getRawButton(button);					// Return current value
+
+		return false;
 	}
 
 	
@@ -452,7 +483,7 @@ public class DriverStationControls {
 	{
 		double rawAxis, deadband;
 		
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for Valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for Valid Axis Number
 		{
 			rawAxis = getRawAxis(axisNumber);							// Get Axis Value
 			deadband = axesData[axisNumber][0];							// Local variable used for readability
@@ -471,7 +502,7 @@ public class DriverStationControls {
 
 	public double getRawAxis(int axisNumber)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for Valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for Valid Axis Number
 			return joysticks[axes[axisNumber][0]].						// Return raw value
 					getRawAxis(axes[axisNumber][1]);
 
@@ -490,7 +521,7 @@ public class DriverStationControls {
 	
 	public boolean setAxisDeadband(int axisNumber, double deadband)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes) &&				// Check for valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes) &&				// Check for valid Axis Number
 			(deadband >= 0) && (deadband <= 1.0))						//	 and valid deadband (0.0 - 1.0)
 		{
 			axesData[axisNumber][0] = deadband;							// Update deadband
@@ -506,7 +537,7 @@ public class DriverStationControls {
 		
 	public boolean setInverted(int axisNumber, boolean isInverted)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for valid Axis Number
 		{			
 			axesData[axisNumber][1] = isInverted ? -1.0 : 1.0;			// Update deadband
 			return true;												// Success
