@@ -352,5 +352,8 @@ public class Shooter extends GenericSubsystem{
 		this.degreeOff = degreeOff;
 		this.distance = distance;
 	}
+	
+	
+	public 
 
 }
