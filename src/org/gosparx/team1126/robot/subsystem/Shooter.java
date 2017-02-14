@@ -67,6 +67,8 @@ public class Shooter extends GenericSubsystem{
 	
 	private int speed;
 	
+	private long currentTime;
+	
 //*****************************************Objects***************************************\\
 	
 	private static Shooter shoot;
@@ -86,6 +88,8 @@ public class Shooter extends GenericSubsystem{
 	//private DigitalInput A;
 	
 	//private DigitalInput B;
+	
+	private DiagnosticsEnuuum currentEnum;
 	
 //*****************************************Constants*************************************\\
 	
@@ -165,8 +169,9 @@ public class Shooter extends GenericSubsystem{
 		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
 		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
-		intake = new CANTalon(IO.CAN_BALLACQ_INTAKE);
-		turret = new CANTalon(IO.CAN_SHOOTER_TURNING);
+		intake = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
+		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
+		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
 		speedButton = false;
 		turretButton = false;
@@ -175,6 +180,7 @@ public class Shooter extends GenericSubsystem{
 		distance =  100;
 		ready = false;
 		speed = 2500;
+		currentTime = 0;
 		return true;
 	}
 
@@ -353,7 +359,69 @@ public class Shooter extends GenericSubsystem{
 		this.distance = distance;
 	}
 	
-	
-	public 
+	/**
+	 * checks all the motors
+	 */
+	public void diagnostics(){
+		switch(currentEnum){
+		case DONE:
+			flyWheel.set(0);
+			intake.set(0);
+			turret.set(0);
+			break;
+		case FLYWHEEL:
+			flyWheel.set(0.5);
+			currentTime = System.currentTimeMillis();
+			currentEnum = DiagnosticsEnuuum.FLYWHEEL_WAIT;
+			break;
+		case FLYWHEEL_WAIT:
+			if(System.currentTimeMillis() < currentTime + 500)
+				return;
+			else{
+				check("Flywheel", shootingSpeedCurrent);
+				flyWheel.set(0);
+				currentEnum = DiagnosticsEnuuum.TURRET;
+			}
+			break;
+		case TURRET:
+			turret.set(0.5);
+			currentTime = System.currentTimeMillis();
+			currentEnum = DiagnosticsEnuuum.TURRET_WAIT;
+			break;
+		case TURRET_WAIT:
+			if(System.currentTimeMillis() < currentTime + 500)
+				return;
+			else{
+				check("Turret", turretDegreeCurrent);
+				turret.set(0);
+				currentEnum = DiagnosticsEnuuum.DONE;
+			}
+			break;
+		}
+	}
 
+	
+	public enum DiagnosticsEnuuum{
+		DONE,
+		FLYWHEEL,
+		FLYWHEEL_WAIT,
+		TURRET,
+		TURRET_WAIT;
+	}
+	
+	/**
+	 * checks to make sure the encoder is working correctly
+	 * @param name- the name of the motor
+	 * @param encoderSpeed - the speed the encoder is reading
+	 * power is only going to be positive
+	 */
+	public void check(String name, double encoderSpeed){
+		LOG.logMessage(name + " speed: " + encoderSpeed);
+		if(encoderSpeed > 5)
+			LOG.logMessage(name + " is going forward and the encoder is reading correctly");
+		else if(encoderSpeed < -5)
+			LOG.logMessage(name + " is going forward but the encoder is reading backwards");
+		else
+			LOG.logMessage(name + " is going forward but the encoder is reading 0");
+	}
 }
