@@ -122,16 +122,16 @@ public class Climbing extends GenericSubsystem {
 	}
 
 	private void readControls(){
-		if(dsc.getRawAxis(10) >= 0.5 && !isStarted){
-			isStarted = true;
+		if(dsc.getRawAxis(dsc.OP_XBOX_R2) >= 0.5)
 			currentClimbingStatus = State.ATTATCHING;
-		}
+		else
+			currentClimbingStatus = State.STANDBY;
 	}
 	
 
 	@Override
 	protected long sleepTime() {
 		// TODO Auto-generated method stub
-		return 0;
+		return 20;
 	}
 }
