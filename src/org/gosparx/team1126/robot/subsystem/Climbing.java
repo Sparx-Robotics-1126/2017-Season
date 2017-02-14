@@ -107,7 +107,6 @@ public class Climbing extends GenericSubsystem {
 		return false;		
 	}
 	
-	
 	@Override
 	protected boolean init() {
 		ClimbingSensor = new DigitalInput(IO.DIO_CLIMBING_LIMITSWITCH);
