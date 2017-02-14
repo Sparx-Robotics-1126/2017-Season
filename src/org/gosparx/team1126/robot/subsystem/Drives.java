@@ -230,6 +230,7 @@ public class Drives extends GenericSubsystem {
 			//LOG.logMessage(15, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
+			LOG.logMessage(16, 25, "Current Angle: " + currentAngle);
 		rightCurrentDistance = rightEncoderData.getDistance();
 			//LOG.logMessage(16, 25, "Right Current Distance: " + rightCurrentDistance);
 		leftCurrentDistance = leftEncoderData.getDistance();
@@ -277,6 +278,9 @@ public class Drives extends GenericSubsystem {
 				rightEncoderData.reset();
 				leftEncoder.reset();
 				leftEncoderData.reset();
+			}
+			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
+				autoTurn(120, 12);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -505,6 +509,7 @@ public class Drives extends GenericSubsystem {
 	private void turn(){
 		angleOffset = wantedAngle - currentAngle;
 		if(Math.abs(angleOffset)<3){
+			LOG.logMessage("Current Angle: " + currentAngle);
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
@@ -700,7 +705,7 @@ public class Drives extends GenericSubsystem {
 		}else if(power > 0 && encoderSpeed < -5){
 			LOG.logMessage(motorName + " is going forward and the encoder is reading negative - Bad");
 		}else if(power > 0 && Math.abs(encoderSpeed) <= 5){
-			LOG.logMessage(motorName + " is going forward and the encoder is reading zero - Bad");
+			LOG.logMessage(motorName + " is going forward and the encoder is reading about zero - Bad");
 		}
 		
 		else if(power < 0 && encoderSpeed > 5){
