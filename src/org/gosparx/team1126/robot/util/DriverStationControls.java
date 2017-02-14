@@ -557,13 +557,15 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-
+		boolean POVValue;
+		
 		createObjects(false);												// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
 				bValue = getButton(i);									// Get current button value
+				
 				
 				if (bValue != buttonLastValues[i]){						// Has the button value changed?
 					if (bValue)											// It's been pressed
@@ -575,6 +577,16 @@ public class DriverStationControls {
 					
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
+				for (i=0; i<maxPOVs; i++){
+					POVValue = getPOV(i);
+					if (POVValue != POVLastValues[i]){
+						if(POVValue)
+							POVDataGlobal[i][0] = System.currentTimeMillis();
+						else
+							POVDataGlobal[i][1] = System.currentTimeMillis();
+							POVLastValues[i] = POVValue;
+						}
+					}
 			}
 		}
 	}

@@ -10,31 +10,31 @@ import org.gosparx.team1126.robot.sensors.EncoderData;
 import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
+	
+	private static final double LEFT_MOTOR_SPIN_FOWARD = 1.0;
+	
+	private static final double LEFT_MOTOR_SPIN_BACKWARD = -1.0;
+	
+	private static final double LEFT_MOTOR_STOP = 0;
+	
+	private static final double RIGHT_MOTOR_SPIN_FOWARD = 1.0;
+	
+	private static final double RIGHT_MOTOR_SPIN_BACKWARD = -1.0;
+	
+	private static final double RIGHT_MOTOR_STOP = 0;
 
-	private static final double ROLLER_SPIN_FOWARD = 1.0;
+	private double wantedLeftSpeed;
 	
-	private static final double CONVEYOR_SPIN_FOWARD = 1.0;
-
-	private static final double ROLLER_SPIN_BACKWARD = -1.0;
+	private double wantedRightSpeed;
 	
-	private static final double CONVEYOR_SPIN_BACKWARD = -1.0;
-	
-	private static final double ROLLER_STOP = 0;
-	
-	private static final double CONVEYOR_STOP = 0;
-
-	private double wantedRollerSpeed;
-	
-	private double wantedConveyorSpeed;
-	
-	private static State currentAcqstatus;
+	private static State currentAcqStatus;
 
 	public static BallAcq ballacq;
 
-	private static CANTalon roller;
-
-	private static CANTalon conveyor;
-
+	private static CANTalon leftMotor;
+	
+	private static CANTalon rightMotor;
+	
 	private static Encoder encoder;
 	
 	private static EncoderData encoderData;
@@ -56,7 +56,7 @@ public class BallAcq extends GenericSubsystem{
 	}
 	@Override 
 	protected void writeLog() {
-		LOG.logMessage("Acqusition Status" + currentAcqstatus);
+		LOG.logMessage("Acqusition Status" + currentAcqStatus);
 	}
 	public enum State{
 		BALLACQON,
@@ -77,8 +77,8 @@ public class BallAcq extends GenericSubsystem{
 			}
 		}
 	protected boolean init() {
-			roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
-			conveyor = new CANTalon(IO.CAN_BALLACQ_CONVEYOR);
+			leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
+			rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
 			return false;
 		}
 	}
@@ -92,28 +92,28 @@ public class BallAcq extends GenericSubsystem{
 	protected boolean execute() {
 		dsc.update();
 		setAcqState();
-		switch(currentAcqstatus){
+		switch(currentAcqStatus){
 		case BALLACQON:{
-			wantedRollerSpeed = ROLLER_STOP;
-			wantedConveyorSpeed = CONVEYOR_STOP;
+			wantedLeftSpeed = LEFT_MOTOR_STOP;
+			wantedRightSpeed = RIGHT_MOTOR_STOP;
 			break;
 		}
 		case FORWARD:{
-			wantedRollerSpeed = ROLLER_SPIN_FOWARD;
-			wantedConveyorSpeed = CONVEYOR_SPIN_FOWARD;
+			wantedLeftSpeed = LEFT_MOTOR_SPIN_FOWARD;
+			wantedRightSpeed = RIGHT_MOTOR_SPIN_FOWARD;
 				break;
 			}
 		case BACKWARD:{
-			wantedRollerSpeed = ROLLER_SPIN_BACKWARD;
-			wantedConveyorSpeed =  CONVEYOR_SPIN_BACKWARD;
+			wantedLeftSpeed = LEFT_MOTOR_SPIN_BACKWARD;
+			wantedRightSpeed =  RIGHT_MOTOR_SPIN_BACKWARD;
 				break;
 			}
 		default:
 			break;
 		}
 
-		roller.set(wantedRollerSpeed);
-		conveyor.set(wantedConveyorSpeed);
+		rightMotor.set(wantedLeftSpeed);
+		leftMotor.set(wantedRightSpeed);
 		
 		return false;
 	}
@@ -130,37 +130,37 @@ public class BallAcq extends GenericSubsystem{
 			switch(dsc.getRawPOV()){
 			case 0:
 				if(dsc.getPOVRising(0)){
-					currentAcqstatus = State.FORWARD;
+					currentAcqStatus = State.FORWARD;
 				}
 				break;
 			case 90:
 				if(dsc.getPOVRising(2)){
-					currentAcqstatus = State.FORWARD;
+					currentAcqStatus = State.FORWARD;
 				}
 				break;
 			case 180:
 				if(dsc.getPOVRising(4)){
-					currentAcqstatus = State.BALLACQON;
+					currentAcqStatus = State.BALLACQON;
 				}
 				break;
 			case 270:
 				if(dsc.getPOVRising(6)){
-					currentAcqstatus = State.BACKWARD;
+					currentAcqStatus = State.BACKWARD;
 				}
 				break;
 				
 			}
 			
 		} else {
-			currentAcqstatus = State.BALLACQON;
+			currentAcqStatus = State.BALLACQON;
 		}
 	}
 	
 	@Override
 	protected boolean init() {
 		GearAcqSensor = new DigitalInput(IO.DIO_GEARACQ_ENC);
-		roller = new CANTalon(IO.CAN_BALLACQ_ROLLER);
-		conveyor = new CANTalon (IO.CAN_BALLACQ_CONVEYOR);
+		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
+		leftMotor = new CANTalon (IO.CAN_BALLACQ_LEFT);
 		return false;
 	}
 
