@@ -14,7 +14,7 @@ public class DriverStationControls {
 	private static final int maxPOVs = 8;
 	private static final int leftJoystickButtons = 0;
 	private static final int rightJoystickButtons = 4;
-	private static final int xboxControllerButtons = 8;
+	private static final int xboxControllerButtons = 7;
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
@@ -84,16 +84,16 @@ public class DriverStationControls {
 	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
 	
 	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
-	public static final int OP_XBOX_A = xboxControllerButtons + 0;
-	public static final int OP_XBOX_B = xboxControllerButtons + 1;
-	public static final int OP_XBOX_X = xboxControllerButtons + 2;
-	public static final int OP_XBOX_Y = xboxControllerButtons + 3;
-	public static final int OP_XBOX_L1 = xboxControllerButtons + 4;
-	public static final int OP_XBOX_R1 = xboxControllerButtons + 5;
-	public static final int OP_XBOX_BACK = xboxControllerButtons + 6;
-	public static final int OP_XBOX_START = xboxControllerButtons + 7;
-	public static final int OP_XBOX_L3 = xboxControllerButtons + 8;
-	public static final int OP_XBOX_R3 = xboxControllerButtons + 9;
+	public static final int OP_XBOX_A = xboxControllerButtons + XBOX_A;
+	public static final int OP_XBOX_B = xboxControllerButtons + XBOX_B;
+	public static final int OP_XBOX_X = xboxControllerButtons + XBOX_X;
+	public static final int OP_XBOX_Y = xboxControllerButtons + XBOX_Y;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + XBOX_L1;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + XBOX_R1;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + XBOX_BACK;
+	public static final int OP_XBOX_START = xboxControllerButtons + XBOX_START;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + XBOX_L3;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + XBOX_R3;
 		
 	// Internal private variables (static - Global for all objects)
 	
@@ -281,12 +281,24 @@ public class DriverStationControls {
 	
 	public DriverStationControls(boolean reset)
 	{
+		int i;
+		
 		createObjects(reset);
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 	}
 	
 	public DriverStationControls()
 	{
+		int i;
+		
 		createObjects(false);
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -357,8 +369,6 @@ public class DriverStationControls {
 	
 	private void createObjects(boolean reset)
 	{
-		int i;
-
 		if ((ds == null) || (reset == true))							// Get Instance of driver station
 			ds = DriverStation.getInstance();
 		
@@ -373,10 +383,6 @@ public class DriverStationControls {
 			
 		if (sharedData == null)											// Create the vehicle to share data
 			sharedData = new SharedData();								//  between subsystems.
-
-		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-			buttonLastValues[i] = getButton(i);
-		}
 	}
 	
 	
@@ -589,7 +595,7 @@ public class DriverStationControls {
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
 
-		createObjects(false);												// Ensure all objects have been created.
+		createObjects(false);											// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
