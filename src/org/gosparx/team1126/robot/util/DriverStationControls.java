@@ -265,12 +265,24 @@ public class DriverStationControls {
 	
 	public DriverStationControls(boolean reset)
 	{
+		int i;
+		
 		createObjects(reset);
+		
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 	}
 	
 	public DriverStationControls()
 	{
+		int i;
+		
 		createObjects(false);
+
+		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+			buttonLastValues[i] = getButton(i);
+		}
 	}
 
 	public void setLogger (Logger logger){
@@ -344,12 +356,7 @@ public class DriverStationControls {
 		int i;
 
 		if ((ds == null) || (reset == true))							// Get Instance of driver station
-		{
 			ds = DriverStation.getInstance();
-
-			for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-				buttonLastValues[i] = getButton(i);
-		}
 			
 		if ((joysticks[0] == null) || (reset == true))
 			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
@@ -362,7 +369,6 @@ public class DriverStationControls {
 			
 		if (sharedData == null)											// Create the vehicle to share data
 			sharedData = new SharedData();								//  between subsystems.
-		}
 	}
 	
 	
@@ -566,13 +572,9 @@ public class DriverStationControls {
 		boolean bValue;													// current button value
 
 		createObjects(false);												// Ensure all objects have been created.
-//		if (LOG != null)
-//		LOG.logMessage(11,20,"Update");
+
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
-//			if (LOG !=null)
-//			LOG.logMessage(1,20,"NewData");
-			
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
 				bValue = getButton(i);									// Get current button value
 				
@@ -583,14 +585,10 @@ public class DriverStationControls {
 					if (bValue){											// It's been pressed
 						buttonDataGlobal[i][0] =						// Update rising edge time
 							System.currentTimeMillis();
-//						if (LOG != null)
-						LOG.logMessage("Pressed " + i);
 					}
 					else{												// It's been released 
 						buttonDataGlobal[i][1] =						// Update the falling edge time
 							System.currentTimeMillis();
-//						if (LOG != null)
-						LOG.logMessage("Released " + i);
 					}
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
