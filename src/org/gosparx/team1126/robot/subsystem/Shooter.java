@@ -233,6 +233,10 @@ public class Shooter extends GenericSubsystem{
 			ready = false;
 			intake.set(0);
 		}
+		if(dsc.isPressed(IO.DIAGNOSTICS))
+			diagnostics();
+		else
+			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
 //		dsc.sharedData.systemReady = ready;
 //		dsc.sharedData.turretAngle = turretDegreeCurrent;
 //		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
@@ -246,7 +250,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected long sleepTime(){
-		return 25;
+		return 20;
 	}
 
 	//done
@@ -268,6 +272,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
+// 		speed = dsc.sharedData.distanceToTarget * someFormula
 		return speed;
 
 	}

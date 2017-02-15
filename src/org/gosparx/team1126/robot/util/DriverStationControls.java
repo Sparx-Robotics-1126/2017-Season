@@ -56,16 +56,16 @@ public class DriverStationControls {
 	public static final int XBOX_RIGHT_Y = 5;
 	
 	public static final int XBOX_POV = 0;
-	public static final int XBOX_A = 1;
-	public static final int XBOX_B = 2;
-	public static final int XBOX_X = 3;
-	public static final int XBOX_Y = 4;
-	public static final int XBOX_L1 = 5;
-	public static final int XBOX_R1 = 6;
-	public static final int XBOX_BACK = 7;
-	public static final int XBOX_START = 8;
-	public static final int XBOX_L3 = 9;
-	public static final int XBOX_R3 = 10;
+	public static final int XBOX_A = 0;
+	public static final int XBOX_B = 1;
+	public static final int XBOX_X = 2;
+	public static final int XBOX_Y = 3;
+	public static final int XBOX_L1 = 4;
+	public static final int XBOX_R1 = 5;
+	public static final int XBOX_BACK = 6;
+	public static final int XBOX_START = 7;
+	public static final int XBOX_L3 = 8;
+	public static final int XBOX_R3 = 9;
 
 	// XBox Mapping
 	
@@ -77,22 +77,23 @@ public class DriverStationControls {
 	public static final int OP_XBOX_RIGHT_Y = xboxControllerAxis + 5;
 	
 	public static final int OP_XBOX_POV = xboxControllerButtons + 0;
-	public static final int OP_XBOX_A = xboxControllerButtons + 0;
-	public static final int OP_XBOX_B = xboxControllerButtons + 1;
-	public static final int OP_XBOX_X = xboxControllerButtons + 2;
-	public static final int OP_XBOX_Y = xboxControllerButtons + 3;
-	public static final int OP_XBOX_L1 = xboxControllerButtons + 4;
-	public static final int OP_XBOX_R1 = xboxControllerButtons + 5;
-	public static final int OP_XBOX_BACK = xboxControllerButtons + 6;
-	public static final int OP_XBOX_START = xboxControllerButtons + 7;
-	public static final int OP_XBOX_L3 = xboxControllerButtons + 8;
-	public static final int OP_XBOX_R3 = xboxControllerButtons + 9;
+	public static final int OP_XBOX_A = xboxControllerButtons + XBOX_A;
+	public static final int OP_XBOX_B = xboxControllerButtons + XBOX_B;
+	public static final int OP_XBOX_X = xboxControllerButtons + XBOX_X;
+	public static final int OP_XBOX_Y = xboxControllerButtons + XBOX_Y;
+	public static final int OP_XBOX_L1 = xboxControllerButtons + XBOX_L1;
+	public static final int OP_XBOX_R1 = xboxControllerButtons + XBOX_R1;
+	public static final int OP_XBOX_BACK = xboxControllerButtons + XBOX_BACK;
+	public static final int OP_XBOX_START = xboxControllerButtons + XBOX_START;
+	public static final int OP_XBOX_L3 = xboxControllerButtons + XBOX_L3;
+	public static final int OP_XBOX_R3 = xboxControllerButtons + XBOX_R3;
 		
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
 	public static SharedData sharedData;
+	protected Logger LOG;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -105,16 +106,16 @@ public class DriverStationControls {
 			{1, JOY_LEFT},
 			{1, JOY_RIGHT},
 			{1, JOY_MIDDLE},
-			{2, XBOX_A},												// Index 8 - Start of Joystick #3 (XBox)
-			{2, XBOX_B},
-			{2, XBOX_X},
-			{2, XBOX_Y},
-			{2, XBOX_L1},
-			{2, XBOX_R1},
-			{2, XBOX_BACK},
-			{2, XBOX_START},
-			{2, XBOX_L3},
-			{2, XBOX_R3}
+			{2, XBOX_A+1},												// Index 8 - Start of Joystick #3 (XBox)
+			{2, XBOX_B+1},
+			{2, XBOX_X+1},
+			{2, XBOX_Y+1},
+			{2, XBOX_L1+1},
+			{2, XBOX_R1+1},
+			{2, XBOX_BACK+1},
+			{2, XBOX_START+1},
+			{2, XBOX_L3+1},
+			{2, XBOX_R3+1}
 	};
 	
 	// Time (in milliseconds - from the system.CurrentTimeMillis()) that the last press or release of a button occurred
@@ -271,6 +272,10 @@ public class DriverStationControls {
 	{
 		createObjects(false);
 	}
+
+	public void setLogger (Logger logger){
+		LOG = logger;
+	}
 	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return if the specified POV is pressed
@@ -339,8 +344,13 @@ public class DriverStationControls {
 		int i;
 
 		if ((ds == null) || (reset == true))							// Get Instance of driver station
+		{
 			ds = DriverStation.getInstance();
-		
+
+			for (i=0; i< maxButtons; i++){									// Set buttons to the current values
+				buttonLastValues[i] = getButton(i);
+		}
+			
 		if ((joysticks[0] == null) || (reset == true))
 			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
 		
@@ -352,9 +362,6 @@ public class DriverStationControls {
 			
 		if (sharedData == null)											// Create the vehicle to share data
 			sharedData = new SharedData();								//  between subsystems.
-
-		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
-			buttonLastValues[i] = getButton(i);
 		}
 	}
 	
@@ -559,20 +566,32 @@ public class DriverStationControls {
 		boolean bValue;													// current button value
 
 		createObjects(false);												// Ensure all objects have been created.
-		
+//		if (LOG != null)
+//		LOG.logMessage(11,20,"Update");
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
+//			if (LOG !=null)
+//			LOG.logMessage(1,20,"NewData");
+			
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
 				bValue = getButton(i);									// Get current button value
 				
+				if ((i == 9) && (bValue == true))
+					LOG.logMessage("9: " + bValue + " " + buttonLastValues[i]);
+				
 				if (bValue != buttonLastValues[i]){						// Has the button value changed?
-					if (bValue)											// It's been pressed
+					if (bValue){											// It's been pressed
 						buttonDataGlobal[i][0] =						// Update rising edge time
 							System.currentTimeMillis();
-					else												// It's been released 
+//						if (LOG != null)
+						LOG.logMessage("Pressed " + i);
+					}
+					else{												// It's been released 
 						buttonDataGlobal[i][1] =						// Update the falling edge time
 							System.currentTimeMillis();
-					
+//						if (LOG != null)
+						LOG.logMessage("Released " + i);
+					}
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
 			}

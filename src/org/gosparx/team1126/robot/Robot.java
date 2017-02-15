@@ -31,7 +31,7 @@ public class Robot extends SampleRobot{
 //        	BallAcqNew.getInstance(),
 //			CameraController.getInstance(), 
 			Shooter.getInstance(),
-			LogWriter.getInstance(),
+//			LogWriter.getInstance(),
 		};
 
 		for(GenericSubsystem system: subsystems){

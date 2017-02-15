@@ -42,11 +42,14 @@ public abstract class GenericSubsystem extends Thread {
 		if(priority != Thread.MIN_PRIORITY && priority != Thread.NORM_PRIORITY && priority != MAX_PRIORITY)
 			throw new InvalidParameterException();
 
+		if(name != "LogWriter")
+			LOG = new Logger(name);
+
 		setPriority(priority);
 		dsc = new DriverStationControls();
 		
-		if(name != "LogWriter")
-			LOG = new Logger(name);
+		if (name !="LogWriter")
+			dsc.setLogger(LOG);
 	}
 
 	/**
