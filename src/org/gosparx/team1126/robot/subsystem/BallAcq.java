@@ -56,7 +56,6 @@ public class BallAcq extends GenericSubsystem{
 		wantedLeftSpeed = 0;
 		wantedRightSpeed = 0;
 		currentAcqStatus = State.STANDBY;
-		ballacq = new BallAcq();
 		leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
 		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
 		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_ENC);
