@@ -24,11 +24,11 @@ public class Climbing extends GenericSubsystem {
 	
 	private static Climbing climbing;
 	
-	private static final double MOTOR_SPIN = -1.1;
+	private static final double MOTOR_SPIN = 1.1;
 	
 	private static final double MOTOR_STOP = 0;
 	
-	private static final double MOTOR_ATTATCH = -1.1;
+	private static final double MOTOR_ATTATCH = 1.1;
 	
 	private DigitalInput ClimbingSensor;
 	
@@ -117,7 +117,7 @@ public class Climbing extends GenericSubsystem {
 
 	@Override
 	protected void liveWindow() {
-		// TODO Auto-generated method stub
+		
 		
 	}
 
@@ -131,7 +131,7 @@ public class Climbing extends GenericSubsystem {
 
 	@Override
 	protected long sleepTime() {
-		// TODO Auto-generated method stub
+		
 		return 20;
 	}
 }
