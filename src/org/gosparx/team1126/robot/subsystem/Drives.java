@@ -85,9 +85,9 @@ public class Drives extends GenericSubsystem {
 	private double averageSpeed;												// Average Speed
 	private double averageDistance;												// Average Distance
 	private double previousAngle;												// Previous Angle
-	private DiagnosticState currentDiagnosticState;
-	private boolean isDiagnostic;
-	private long diagnosticTime;
+	private DiagnosticState currentDiagnosticState;								// Current diagnostic state
+	private boolean isDiagnostic;												// whether diagnostics are being run
+	private long diagnosticTime;												// the time diagnostic starts												
 	private double initialHeading;
 	private double correction;
 	private double distanceToGo;
@@ -214,7 +214,7 @@ public class Drives extends GenericSubsystem {
 	 * Continues as long as it returns false
 	 */
 	@Override
-	protected boolean execute() {
+	protected	 boolean execute() {
 		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
@@ -437,8 +437,7 @@ public class Drives extends GenericSubsystem {
 		rightEncoderData.reset();
 		leftEncoderData.reset();
 		wantedDistance = distance;
-		
-		//initialHeading = gyro.getAngle();
+		initialHeading = gyro.getAngle();
 		if(distance < 0){
 			wantedSpeed = -speed;
 		}else{
@@ -459,7 +458,7 @@ public class Drives extends GenericSubsystem {
 	private void drive(){
 		double calculatedDistance = wantedDistance;
 		LOG.logMessage("wanted distance: " + wantedDistance);
-		//correction = gyro.getAngle() - initialHeading;
+		correction = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
 			calculatedDistance -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
@@ -475,7 +474,7 @@ public class Drives extends GenericSubsystem {
 		if(averageDistance >= Math.abs(calculatedDistance - .5)){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
-			//correction = 0;
+			correction = 0;
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
