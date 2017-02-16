@@ -10,35 +10,31 @@ import org.gosparx.team1126.robot.sensors.EncoderData;
 import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
-	
+
 	private static final double LEFT_MOTOR_SPIN_FOWARD = 1.0;
-	
+
 	private static final double LEFT_MOTOR_SPIN_BACKWARD = -1.0;
-	
+
 	private static final double LEFT_MOTOR_STOP = 0;
-	
+
 	private static final double RIGHT_MOTOR_SPIN_FOWARD = 1.0;
-	
+
 	private static final double RIGHT_MOTOR_SPIN_BACKWARD = -1.0;
-	
+
 	private static final double RIGHT_MOTOR_STOP = 0;
 
 	private double wantedLeftSpeed;
-	
+
 	private double wantedRightSpeed;
-	
-	private static State currentAcqStatus;
+
+	private State currentAcqStatus;
 
 	public static BallAcq ballacq;
 
-	private static CANTalon leftMotor;
-	
-	private static CANTalon rightMotor;
-	
-	private static Encoder encoder;
-	
-	private static EncoderData encoderData;
-	
+	private CANTalon leftMotor;
+
+	private CANTalon rightMotor;
+
 	private DigitalInput GearAcqSensor;
 
 	private BallAcq(){
@@ -54,20 +50,35 @@ public class BallAcq extends GenericSubsystem{
 		}
 		return ballacq;
 	}
+	
+	@Override
+	protected boolean init(){
+		wantedLeftSpeed = 0;
+		wantedRightSpeed = 0;
+		currentAcqStatus = State.STANDBY;
+		ballacq = new BallAcq();
+		leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
+		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
+		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_ENC);
+		
+		return true;
+	}
+	
 	@Override 
 	protected void writeLog() {
 		LOG.logMessage("Acqusition Status" + currentAcqStatus);
 	}
+	
 	public enum State{
-		BALLACQON,
+		STANDBY,
 		FORWARD,
 		BACKWARD;
-	
+
 		@Override
 		public String toString(){
 			switch(this){
-			case BALLACQON:
-				return "BallAcq on";
+			case STANDBY:
+				return "BallAcq standby";
 			case FORWARD:
 				return "BallAcq foward";
 			case BACKWARD:
@@ -76,24 +87,20 @@ public class BallAcq extends GenericSubsystem{
 				return "Acquiring Status Unknown";
 			}
 		}
-	protected boolean init() {
-			leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
-			rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
-			return false;
-		}
 	}
 
+	@Override
 	protected void liveWindow() {
 		String subsystemName = "Gear Acq";
 		LiveWindow.addSensor(subsystemName, "Gear Acq Sensor", GearAcqSensor);
-		
+
 	}
 
+	@Override
 	protected boolean execute() {
-		dsc.update();
 		setAcqState();
 		switch(currentAcqStatus){
-		case BALLACQON:{
+		case STANDBY:{
 			wantedLeftSpeed = LEFT_MOTOR_STOP;
 			wantedRightSpeed = RIGHT_MOTOR_STOP;
 			break;
@@ -101,30 +108,31 @@ public class BallAcq extends GenericSubsystem{
 		case FORWARD:{
 			wantedLeftSpeed = LEFT_MOTOR_SPIN_FOWARD;
 			wantedRightSpeed = RIGHT_MOTOR_SPIN_FOWARD;
-				break;
-			}
+			break;
+		}
 		case BACKWARD:{
 			wantedLeftSpeed = LEFT_MOTOR_SPIN_BACKWARD;
 			wantedRightSpeed =  RIGHT_MOTOR_SPIN_BACKWARD;
-				break;
-			}
+			break;
+		}
 		default:
 			break;
 		}
 
-		rightMotor.set(wantedLeftSpeed);
-		leftMotor.set(wantedRightSpeed);
-		
+		rightMotor.set(wantedRightSpeed);
+		leftMotor.set(wantedLeftSpeed);
+
 		return false;
 	}
+	
+	@Override
 	protected long sleepTime() {
-		// TODO Auto-generated method stub
 		return 20;
 	}
 
 	private void setAcqState(){
 		if(dsc.isAutonomous()){
-			//
+			currentAcqStatus = State.STANDBY;
 		}
 		if(dsc.isOperatorControl()){
 			switch(dsc.getRawPOV()){
@@ -140,7 +148,7 @@ public class BallAcq extends GenericSubsystem{
 				break;
 			case 180:
 				if(dsc.getPOVRising(4)){
-					currentAcqStatus = State.BALLACQON;
+					currentAcqStatus = State.STANDBY;
 				}
 				break;
 			case 270:
@@ -148,20 +156,12 @@ public class BallAcq extends GenericSubsystem{
 					currentAcqStatus = State.BACKWARD;
 				}
 				break;
-				
+			default:
+				break;
 			}
-			
 		} else {
-			currentAcqStatus = State.BALLACQON;
+			currentAcqStatus = State.STANDBY;
 		}
-	}
-	
-	@Override
-	protected boolean init() {
-		GearAcqSensor = new DigitalInput(IO.DIO_GEARACQ_ENC);
-		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
-		leftMotor = new CANTalon (IO.CAN_BALLACQ_LEFT);
-		return false;
 	}
 
 }
