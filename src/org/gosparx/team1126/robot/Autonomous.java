@@ -24,6 +24,7 @@ public class Autonomous extends GenericSubsystem{
 	private long critTime = 0;									// When we need to do this step by
 	private long autoStartTime;									// When we started auto
 	private boolean fromFile = false;							// Check if Autonomous mode should be read from local file.
+	private CSVReader reader;
 	
 	// All genericSubsystems that the Autonomous system needs to interface with will need to be defined.	
 
@@ -108,6 +109,7 @@ public class Autonomous extends GenericSubsystem{
 	protected boolean init() {
 
 //		drives = Drives.getInstance();
+		reader = new CSVReader();
 		
 		chooser = new SendableChooser<int[][]>();
 		chooser.addDefault("Do Nothing", EMPTY);
@@ -126,7 +128,7 @@ public class Autonomous extends GenericSubsystem{
 		if(dsc.isEnabled() && dsc.isAutonomous()){
 			runAuto();
 		}else{
-			currentAuto = (int[][]) chooser.getSelected();
+			currentAuto = (int[][]) getCurrentAuto();//(int[][]) chooser.getSelected();
 			currStep = 0;
 			autoStartTime = System.currentTimeMillis();
 			incStep = true;
@@ -136,16 +138,15 @@ public class Autonomous extends GenericSubsystem{
 		}
 		return false;
 	}
-
+	
 	private int[][] getCurrentAuto(){
 		if(fromFile){
-			return CSVReader.readIntCSV("usr");
+			return reader.readIntCSV("usr");
 		} else {
 			return chooser.getSelected();
 		}
-		return chooser.getSelected();
 	}
-	
+	/*
 	private int[][] parseCSV(String filePath);
 	{
 		CSVReader csv;
@@ -164,7 +165,7 @@ public class Autonomous extends GenericSubsystem{
 			e.printStackTrace();
 		}
 		return 
-	}
+	}*/
 	
 	/*************************************************************************************************
 	 * Actually loops through auto commands
