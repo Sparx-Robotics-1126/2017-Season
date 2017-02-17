@@ -70,6 +70,7 @@ public class PID {
 		
 		if((setPoint == 0) && (stopFunction == true)){
 			totalizer = 0;
+			internalSP = 0;
 			return 0;
 		}
 		
@@ -145,6 +146,7 @@ public class PID {
 	}
 	
 	public void setSPRamp(double ramp){
+		spRamping = true;
 		spRampLimit = ramp;
 	}
 	

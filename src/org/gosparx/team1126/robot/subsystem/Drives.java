@@ -29,11 +29,11 @@ public class Drives extends GenericSubsystem {
 	private static final double HOLDING_TURN_SPEED = 30;						// Speed for turning while in hold state
 	private static final double CHECK_POWER = .3;								// Power for diagnostics
 	private static final double RIGHT_KI = .08;									// Integral for the right PID
-	private static final double RIGHT_KP = .015;								// Proportional for the right PID
+	private static final double RIGHT_KP = .025;								// Proportional for the right PID
 	private static final double LEFT_KI = .08;									// Integral for the left PID
-	private static final double left_KP = .015;									// Proportional for the left PID
+	private static final double left_KP = .025;									// Proportional for the left PID
 	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
-	private static final double JOYSTICK_DEADBAND = .06; 						// Axis for the deadband
+	private static final double JOYSTICK_DEADBAND = .1; 						// Axis for the deadband
 	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
 	private static final double LEFT_FF = .00538;								// Feed forward for left PID
 	
@@ -131,6 +131,7 @@ public class Drives extends GenericSubsystem {
 		rightPID = new PID(RIGHT_KI, RIGHT_KP, RIGHT_FF);
 		rightPID.breakMode(true);
 		rightPID.setMaxMin(-0.95, 0.95);
+		rightPID.setSPRamp(200);
 		rightCurrentSpeed = 0;
 		rightWantedSpeed = 0;
 		rightPreviousDistance = 0;
@@ -152,6 +153,7 @@ public class Drives extends GenericSubsystem {
 		leftPID = new PID(LEFT_KI, left_KP, LEFT_FF);
 		leftPID.breakMode(true);
 		leftPID.setMaxMin(-0.95, 0.95);
+		leftPID.setSPRamp(200);
 		leftCurrentSpeed = 0;
 		leftWantedSpeed = 0;
 		leftPreviousDistance = 0;
@@ -218,8 +220,11 @@ public class Drives extends GenericSubsystem {
 		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
+		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
+		dsc.setAxisDeadband(IO.LEFT_JOY_X, JOYSTICK_DEADBAND);
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
+			LOG.logMessage("Recreating NavX");
 		}
 		
 		rightEncoderData.calculateSpeed();
@@ -230,7 +235,9 @@ public class Drives extends GenericSubsystem {
 			//LOG.logMessage(15, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
-			LOG.logMessage(16, 25, "Current Angle: " + currentAngle);
+		LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
+		LOG.logMessage(17, 20, "Temperature: " + gyro.getTempC());
+			//LOG.logMessage(15,20,"Current Angle: " + currentAngle);
 		rightCurrentDistance = rightEncoderData.getDistance();
 			//LOG.logMessage(16, 25, "Right Current Distance: " + rightCurrentDistance);
 		leftCurrentDistance = leftEncoderData.getDistance();
@@ -274,13 +281,15 @@ public class Drives extends GenericSubsystem {
 			
 		case TELEOP:
 			if(dsc.getButtonRising(IO.RESET_ENCODER)){
-				rightEncoder.reset();
-				rightEncoderData.reset();
-				leftEncoder.reset();
-				leftEncoderData.reset();
+//				rightEncoder.reset();
+//				rightEncoderData.reset();
+//				leftEncoder.reset();
+//				leftEncoderData.reset();
+				gyro.zeroYaw();
+				LOG.logMessage("Zeroing Gyro");
 			}
-			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
-				autoTurn(120, 12);
+			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
+				autoTurn(90, 12);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -325,6 +334,10 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
+			if(dsc.isEnabled()){
+			//LOG.logMessage("right wanted speed: " + rightWantedSpeed);
+			//LOG.logMessage("left wanted speed: " + leftWantedSpeed);
+			}
 			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
@@ -414,6 +427,8 @@ public class Drives extends GenericSubsystem {
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
 //		rightSetPower = (-yAxis - xAxis/X_SENSITIVITY);
 //		leftSetPower = (-yAxis + xAxis/X_SENSITIVITY);
+		//LOG.logMessage("x-axis " + xAxis );
+		//LOG.logMessage("y-axis " + yAxis );
 		rightWantedSpeed = (-yAxis - xAxis/X_SENSITIVITY)*MAX_SPEED;
 		leftWantedSpeed = (-yAxis + xAxis/X_SENSITIVITY)*MAX_SPEED;
 //		if(!isInverted){
@@ -489,9 +504,6 @@ public class Drives extends GenericSubsystem {
 	 */
 	public void autoTurn(double angle, double speed){
 		turnDone = false;
-		gyro.zeroYaw();
-		rightEncoderData.reset();
-		leftEncoderData.reset();
 		wantedAngle = angle;
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_TURN;
@@ -508,7 +520,7 @@ public class Drives extends GenericSubsystem {
 	private void turn(){
 		angleOffset = wantedAngle - currentAngle;
 		if(Math.abs(angleOffset)<3){
-			LOG.logMessage("Current Angle: " + currentAngle);
+			//LOG.logMessage("Current Angle: " + currentAngle);
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
