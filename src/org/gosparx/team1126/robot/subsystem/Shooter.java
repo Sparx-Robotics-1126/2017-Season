@@ -65,9 +65,30 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean ready;
 	
+	/**
+	 * speed for the shooter(temporary)
+	 */
 	private int speed;
 	
+	/**
+	 * the current time for logging messages every 1 second
+	 */
 	private long currentTime;
+	
+	/**
+	 * the max encoder speed read during currentTime
+	 */
+	private double max;
+	
+	/**
+	 * the minimum encoder speed during currentTime
+	 */
+	private double min;
+	
+	/**
+	 * also used for logging messages with the currentTime
+	 */
+	private double time;
 	
 //*****************************************Objects***************************************\\
 	
@@ -179,8 +200,11 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		distance =  100;
 		ready = false;
-		speed = 2500;
+		speed = 1450;
 		currentTime = 0;
+		max = 0;
+		min = 10000;
+		time = 0;
 		return true;
 	}
 
@@ -206,15 +230,38 @@ public class Shooter extends GenericSubsystem{
 	protected boolean execute(){
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
+
+		if (System.currentTimeMillis()/1000.0 - time >1.0){
+			LOG.logMessage("Max: " + max + " Min: " + min);
+			max = 0;
+			min = 10000;
+			time = System.currentTimeMillis()/1000.0;
+		}
+			
+		if (shootingSpeedCurrent > max)
+			max = shootingSpeedCurrent;
+		
+		if (shootingSpeedCurrent < min)
+			min = shootingSpeedCurrent;
+		
 		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 		if(dsc.isOperatorControl())
 			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
-		if(isPressed){
-			speedButton = true;
-			turretButton = true;
-		}else{
-			speedButton = false;
-			turretButton = false;
+//		if(isPressed){
+//			speedButton = true;
+//			turretButton = true;
+//		}else{
+//			speedButton = false;
+//			turretButton = false;
+//		}
+		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)){
+			if(speedButton == true){
+				speedButton = false;
+				turretButton = false;
+			}else{
+				speedButton = true;
+				turretButton = true;
+			}
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
@@ -250,7 +297,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected long sleepTime(){
-		return 20;
+		return 10;
 	}
 
 	//done
@@ -301,7 +348,7 @@ public class Shooter extends GenericSubsystem{
 		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			flyWheel.set(FLYWHEEL_MAX);
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
-			flyWheel.set(FLYWHEEL_DECAY);
+			flyWheel.set(FLYWHEEL_DECAY + (shootingSpeed * 0.0001));
 		}
 		if(Math.abs(shootingSpeedCurrent - shootingSpeed) < FlYWHEEL_DEADBAND)
 				return true;
