@@ -57,10 +57,10 @@ public class DriverStationControls {
 
 	public static final int XBOX_LEFT_X = 0;
 	public static final int XBOX_LEFT_Y = 1;
-	public static final int XBOX_L2 = 2;
-	public static final int XBOX_R2 = 3;
-	public static final int XBOX_RIGHT_X = 4;
-	public static final int XBOX_RIGHT_Y = 5;
+	public static final int XBOX_RIGHT_X = 2;
+	public static final int XBOX_RIGHT_Y = 3;
+	public static final int XBOX_L2 = 4;
+	public static final int XBOX_R2 = 5;
 	
 	public static final int XBOX_POV = 0;
 	public static final int XBOX_A = 1;

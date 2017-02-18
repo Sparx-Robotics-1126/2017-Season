@@ -8,6 +8,7 @@ package org.gosparx.team1126.robot.subsystem;
 //*****************************************Imports***************************************\\
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import com.ctre.CANTalon;
@@ -89,6 +90,8 @@ public class Shooter extends GenericSubsystem{
 	 * also used for logging messages with the currentTime
 	 */
 	private double time;
+	
+	private Servo servo;
 	
 //*****************************************Objects***************************************\\
 	
@@ -192,6 +195,7 @@ public class Shooter extends GenericSubsystem{
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		intake = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
+		servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
 		speedButton = false;
@@ -270,6 +274,13 @@ public class Shooter extends GenericSubsystem{
 			LOG.logMessage("Down");
 			speed -= 50;
 		}
+		if(dsc.isPressed(IO.AGITATOR_SERVO)){
+			servo.set(1);
+			LOG.logMessage("Running Servo");
+		} else {
+			servo.set(.52);
+			LOG.logMessage("Stopped Servo");
+		}
 		if(fireCtrl()){
 			ready = true;
 			if(dsc.isPressed(IO.BUTTON_FIRE))
@@ -306,11 +317,11 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+//		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
 		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
 		//LOG.logMessage("Turret Degree Off: " + degreeOff);
-		LOG.logMessage("Distance Away: " + distance);
-		LOG.logMessage("IsPressed: " + isPressed);
+//		LOG.logMessage("Distance Away: " + distance);
+//		LOG.logMessage("IsPressed: " + isPressed);
 	}
 	
 	//framework done

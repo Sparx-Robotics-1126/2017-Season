@@ -240,9 +240,13 @@ public class Drives extends GenericSubsystem {
 		leftCurrentSpeed = leftEncoderData.getSpeed();
 			//LOG.logMessage(15, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
-		currentAngle = gyro.getAngle() % 360;
+		//currentAngle = gyro.getAngle() % 360;
+		LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
+		LOG.logMessage(19, 20, "isConnected: " + gyro.isConnected());
+		LOG.logMessage(20, 20, "rawY: " + gyro.getRawGyroY());
+		
 		if(dsc.isEnabled()){
-			LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
+			//LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
 			LOG.logMessage(18, 20, "(X, Y) field position: ( " + currentX + ", " + currentY + ")");
 		}
 			//LOG.logMessage(15,20,"Current Angle: " + currentAngle);
@@ -324,10 +328,10 @@ public class Drives extends GenericSubsystem {
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
 			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
 			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
-			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
-				rightWantedSpeed = 50;
-				leftWantedSpeed = 50;
-			}
+//			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
+//				rightWantedSpeed = 50;
+//				leftWantedSpeed = 50;
+//			}
 			break;
 			
 		case DISABLED:
@@ -335,7 +339,6 @@ public class Drives extends GenericSubsystem {
 			rightEncoderData.reset();
 			leftEncoder.reset();
 			leftEncoderData.reset();
-			gyro.zeroYaw();
 			currentDriveState = DriveState.AUTO_STOP;
 			break;
 			
@@ -348,10 +351,10 @@ public class Drives extends GenericSubsystem {
 			//LOG.logMessage("right wanted speed: " + rightWantedSpeed);
 			//LOG.logMessage("left wanted speed: " + leftWantedSpeed);
 			}
-			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
-			//leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
+			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
+			leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed
@@ -421,11 +424,11 @@ public class Drives extends GenericSubsystem {
 		//rightSetPower = right;
 		//leftSetPower = left;
 		if(!isInverted){
-			rightWantedSpeed = right * MAX_SPEED;
-			leftWantedSpeed = left * MAX_SPEED;
+			rightWantedSpeed = -right * MAX_SPEED;
+			leftWantedSpeed = -left * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(left * MAX_SPEED);
-			leftWantedSpeed = -(right * MAX_SPEED);
+			rightWantedSpeed = (left * MAX_SPEED);
+			leftWantedSpeed = (right * MAX_SPEED);
 		}
 	}
 

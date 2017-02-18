@@ -12,9 +12,9 @@ public class IO {
 
 	/**************************************PWM*****************************************/
 	
-	public static final int PWM_BALLACQ_SERVO_AGITATOR						= 4;
+	public static final int PWM_BALLACQ_SERVO_AGITATOR						= 14;
 	
-	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 5;
+	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 15;
 	
 	/************************************DIO*******************************************/
 	
@@ -51,9 +51,9 @@ public class IO {
 	
 	// CAN 2017 - New definitions for 2017 robot
 	
-	public static final int CAN_BALLACQ_RIGHT								= 8;
+	public static final int CAN_BALLACQ_RIGHT								= 1;
 	
-	public static final int CAN_BALLACQ_LEFT								= 2;
+	public static final int CAN_BALLACQ_LEFT								= 8;
 	
 	public static final int CAN_CLIMBING_WINCH	   							= 3;
 	
@@ -65,7 +65,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_INTAKE_FEEDER						= 7;
 	
-	public static final int CAN_SHOOTER_TURRET								= 1;
+	public static final int CAN_SHOOTER_TURRET								= 2;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 9;
 	
@@ -128,8 +128,11 @@ public class IO {
 	
 	public static final int ACQ_BACKWARD									= 6;
 	
-	public static final int FLYWHEEL_INCREASE = DriverStationControls.OP_XBOX_X;
+	public static final int FLYWHEEL_INCREASE							    = DriverStationControls.OP_XBOX_X;
 	
-	public static final int FLYWHEEL_DECREASE = DriverStationControls.OP_XBOX_B;
+	public static final int FLYWHEEL_DECREASE 								= DriverStationControls.OP_XBOX_B;
+	
+	public static final int AGITATOR_SERVO									= DriverStationControls.OP_XBOX_L1;
+	
 	
 }
