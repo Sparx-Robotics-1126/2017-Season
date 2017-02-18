@@ -94,6 +94,7 @@ public class Drives extends GenericSubsystem {
 	private double endX;
 	private double endY;
 	private double angleToEnd;
+	private double calculatedDistance;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -195,6 +196,7 @@ public class Drives extends GenericSubsystem {
 		endX = 0;
 		endY = 0;
 		angleToEnd = 0;
+		calculatedDistance = 0;
 		
 		return true;
 	}
@@ -321,9 +323,9 @@ public class Drives extends GenericSubsystem {
 				autoDrive(144, 60);
 			}
 			
-			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
+					//dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
 				rightWantedSpeed = 50;
 				leftWantedSpeed = 50;
@@ -500,6 +502,35 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void drive(){
 		double calculatedDistance = wantedDistance;
+		LOG.logMessage("wanted distance: " + wantedDistance);
+		correction = gyro.getAngle() - initialHeading;
+		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
+		if(Math.abs(averageSpeed) > 16){
+			calculatedDistance -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
+		}
+		distanceToGo = calculatedDistance - averageDistance;
+		LOG.logMessage("Distance to go: " + distanceToGo);
+		if(wantedSpeed > distanceToGo + 40){
+			wantedSpeed = distanceToGo + 40;
+		}
+		LOG.logMessage("wanted Speed: " + wantedSpeed);
+		rightWantedSpeed = correction/4 + wantedSpeed;
+		leftWantedSpeed = wantedSpeed - correction/4;
+		if(averageDistance >= Math.abs(calculatedDistance - .5)){
+			rightWantedSpeed = 0;
+			leftWantedSpeed = 0;
+			correction = 0;
+			LOG.logMessage("Distance Traveled: " + averageDistance);
+			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+			currentDriveState = DriveState.STANDBY;
+		}
+	}
+	
+	private void drive2(){
+		calculatedDistance = wantedDistance;
+		double xChange = currentX - endX;
+		double yChange = currentY - endY;
+		angleToEnd = 2;
 		LOG.logMessage("wanted distance: " + wantedDistance);
 		correction = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
