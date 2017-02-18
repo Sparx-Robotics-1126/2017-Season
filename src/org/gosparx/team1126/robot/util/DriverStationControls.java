@@ -451,7 +451,7 @@ public class DriverStationControls {
 		if (buttonData[buttonNumber][0] <  								// If a more recent (timewise) button
 				buttonDataGlobal[buttonNumber][0])						//   press has occurred...
 		{
-			if (buttonData[buttonNumber][0] > 0)						// and this is not the first time this
+			if (buttonDataGlobal[buttonNumber][0] > 0)						// and this is not the first time this
 				rising = true;											//	routine has been called, then TRUE
 
 			buttonData[buttonNumber][0] =  								// Store the falling edge time
@@ -472,7 +472,7 @@ public class DriverStationControls {
 		if (buttonData[buttonNumber][1] < 								// If a more recent (timewise) button
 				buttonDataGlobal[buttonNumber][1])						//   release has occurred...
 		{
-			if (buttonData[buttonNumber][0] > 0)						// and this is not the first time this
+			if (buttonDataGlobal[buttonNumber][1] > 0)						// and this is not the first time this
 				falling = true;											//	routine has been called, then TRUE
 			
 			buttonData[buttonNumber][1] = 								// Store the falling edge time
