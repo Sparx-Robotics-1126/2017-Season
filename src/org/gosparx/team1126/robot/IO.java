@@ -92,6 +92,10 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
+	public static final int AUTO_TURN										= DriverStationControls.LEFT_JOY_TRIGGER;
+	
+	public static final int AUTO_DRIVE										= DriverStationControls.RIGHT_JOY_LEFT;
+	
 	public static final int RESET_ENCODER									= DriverStationControls.LEFT_JOY_RIGHT;
 	
 	public static final int ABORT_AUTO_DRIVES								= DriverStationControls.LEFT_JOY_LEFT;

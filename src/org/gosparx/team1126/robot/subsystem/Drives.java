@@ -288,7 +288,7 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
-			if(dsc.getRawButton(0, DriverStationControls.JOY_RIGHT)){
+			if(dsc.getButtonRising(IO.RESET_ENCODER)){
 //				rightEncoder.reset();
 //				rightEncoderData.reset();
 //				leftEncoder.reset();
@@ -298,7 +298,7 @@ public class Drives extends GenericSubsystem {
 				currentX = 0;
 				currentY = 0;
 			}
-			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
+			if(dsc.getButtonRising(IO.AUTO_TURN)){
 				autoTurn(90, 36);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
@@ -317,13 +317,13 @@ public class Drives extends GenericSubsystem {
 				currentDiagnosticState = DiagnosticState.TOP;
 				isDiagnostic = false;
 			}
-			if(dsc.getRawButton(1, DriverStationControls.JOY_LEFT)){
+			if(dsc.getButtonRising(IO.AUTO_DRIVE)){
 				autoDrive(144, 60);
 			}
 			
-			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-					dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
+			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
 				rightWantedSpeed = 50;
 				leftWantedSpeed = 50;

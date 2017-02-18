@@ -135,16 +135,11 @@ public class BallAcq extends GenericSubsystem{
 			currentAcqStatus = State.STANDBY;
 		}
 		if(dsc.isOperatorControl()){
-				if(dsc.getButtonRising(11)){
+				if(dsc.getPOVRising(0) || dsc.getPOVRising(2)){
 					currentAcqStatus = State.FORWARD;
-				}
-				if(dsc.getButtonRising(10)){
-					currentAcqStatus = State.FORWARD;
-				}
-				if(dsc.getButtonRising(8)){
+				} else if(dsc.getPOVRising(4)){
 					currentAcqStatus = State.STANDBY;
-				}
-				if(dsc.getButtonRising(9)){
+				} else if(dsc.getPOVRising(6)){
 					currentAcqStatus = State.BACKWARD;
 				}
 			}
