@@ -8,6 +8,7 @@ package org.gosparx.team1126.robot.subsystem;
 //*****************************************Imports***************************************\\
 
 import edu.wpi.first.wpilibj.Encoder;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import com.ctre.CANTalon;
@@ -112,6 +113,8 @@ public class Shooter extends GenericSubsystem{
 	
 	private DiagnosticsEnuuum currentEnum;
 	
+	private Servo servo;
+	
 //*****************************************Constants*************************************\\
 	
 	/**
@@ -192,6 +195,7 @@ public class Shooter extends GenericSubsystem{
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		intake = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
+		servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
 		speedButton = false;
@@ -245,7 +249,7 @@ public class Shooter extends GenericSubsystem{
 			min = shootingSpeedCurrent;
 		
 		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
-		if(dsc.isOperatorControl())
+		if(dsc.isOperatorControl())	
 			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 //		if(isPressed){
 //			speedButton = true;
@@ -263,13 +267,17 @@ public class Shooter extends GenericSubsystem{
 				turretButton = true;
 			}
 		}
+//		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
+//			speed += 50;
+//			LOG.logMessage("up");
+//		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
+//			LOG.logMessage("Down");
+//			speed -= 50;
+//		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
-			speed += 50;
-			LOG.logMessage("up");
-		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-			LOG.logMessage("Down");
-			speed -= 50;
-		}
+			servo.set(1);
+			LOG.logMessage("Servo is pressed");
+		}	
 		if(fireCtrl()){
 			ready = true;
 			if(dsc.isPressed(IO.BUTTON_FIRE))
