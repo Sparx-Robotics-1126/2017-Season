@@ -52,7 +52,7 @@ public class Scaling extends GenericSubsystem {
 	public enum State{
 		STANDBY,
 		ATTATCHING,
-		Scaling;	
+		SCALING;	
 
 		@Override
 		public String toString(){
@@ -61,7 +61,7 @@ public class Scaling extends GenericSubsystem {
 					return "Scaling standby";
 				case ATTATCHING:
 					return "Attatching to rope";
-				case Scaling:
+				case SCALING:
 					return "Scaling";
 					default:
 				return "Scaling Status Unknown";
@@ -80,11 +80,11 @@ public class Scaling extends GenericSubsystem {
 		}
 		case ATTATCHING:{
 			ScalingMotor.set(MOTOR_ATTATCH);
-			currentScalingStatus = State.Scaling;
+			currentScalingStatus = State.SCALING;
 			
 			break;
 		}
-		case Scaling:	
+		case SCALING:	
 			ScalingMotor.set(MOTOR_SPIN);
 			if(ScalingSensor.get()){
 				LOG.logMessage("Rope Has Been Climbed");
