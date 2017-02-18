@@ -418,15 +418,15 @@ public class Drives extends GenericSubsystem {
 	 * @param left the power from the left joystick
 	 */
 	public void setTankSpeed(double right, double left, boolean isInverted){
-		rightSetPower = right;
-		leftSetPower = left;
-//		if(!isInverted){
-//			rightWantedSpeed = right * MAX_SPEED;
-//			leftWantedSpeed = left * MAX_SPEED;
-//		}else{
-//			rightWantedSpeed = -(left * MAX_SPEED);
-//			leftWantedSpeed = -(right * MAX_SPEED);
-//		}
+		//rightSetPower = right;
+		//leftSetPower = left;
+		if(!isInverted){
+			rightWantedSpeed = right * MAX_SPEED;
+			leftWantedSpeed = left * MAX_SPEED;
+		}else{
+			rightWantedSpeed = -(left * MAX_SPEED);
+			leftWantedSpeed = -(right * MAX_SPEED);
+		}
 	}
 
 	/**
@@ -435,19 +435,15 @@ public class Drives extends GenericSubsystem {
 	 * @param yAxis value from the yAxis on the joystick
 	 */
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
-//		rightSetPower = (-yAxis - xAxis/X_SENSITIVITY);
-//		leftSetPower = (-yAxis + xAxis/X_SENSITIVITY);
-		//LOG.logMessage("x-axis " + xAxis );
-		//LOG.logMessage("y-axis " + yAxis );
 		rightWantedSpeed = (-yAxis - xAxis/X_SENSITIVITY)*MAX_SPEED;
 		leftWantedSpeed = (-yAxis + xAxis/X_SENSITIVITY)*MAX_SPEED;
-//		if(!isInverted){
-//			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
-//			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
-//		}else{
-//			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
-//			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
-//		}
+		if(!isInverted){
+			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
+			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+		}else{
+			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+		}
 	}
 	
 	/**
@@ -553,7 +549,6 @@ public class Drives extends GenericSubsystem {
 		angleOffset = wantedAngle - currentAngle;
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
-			//LOG.logMessage("Current Angle: " + currentAngle);
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
