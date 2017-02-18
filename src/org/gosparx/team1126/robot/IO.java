@@ -1,5 +1,7 @@
 package org.gosparx.team1126.robot;
 
+import org.gosparx.team1126.robot.util.DriverStationControls;
+
 /**
  * Stores all of the IO information
  */
@@ -90,27 +92,27 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
-	public static final int ABORT_AUTO_DRIVES								= 1;
+	public static final int ABORT_AUTO_DRIVES								= DriverStationControls.LEFT_JOY_LEFT;
 	
-	public static final int INVERT_DRIVES_BUTTON							= 4;
+	public static final int INVERT_DRIVES_BUTTON							= DriverStationControls.RIGHT_JOY_TRIGGER;
 	
-	public static final int HOLD_DRIVES										= 6;
+	public static final int HOLD_DRIVES										= DriverStationControls.RIGHT_JOY_RIGHT;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
+	public static final int BUTTON_SHOOTING_SYSTEM_ON						= DriverStationControls.OP_XBOX_Y;
 	
-	public static final int BUTTON_FIRE										= 11;
+	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
-	public static final int SCALING_RT										= 9;
+	public static final int SCALING_RT										= DriverStationControls.OP_XBOX_R2;
 	
-	public static final int RIGHT_JOY_X										= 2;
+	public static final int RIGHT_JOY_X										= DriverStationControls.RIGHT_JOY_X_AXIS;
 	
-	public static final int RIGHT_JOY_Y										= 3;
+	public static final int RIGHT_JOY_Y										= DriverStationControls.RIGHT_JOY_Y_AXIS;
 	
-	public static final int LEFT_JOY_X										= 0;
+	public static final int LEFT_JOY_X										= DriverStationControls.LEFT_JOY_X_AXIS;
 	
-	public static final int LEFT_JOY_Y										= 1;
+	public static final int LEFT_JOY_Y										= DriverStationControls.LEFT_JOY_Y_AXIS;
 	
-	public static final int DIAGNOSTICS										= 14;
+	public static final int DIAGNOSTICS										= DriverStationControls.OP_XBOX_BACK;
 	
 	public static final int ACQ_ON											= 0;
 	
