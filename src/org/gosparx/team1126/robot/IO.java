@@ -106,13 +106,13 @@ public class IO {
 	
 	public static final int SCALING_RT										= 9;
 	
-	public static final int RIGHT_JOY_X										= 2;
+	public static final int RIGHT_JOY_X										= DriverStationControls.RIGHT_JOY_X_AXIS;
 	
-	public static final int RIGHT_JOY_Y										= 3;
+	public static final int RIGHT_JOY_Y										= DriverStationControls.RIGHT_JOY_Y_AXIS;
 	
-	public static final int LEFT_JOY_X										= 0;
+	public static final int LEFT_JOY_X										= DriverStationControls.LEFT_JOY_X_AXIS;
 	
-	public static final int LEFT_JOY_Y										= 1;
+	public static final int LEFT_JOY_Y										= DriverStationControls.LEFT_JOY_Y_AXIS;
 	
 	public static final int DIAGNOSTICS										= 14;
 	

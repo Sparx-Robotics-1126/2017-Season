@@ -91,6 +91,9 @@ public class Drives extends GenericSubsystem {
 	private double initialHeading;
 	private double correction;
 	private double distanceToGo;
+	private double endX;
+	private double endY;
+	private double angleToEnd;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -189,6 +192,9 @@ public class Drives extends GenericSubsystem {
 		correction = 0;
 		initialHeading = 0;
 		distanceToGo = 0;
+		endX = 0;
+		endY = 0;
+		angleToEnd = 0;
 		
 		return true;
 	}
@@ -216,7 +222,7 @@ public class Drives extends GenericSubsystem {
 	 * Continues as long as it returns false
 	 */
 	@Override
-	protected	 boolean execute() {
+	protected boolean execute() {
 		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
@@ -235,8 +241,10 @@ public class Drives extends GenericSubsystem {
 			//LOG.logMessage(15, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
-		LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
-		LOG.logMessage(17, 20, "Temperature: " + gyro.getTempC());
+		if(dsc.isEnabled()){
+			LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
+			LOG.logMessage(18, 20, "(X, Y) field position: ( " + currentX + ", " + currentY + ")");
+		}
 			//LOG.logMessage(15,20,"Current Angle: " + currentAngle);
 		rightCurrentDistance = rightEncoderData.getDistance();
 			//LOG.logMessage(16, 25, "Right Current Distance: " + rightCurrentDistance);
@@ -280,16 +288,18 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
-			if(dsc.getButtonRising(IO.RESET_ENCODER)){
+			if(dsc.getRawButton(0, DriverStationControls.JOY_RIGHT)){
 //				rightEncoder.reset();
 //				rightEncoderData.reset();
 //				leftEncoder.reset();
 //				leftEncoderData.reset();
 				gyro.zeroYaw();
 				LOG.logMessage("Zeroing Gyro");
+				currentX = 0;
+				currentY = 0;
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				autoTurn(90, 12);
+				autoTurn(90, 36);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -467,6 +477,28 @@ public class Drives extends GenericSubsystem {
 		}
 	}
 	
+	public void autoDrive2(double distance, double speed){
+		driveDone = false;
+		rightEncoderData.reset();
+		leftEncoderData.reset();
+		wantedDistance = distance;
+		initialHeading = gyro.getAngle();
+		endY = currentY + distance*Math.sin(Math.toRadians(initialHeading));
+		endX = currentX + distance*Math.cos(Math.toRadians(initialHeading));
+		if(distance < 0){
+			wantedSpeed = -speed;
+		}else{
+			wantedSpeed = speed;
+		}
+		currentDriveState = DriveState.AUTO_DRIVE;
+		if(!currentDriveState.equals(DriveState.AUTO_DRIVE)){
+			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
+			driveDone = true;
+		}else{
+			driveDone = false;
+		}
+	}
+	
 	/**
 	 * Help method for auto drive
 	 */
@@ -484,8 +516,8 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = distanceToGo + 40;
 		}
 		LOG.logMessage("wanted Speed: " + wantedSpeed);
-		rightWantedSpeed = wantedSpeed;
-		leftWantedSpeed = wantedSpeed;
+		rightWantedSpeed = correction/4 + wantedSpeed;
+		leftWantedSpeed = wantedSpeed - correction/4;
 		if(averageDistance >= Math.abs(calculatedDistance - .5)){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
@@ -519,11 +551,15 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void turn(){
 		angleOffset = wantedAngle - currentAngle;
-		if(Math.abs(angleOffset)<3){
+		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
+		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
 			//LOG.logMessage("Current Angle: " + currentAngle);
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
+		}
+		if(wantedSpeed > 12 + angleOffset/2){
+			wantedSpeed = 12 + angleOffset/2;
 		}
 		if((angleOffset>=0 && angleOffset<=180) || (angleOffset<=-180 && angleOffset>=-360)){
 			rightWantedSpeed = -wantedSpeed;
