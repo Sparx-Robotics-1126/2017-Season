@@ -241,9 +241,6 @@ public class Drives extends GenericSubsystem {
 			//LOG.logMessage(15, 25, "Left Speed " + leftCurrentSpeed);
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		//currentAngle = gyro.getAngle() % 360;
-		LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
-		LOG.logMessage(19, 20, "isConnected: " + gyro.isConnected());
-		LOG.logMessage(20, 20, "rawY: " + gyro.getRawGyroY());
 		
 		if(dsc.isEnabled()){
 			//LOG.logMessage(16, 20, "Raw Angle: " + gyro.getAngle());
