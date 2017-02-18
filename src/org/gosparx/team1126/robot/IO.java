@@ -49,7 +49,7 @@ public class IO {
 	
 	// CAN 2017 - New definitions for 2017 robot
 	
-	public static final int CAN_BALLACQ_RIGHT								= 1;
+	public static final int CAN_BALLACQ_RIGHT								= 8;
 	
 	public static final int CAN_BALLACQ_LEFT								= 2;
 	
@@ -63,7 +63,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_INTAKE_FEEDER						= 7;
 	
-	public static final int CAN_SHOOTER_TURRET								= 8;
+	public static final int CAN_SHOOTER_TURRET								= 1;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 9;
 	

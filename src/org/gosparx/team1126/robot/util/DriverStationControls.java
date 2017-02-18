@@ -12,8 +12,8 @@ public class DriverStationControls {
 	private static final int maxButtons = 18;
 	private static final int maxAxes = 14;
 	private static final int maxPOVs = 8;
-	private static final int leftJoystickButtons = 0;
-	private static final int rightJoystickButtons = 4;
+	private static final int leftJoystickButtons = -1;
+	private static final int rightJoystickButtons = 3;
 	private static final int xboxControllerButtons = 7;
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
