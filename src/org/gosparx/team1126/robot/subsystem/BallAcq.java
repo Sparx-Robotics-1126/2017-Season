@@ -17,9 +17,9 @@ public class BallAcq extends GenericSubsystem{
 
 	private static final double LEFT_MOTOR_STOP = 0;
 
-	private static final double RIGHT_MOTOR_SPIN_FOWARD = 1.0;
+	private static final double RIGHT_MOTOR_SPIN_FOWARD = -1.0;
 
-	private static final double RIGHT_MOTOR_SPIN_BACKWARD = -1.0;
+	private static final double RIGHT_MOTOR_SPIN_BACKWARD = 1.0;
 
 	private static final double RIGHT_MOTOR_STOP = 0;
 
@@ -97,7 +97,6 @@ public class BallAcq extends GenericSubsystem{
 
 	@Override
 	protected boolean execute() {
-		dsc.update();
 		setAcqState();
 		switch(currentAcqStatus){
 		case STANDBY:{
