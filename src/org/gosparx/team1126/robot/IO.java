@@ -51,7 +51,7 @@ public class IO {
 	
 	// CAN 2017 - New definitions for 2017 robot
 	
-	public static final int CAN_BALLACQ_RIGHT								= 1;
+	public static final int CAN_BALLACQ_RIGHT								= 8;
 	
 	public static final int CAN_BALLACQ_LEFT								= 2;
 	
@@ -65,7 +65,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_INTAKE_FEEDER						= 7;
 	
-	public static final int CAN_SHOOTER_TURRET								= 8;
+	public static final int CAN_SHOOTER_TURRET								= 1;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 9;
 	
@@ -93,18 +93,18 @@ public class IO {
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
 	public static final int RESET_ENCODER									= DriverStationControls.LEFT_JOY_RIGHT;
+
+	public static final int ABORT_AUTO_DRIVES								= DriverStationControls.LEFT_JOY_LEFT;
+
+	public static final int INVERT_DRIVES_BUTTON							= DriverStationControls.RIGHT_JOY_TRIGGER;
 	
-	public static final int ABORT_AUTO_DRIVES								= 1;
+	public static final int HOLD_DRIVES										= DriverStationControls.RIGHT_JOY_RIGHT;
 	
-	public static final int INVERT_DRIVES_BUTTON							= 4;
+	public static final int BUTTON_SHOOTING_SYSTEM_ON						= DriverStationControls.OP_XBOX_Y;
 	
-	public static final int HOLD_DRIVES										= 6;
+	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= 8;
-	
-	public static final int BUTTON_FIRE										= 11;
-	
-	public static final int SCALING_RT										= 9;
+	public static final int SCALING_RT										= DriverStationControls.OP_XBOX_R2;
 	
 	public static final int RIGHT_JOY_X										= DriverStationControls.RIGHT_JOY_X_AXIS;
 	
@@ -114,7 +114,7 @@ public class IO {
 	
 	public static final int LEFT_JOY_Y										= DriverStationControls.LEFT_JOY_Y_AXIS;
 	
-	public static final int DIAGNOSTICS										= 14;
+	public static final int DIAGNOSTICS										= DriverStationControls.OP_XBOX_BACK;
 	
 	public static final int ACQ_ON											= 0;
 	
