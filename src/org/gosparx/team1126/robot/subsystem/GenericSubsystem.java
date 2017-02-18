@@ -28,6 +28,12 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	protected DriverStationControls dsc;
 
+	
+	/**
+	 * The last time the thread was ran
+	 */
+	protected double lastTime; 
+	
 	/**
 	 * This constructs a new subsystem with the given name and priority.
 	 * 
@@ -115,6 +121,7 @@ public abstract class GenericSubsystem extends Thread {
 		
 		do{
 			if(!dsc.isTest()){
+				dsc.update();
 				try{
 					retVal = execute();
 					updateSmartStatus();

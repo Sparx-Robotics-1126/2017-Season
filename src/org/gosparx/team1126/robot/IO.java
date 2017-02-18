@@ -92,6 +92,8 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
+	public static final int RESET_ENCODER									= DriverStationControls.LEFT_JOY_RIGHT;
+	
 	public static final int ABORT_AUTO_DRIVES								= DriverStationControls.LEFT_JOY_LEFT;
 	
 	public static final int INVERT_DRIVES_BUTTON							= DriverStationControls.RIGHT_JOY_TRIGGER;
@@ -121,5 +123,9 @@ public class IO {
 	public static final int ACQ_FOWARD										= 2;
 	
 	public static final int ACQ_BACKWARD									= 6;
+	
+	public static final int FLYWHEEL_INCREASE = DriverStationControls.OP_XBOX_X;
+	
+	public static final int FLYWHEEL_DECREASE = DriverStationControls.OP_XBOX_B;
 	
 }

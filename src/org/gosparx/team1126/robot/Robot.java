@@ -1,6 +1,10 @@
 package org.gosparx.team1126.robot;
 
+import org.gosparx.team1126.robot.subsystem.BallAcq;
+import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.subsystem.Scaling;
+import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
 
@@ -25,10 +29,10 @@ public class Robot extends SampleRobot{
 		dsc = new DriverStationControls(true);
 		
 		subsystems = new GenericSubsystem[]{
-//        	Drives.getInstance(),
-//			Autonomous.getInstance(),
-//        	BallAcqNew.getInstance(),
-//			CameraController.getInstance(), 
+			BallAcq.getInstance(),
+			Drives.getInstance(),
+			Scaling.getInstance(),
+			Shooter.getInstance(),
 			LogWriter.getInstance(),
 		};
 

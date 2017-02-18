@@ -1,5 +1,6 @@
 package org.gosparx.team1126.robot.util;
 
+
 public class SharedData {
 
 	// Drives Subsystem Shared Data
@@ -16,7 +17,7 @@ public class SharedData {
 	
 	public static double turretAngle;
 	public static double shooterSpeed;
-	public static boolean shootingSystemOn;
+	public static boolean systemReady;
 	
 	
 	// Camera SubSystem Shared Data

@@ -163,6 +163,7 @@ public class PID {
 	}
 	
 	public void setSPRamp(double ramp){
+		spRamping = true;
 		spRampLimit = ramp;
 	}
 	
