@@ -249,8 +249,8 @@ public class Shooter extends GenericSubsystem{
 			min = shootingSpeedCurrent;
 		
 		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
-		if(dsc.isOperatorControl())	
-			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
+//		if(dsc.isOperatorControl())	
+//			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 //		if(isPressed){
 //			speedButton = true;
 //			turretButton = true;
@@ -258,13 +258,15 @@ public class Shooter extends GenericSubsystem{
 //			speedButton = false;
 //			turretButton = false;
 //		}
-		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)){
+		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
 			if(speedButton == true){
 				speedButton = false;
 				turretButton = false;
+				isPressed = false;
 			}else{
 				speedButton = true;
 				turretButton = true;
+				isPressed = false;
 			}
 		}
 //		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
