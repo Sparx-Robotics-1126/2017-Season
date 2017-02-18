@@ -97,6 +97,7 @@ public class BallAcq extends GenericSubsystem{
 
 	@Override
 	protected boolean execute() {
+		dsc.update();
 		setAcqState();
 		switch(currentAcqStatus){
 		case STANDBY:{
@@ -134,33 +135,20 @@ public class BallAcq extends GenericSubsystem{
 			currentAcqStatus = State.STANDBY;
 		}
 		if(dsc.isOperatorControl()){
-			switch(dsc.getRawPOV()){
-			case 0:
-				if(dsc.getPOVRising(0)){
+				if(dsc.getButtonRising(11)){
+					LOG.logMessage(1, 5, "t");
 					currentAcqStatus = State.FORWARD;
 				}
-				break;
-			case 90:
-				if(dsc.getPOVRising(2)){
+				if(dsc.getButtonRising(10)){
 					currentAcqStatus = State.FORWARD;
 				}
-				break;
-			case 180:
-				if(dsc.getPOVRising(4)){
+				if(dsc.getButtonRising(8)){
 					currentAcqStatus = State.STANDBY;
 				}
-				break;
-			case 270:
-				if(dsc.getPOVRising(6)){
+				if(dsc.getButtonRising(9)){
 					currentAcqStatus = State.BACKWARD;
 				}
-				break;
-			default:
-				break;
 			}
-		} else {
-			currentAcqStatus = State.STANDBY;
 		}
 	}
 
-}

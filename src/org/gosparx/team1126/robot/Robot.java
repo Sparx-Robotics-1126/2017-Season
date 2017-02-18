@@ -1,5 +1,6 @@
 package org.gosparx.team1126.robot;
 
+import org.gosparx.team1126.robot.subsystem.BallAcq;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
@@ -29,6 +30,7 @@ public class Robot extends SampleRobot{
 //			Autonomous.getInstance(),
 //        	BallAcqNew.getInstance(),
 //			CameraController.getInstance(), 
+			BallAcq.getInstance(),
 			LogWriter.getInstance(),
 		};
 
