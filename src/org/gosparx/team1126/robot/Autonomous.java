@@ -1,6 +1,7 @@
 package org.gosparx.team1126.robot;
 
 import java.awt.List;
+import java.util.Arrays;
 
 import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
@@ -136,7 +137,7 @@ public class Autonomous extends GenericSubsystem{
 		if(dsc.isEnabled() && dsc.isAutonomous() && runAuto){
 			runAuto();
 		}else if (dsc.isDisabled() && dsc.isAutonomous()){
-			currentAuto = getCurrentAuto();//(int[][]) chooser.getSelected();
+			getCurrentAuto();//(int[][]) chooser.getSelected();
 			currStep = 0;
 			autoStartTime = System.currentTimeMillis();
 			incStep = true;
@@ -153,7 +154,9 @@ public class Autonomous extends GenericSubsystem{
 			firstRun = false;
 			lastRead = System.currentTimeMillis();
 			LOG.logMessage("Auto imported");
-			return reader.readIntCSV("/home/lvuser/Auto");
+			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
+			LOG.logMessage(Arrays.deepToString(currentAuto));
+			return currentAuto;
 		} else if (fromFile){
 		} else {
 			return chooser.getSelected();
