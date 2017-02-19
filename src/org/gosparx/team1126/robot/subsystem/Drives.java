@@ -286,9 +286,7 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_STOP:
-			if(stopDrives()){
-				currentDriveState = DriveState.STANDBY;
-			}
+			stopDrives();
 			break;
 			
 		case TELEOP:
@@ -460,12 +458,6 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = speed;
 		}
 		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_DISTANCE)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
@@ -484,12 +476,6 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = speed;
 		}
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
@@ -507,12 +493,6 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = speed;
 //		}
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
@@ -542,6 +522,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			driveDone = true;
 		}
 	}
 	
@@ -575,6 +556,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			driveDone = true;
 		}
 	}
 	
@@ -592,11 +574,6 @@ public class Drives extends GenericSubsystem {
 		wantedAngle = angle;
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_TURN;
-		if(!currentDriveState.equals(DriveState.AUTO_TURN)){
-			turnDone = true;
-		}else{
-			turnDone = false;
-		}
 		return true;
 	}
 	
@@ -612,6 +589,7 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
+			turnDone = true;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
 			wantedSpeed = 12 + Math.abs(angleOffset)/2;
@@ -661,6 +639,7 @@ public class Drives extends GenericSubsystem {
 		rightSetPower = STOP_MOTOR_POWER_SPEED;
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
 		if(Math.abs(averageSpeed) < .1){
+			currentDriveState = DriveState.STANDBY;
 			return true;
 		}else{
 			return false;
