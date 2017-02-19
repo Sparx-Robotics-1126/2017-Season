@@ -97,7 +97,6 @@ public class Drives extends GenericSubsystem {
 	private double calculatedDistance;
 	private double offsetCorrection;
 	private double distanceToPoint;
-	private boolean isAutoDoneReady;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -201,7 +200,6 @@ public class Drives extends GenericSubsystem {
 		angleToEnd = 0;
 		calculatedDistance = 0;
 		distanceToPoint = 0;
-		isAutoDoneReady = false;
 		
 		return true;
 	}
@@ -311,7 +309,6 @@ public class Drives extends GenericSubsystem {
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
 				LOG.logMessage("Turning");
-				isAutoDoneReady = true;
 				autoTurn(90, 20);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
@@ -331,7 +328,6 @@ public class Drives extends GenericSubsystem {
 				isDiagnostic = false;
 			}
 			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
-				isAutoDoneReady = true;
 				autoDrivePoint(144, 40);
 			}
 			
@@ -452,7 +448,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoDriveDistance(double distance, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
@@ -474,7 +470,7 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	public boolean autoDrivePoint(double distance, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
@@ -498,7 +494,7 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	public boolean autoDriveCoordinate(double x, double y, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
@@ -589,7 +585,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		turnDone = false;
@@ -717,7 +713,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is in standby and , false otherwise
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		trig(xValue,yValue);
@@ -726,9 +722,8 @@ public class Drives extends GenericSubsystem {
 			autoDriveDistance(wantedDistance, driveSpeed);
 		}
 		if(driveDone){
-			isAutoDoneReady = true;
+			currentDriveState = DriveState.STANDBY;
 		}
-		isAutoDoneReady = false;
 		return true;
 	}
 	
