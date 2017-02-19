@@ -446,6 +446,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoDriveDistance(double distance, double speed){
+		LOG.logMessage("AutoDriveDistance (" + distance + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -462,6 +463,7 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	public boolean autoDrivePoint(double distance, double speed){
+		LOG.logMessage("AutoDrivePoint (" + distance + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -480,11 +482,12 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	public boolean autoDriveCoordinate(double x, double y, double speed){
+		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
-		initialHeading = gyro.getAngle();
+		initialHeading = Math.atan2(x-currentX, y-currentY);
 		endY = y;
 		endX = x;
 //		if(endY < currentY){
@@ -522,6 +525,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("ending drive to distance");
 			driveDone = true;
 		}
 	}
@@ -556,6 +560,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("ending drive to a coordinate");
 			driveDone = true;
 		}
 	}
@@ -567,6 +572,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
+		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -589,6 +595,7 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("Ending Auto turn");
 			turnDone = true;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
@@ -632,6 +639,7 @@ public class Drives extends GenericSubsystem {
 	 * @return if the drives have actually stopped
 	 */
 	public boolean stopDrives(){
+		LOG.logMessage("StopDrives (" + ")");
 		currentDriveState = DriveState.AUTO_STOP;
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
@@ -640,6 +648,7 @@ public class Drives extends GenericSubsystem {
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
 		if(Math.abs(averageSpeed) < .1){
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("Ending stop drives");
 			return true;
 		}else{
 			return false;
