@@ -528,6 +528,7 @@ public class Drives extends GenericSubsystem {
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("ending drive to distance");
 			driveDone = true;
+			return;
 		}
 	}
 	
@@ -563,6 +564,7 @@ public class Drives extends GenericSubsystem {
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("ending drive to a coordinate");
 			driveDone = true;
+			return;
 		}
 	}
 	
@@ -599,6 +601,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Ending Auto turn");
 			LOG.logMessage("Current Angle: " + currentAngle);
 			turnDone = true;
+			return;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
 			wantedSpeed = 12 + Math.abs(angleOffset)/2;
