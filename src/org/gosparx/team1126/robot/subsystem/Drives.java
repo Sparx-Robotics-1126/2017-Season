@@ -315,7 +315,9 @@ public class Drives extends GenericSubsystem {
 				rightPreviousDistance = 0;
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				autoTurn(270, 36);
+				LOG.logMessage("Turning");
+				isAutoDoneReady = true;
+				autoTurn(180, 36);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -334,6 +336,7 @@ public class Drives extends GenericSubsystem {
 				isDiagnostic = false;
 			}
 			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
+				isAutoDoneReady = true;
 				autoDrivePoint(144, 40);
 			}
 			
@@ -423,11 +426,11 @@ public class Drives extends GenericSubsystem {
 	 */
 	public void setTankSpeed(double right, double left, boolean isInverted){
 		if(!isInverted){
-			rightWantedSpeed = right * MAX_SPEED;
-			leftWantedSpeed = left * MAX_SPEED;
+			rightWantedSpeed = -right * MAX_SPEED;
+			leftWantedSpeed = -left * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(left * MAX_SPEED);
-			leftWantedSpeed = -(right * MAX_SPEED);
+			rightWantedSpeed = (left * MAX_SPEED);
+			leftWantedSpeed = (right * MAX_SPEED);
 		}
 	}
 
@@ -441,8 +444,8 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = -(yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 			leftWantedSpeed = -(yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(-(yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
-			leftWantedSpeed = -(-(yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+			rightWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+			leftWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 		}
 	}
 	
@@ -505,13 +508,13 @@ public class Drives extends GenericSubsystem {
 		}
 		driveDone = false;
 		initialHeading = gyro.getAngle();
-		endY = x;
-		endX = y;
-		if(endX < currentX){
-			wantedSpeed = -speed;
-		}else{
+		endY = y;
+		endX = x;
+//		if(endY < currentY){
+//			wantedSpeed = -speed;
+//		}else{
 			wantedSpeed = speed;
-		}
+//		}
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
 		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
 			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
@@ -611,6 +614,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void turn(){
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
+		LOG.logMessage("angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
 			rightWantedSpeed = 0;
