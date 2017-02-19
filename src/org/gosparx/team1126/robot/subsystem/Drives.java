@@ -596,6 +596,7 @@ public class Drives extends GenericSubsystem {
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("Ending Auto turn");
+			LOG.logMessage("Current Angle: " + currentAngle);
 			turnDone = true;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
