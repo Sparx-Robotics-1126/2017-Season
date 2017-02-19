@@ -337,7 +337,6 @@ public class Drives extends GenericSubsystem {
 		case DISABLED:
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
-			currentDriveState = DriveState.AUTO_STOP;
 			break;
 			
 		default:
