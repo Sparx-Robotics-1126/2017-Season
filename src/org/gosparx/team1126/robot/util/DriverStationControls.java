@@ -24,7 +24,7 @@ public class DriverStationControls {
 	public static final int JOY_X_AXIS = 0;
 	public static final int JOY_Y_AXIS = 1;
 	public static final int JOY_Z_AXIS = 2;
-	public static final int JOY_W_AXIS = 3;
+	public static final int JOY_W_AXIS = 0;
 
 	public static final int JOY_TRIGGER = 1;
 	public static final int JOY_LEFT = 2;

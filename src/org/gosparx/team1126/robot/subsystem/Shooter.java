@@ -275,7 +275,7 @@ public class Shooter extends GenericSubsystem{
 			speed -= 50;
 		}
 		if(dsc.isPressed(IO.AGITATOR_SERVO)){
-			servo.set(1);
+			servo.set(0);
 			LOG.logMessage("Running Servo");
 		} else {
 			servo.set(.52);

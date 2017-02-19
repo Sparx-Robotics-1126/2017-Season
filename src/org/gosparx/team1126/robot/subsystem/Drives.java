@@ -322,9 +322,9 @@ public class Drives extends GenericSubsystem {
 				autoDrive(144, 60);
 			}
 			
-			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-			//		dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			//setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
+			setArcadeSpeed(dsc.getAxis(IO.LEFT_JOY_X), 								// In case driver wants to use Arcade drive 
+					dsc.getAxis(IO.LEFT_JOY_Y), isInverse);					
 //			if(dsc.getRawButton(2, DriverStationControls.XBOX_B)){
 //				rightWantedSpeed = 50;
 //				leftWantedSpeed = 50;
@@ -437,13 +437,13 @@ public class Drives extends GenericSubsystem {
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
 		rightWantedSpeed = (-yAxis - xAxis/X_SENSITIVITY)*MAX_SPEED;
 		leftWantedSpeed = (-yAxis + xAxis/X_SENSITIVITY)*MAX_SPEED;
-		if(!isInverted){
-			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
-			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
-		}else{
-			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
-			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
-		}
+//		if(!isInverted){
+//			rightWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
+//			leftWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+//		}else{
+//			rightWantedSpeed = -((yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
+//			leftWantedSpeed = -((yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+//		}
 	}
 	
 	/**
