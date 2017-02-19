@@ -195,17 +195,17 @@ public class Autonomous extends GenericSubsystem{
 			switch(currCommand){
 				case DRIVES_FORWARD:
 					drives.autoDriveDistance(currentAuto[currStep][1], currentAuto[currStep][2]);
-					incStep = true;
+					currCommand = DRIVES_DONE;
 					break;
 					
 				case DRIVES_TURN:
 					drives.autoTurn(currentAuto[currStep][1], currentAuto[currStep][2]);
-					incStep = true;
+					currCommand = DRIVES_DONE;
 					break;
 						
 				case DRIVES_MOVE:
 					drives.autoDriveCoordinate(currentAuto[currStep][1], currentAuto[currStep][2], currentAuto[currStep][3]);
-					incStep = true;
+					currCommand = DRIVES_DONE;
 					break;
 					
 				case DRIVES_SETCOORDS:
