@@ -16,8 +16,8 @@ public class DriverStationControls {
 	private static final int rightJoystickButtons = 3;
 	private static final int xboxControllerButtons = 7;
 	private static final int leftJoystickAxis = 0;
-	private static final int rightJoystickAxis = 2;
-	private static final int xboxControllerAxis = 4;
+	private static final int rightJoystickAxis = 4;
+	private static final int xboxControllerAxis = 8;
 
 	// Generic Joystick Mapping
 	

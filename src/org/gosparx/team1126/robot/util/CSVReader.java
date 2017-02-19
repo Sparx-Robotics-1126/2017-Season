@@ -33,7 +33,7 @@ public class CSVReader {
 			String line = reader2.readLine();							     //Reads the line and puts it into a string
 			String[] splitLine = line.split(delimiter);
 			ArrayList<String> lineList = new ArrayList<String>();
-			for(String value : lineList){
+			for(String value : splitLine){
 				lineList.add(value);
 			}
 			currentAuto[i] = new int[lineList.size()];
@@ -42,6 +42,7 @@ public class CSVReader {
 			}
 		}
 		reader2.close();
+		
 		} catch (FileNotFoundException e) {  //These return exceptions if something has gone wrong 
 			currentAuto[0][0] = -1;			 //Attempts to return a different value depending on the
 			return currentAuto;				 //error to hopefully log it using Logger in the Auto

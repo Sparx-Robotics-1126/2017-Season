@@ -46,7 +46,7 @@ public class Scaling extends GenericSubsystem {
 
 	@Override
 	protected void writeLog() {
-		LOG.logMessage("Scaling Status" + currentScalingStatus);
+//		LOG.logMessage("Scaling Status" + currentScalingStatus);
 	}
 	
 	public enum State{
