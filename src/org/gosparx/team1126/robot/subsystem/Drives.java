@@ -318,7 +318,7 @@ public class Drives extends GenericSubsystem {
 				isDiagnostic = false;
 			}
 			if(dsc.getRawButton(1, DriverStationControls.JOY_LEFT)){
-				autoDrive2(144, 60);
+				autoDrive2(144, 40);
 			}
 			
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
@@ -339,10 +339,6 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
-			if(dsc.isEnabled()){
-			//LOG.logMessage("right wanted speed: " + rightWantedSpeed);
-			//LOG.logMessage("left wanted speed: " + leftWantedSpeed);
-			}
 			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
