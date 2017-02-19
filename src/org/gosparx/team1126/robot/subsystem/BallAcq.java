@@ -66,7 +66,7 @@ public class BallAcq extends GenericSubsystem{
 	
 	@Override 
 	protected void writeLog() {
-		LOG.logMessage("Acqusition Status" + currentAcqStatus);
+//		LOG.logMessage("Acqusition Status" + currentAcqStatus);
 	}
 	
 	public enum State{
