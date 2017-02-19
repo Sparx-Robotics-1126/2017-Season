@@ -331,7 +331,6 @@ public class Drives extends GenericSubsystem {
 			rightEncoderData.reset();
 			leftEncoder.reset();
 			leftEncoderData.reset();
-			gyro.zeroYaw();
 			currentDriveState = DriveState.AUTO_STOP;
 			break;
 			
@@ -393,7 +392,7 @@ public class Drives extends GenericSubsystem {
 //		LOG.logMessage(0, 25, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
 //		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
 //		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
 //		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
 //		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
 //		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
