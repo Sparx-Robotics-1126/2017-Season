@@ -646,7 +646,7 @@ public class Drives extends GenericSubsystem {
 		leftWantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightSetPower = STOP_MOTOR_POWER_SPEED;
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
-		if(Math.abs(averageSpeed) < .1){
+		if(Math.abs(leftCurrentSpeed) < .1 && Math.abs(rightCurrentSpeed) < .1){
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("Ending stop drives");
 			return true;
