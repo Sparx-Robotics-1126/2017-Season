@@ -337,6 +337,7 @@ public class Drives extends GenericSubsystem {
 		case DISABLED:
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
+			currentDriveState = DriveState.STANDBY;
 			break;
 			
 		default:
@@ -483,6 +484,7 @@ public class Drives extends GenericSubsystem {
 	public boolean autoDriveCoordinate(double x, double y, double speed){
 		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ")");
 		if(!isAutoDone()){
+			LOG.logMessage("isAutoDone is false");
 			return false;
 		}
 		driveDone = false;
