@@ -247,7 +247,6 @@ public class Shooter extends GenericSubsystem{
 		
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
-		
 		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 //		if(dsc.isOperatorControl())	
 //			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
@@ -258,7 +257,20 @@ public class Shooter extends GenericSubsystem{
 //			speedButton = false;
 //			turretButton = false;
 //		}
-		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
+//		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
+//			if(speedButton == true){
+//				speedButton = false;
+//				turretButton = false;				alternate way to turn on shooter
+//				isPressed = false;
+//			}else{
+//				speedButton = true;
+//				turretButton = true;
+//				isPressed = false;
+//			}
+//		}
+		if((dsc.isPressed(IO.SHOOTER_FLIP_TURN_ON)&&(speedButton == false))
+				||(!(dsc.isPressed(IO.SHOOTER_FLIP_TURN_ON))&&(speedButton == true))){
+			LOG.logMessage("Shooter on");
 			if(speedButton == true){
 				speedButton = false;
 				turretButton = false;
@@ -337,7 +349,7 @@ public class Shooter extends GenericSubsystem{
 	//framework done
 	/**
 	 * calculates the direction to turn
-	 * @return - the degree and direction
+	 * @return - the degree and direction(positive or negative)
 	 */
 	private double turretSettings(){
 		return degreeOff;
@@ -345,7 +357,7 @@ public class Shooter extends GenericSubsystem{
 	
 	//done 
 	/**
-	 * checks if the motors are ready and are at a correct speed
+	 * checks if the motors are ready and are at a correct speed9999
 	 * @param button - if the button is pressed 
 	 * @return - if this system is ready
 	 */

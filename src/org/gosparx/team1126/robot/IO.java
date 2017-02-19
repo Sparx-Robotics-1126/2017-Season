@@ -94,7 +94,7 @@ public class IO {
 	
 	public static final int ABORT_AUTO_DRIVES								= 1;
 	
-	public static final int INVERT_DRIVES_BUTTON							= 4;
+	public static final int INVERT_DRIVES_BUTTON							= DriverStationControls.LEFT_JOY_TRIGGER;
 	
 	public static final int HOLD_DRIVES										= 6;
 	
@@ -125,5 +125,7 @@ public class IO {
 	public static final int FLYWHEEL_INCREASE = DriverStationControls.OP_XBOX_X;
 	
 	public static final int FLYWHEEL_DECREASE = DriverStationControls.OP_XBOX_B;
+	
+	public static final int SHOOTER_FLIP_TURN_ON = DriverStationControls.LEFT_JOY_MIDDLE;
 
 }

@@ -48,8 +48,8 @@ public abstract class GenericSubsystem extends Thread {
 		setPriority(priority);
 		dsc = new DriverStationControls();
 		
-		if (name !="LogWriter")
-			dsc.setLogger(LOG);
+//		if (name !="LogWriter")
+//			dsc.setLogger(LOG);
 	}
 
 	/**

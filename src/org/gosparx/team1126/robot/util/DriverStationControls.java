@@ -8,12 +8,13 @@ public class DriverStationControls {
 
 	// General Joystick Data
 	
+	private static final int maxJoysticks = 3;
 	private static final int maxButtons = 18;
-	private static final int maxAxes = 10;
+	private static final int maxAxes = 14;
 	private static final int maxPOVs = 8;
-	private static final int leftJoystickButtons = 0;
-	private static final int rightJoystickButtons = 4;
-	private static final int xboxControllerButtons = 8;
+	private static final int leftJoystickButtons = -1;
+	private static final int rightJoystickButtons = 3;
+	private static final int xboxControllerButtons = 7;
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
@@ -22,6 +23,8 @@ public class DriverStationControls {
 	
 	public static final int JOY_X_AXIS = 0;
 	public static final int JOY_Y_AXIS = 1;
+	public static final int JOY_Z_AXIS = 2;
+	public static final int JOY_W_AXIS = 3;
 
 	public static final int JOY_TRIGGER = 1;
 	public static final int JOY_LEFT = 2;
@@ -32,6 +35,8 @@ public class DriverStationControls {
 	
 	public static final int LEFT_JOY_X_AXIS = leftJoystickAxis + JOY_X_AXIS;
 	public static final int LEFT_JOY_Y_AXIS = leftJoystickAxis + JOY_Y_AXIS;
+	public static final int LEFT_JOY_Z_AXIS = leftJoystickAxis + JOY_Z_AXIS;
+	public static final int LEFT_JOY_W_AXIS = leftJoystickAxis + JOY_W_AXIS;
 
 	public static final int LEFT_JOY_TRIGGER = leftJoystickButtons + JOY_TRIGGER;
 	public static final int LEFT_JOY_LEFT = leftJoystickButtons + JOY_LEFT;
@@ -40,6 +45,8 @@ public class DriverStationControls {
 	
 	public static final int RIGHT_JOY_X_AXIS = rightJoystickAxis + JOY_X_AXIS;
 	public static final int RIGHT_JOY_Y_AXIS = rightJoystickAxis + JOY_Y_AXIS;
+	public static final int RIGHT_JOY_Z_AXIS = rightJoystickAxis + JOY_Z_AXIS;
+	public static final int RIGHT_JOY_W_AXIS = rightJoystickAxis + JOY_W_AXIS;
 
 	public static final int RIGHT_JOY_TRIGGER = rightJoystickButtons + JOY_TRIGGER;
 	public static final int RIGHT_JOY_LEFT = rightJoystickButtons + JOY_LEFT;
@@ -56,16 +63,16 @@ public class DriverStationControls {
 	public static final int XBOX_RIGHT_Y = 5;
 	
 	public static final int XBOX_POV = 0;
-	public static final int XBOX_A = 0;
-	public static final int XBOX_B = 1;
-	public static final int XBOX_X = 2;
-	public static final int XBOX_Y = 3;
-	public static final int XBOX_L1 = 4;
-	public static final int XBOX_R1 = 5;
-	public static final int XBOX_BACK = 6;
-	public static final int XBOX_START = 7;
-	public static final int XBOX_L3 = 8;
-	public static final int XBOX_R3 = 9;
+	public static final int XBOX_A = 1;
+	public static final int XBOX_B = 2;
+	public static final int XBOX_X = 3;
+	public static final int XBOX_Y = 4;
+	public static final int XBOX_L1 = 5;
+	public static final int XBOX_R1 = 6;
+	public static final int XBOX_BACK = 7;
+	public static final int XBOX_START = 8;
+	public static final int XBOX_L3 = 9;
+	public static final int XBOX_R3 = 10;
 
 	// XBox Mapping
 	
@@ -93,7 +100,6 @@ public class DriverStationControls {
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
 	public static SharedData sharedData;
-	protected Logger LOG;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -106,16 +112,16 @@ public class DriverStationControls {
 			{1, JOY_LEFT},
 			{1, JOY_RIGHT},
 			{1, JOY_MIDDLE},
-			{2, XBOX_A+1},												// Index 8 - Start of Joystick #3 (XBox)
-			{2, XBOX_B+1},
-			{2, XBOX_X+1},
-			{2, XBOX_Y+1},
-			{2, XBOX_L1+1},
-			{2, XBOX_R1+1},
-			{2, XBOX_BACK+1},
-			{2, XBOX_START+1},
-			{2, XBOX_L3+1},
-			{2, XBOX_R3+1}
+			{2, XBOX_A},												// Index 8 - Start of Joystick #3 (XBox)
+			{2, XBOX_B},
+			{2, XBOX_X},
+			{2, XBOX_Y},
+			{2, XBOX_L1},
+			{2, XBOX_R1},
+			{2, XBOX_BACK},
+			{2, XBOX_START},
+			{2, XBOX_L3},
+			{2, XBOX_R3}
 	};
 	
 	// Time (in milliseconds - from the system.CurrentTimeMillis()) that the last press or release of a button occurred
@@ -172,6 +178,7 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},
+			{0,0},
 			{0,0}
 	};
 	
@@ -185,6 +192,7 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},														// Joystick 2 (XBox)
+			{0,0},
 			{0,0},
 			{0,0},
 			{0,0},
@@ -224,8 +232,12 @@ public class DriverStationControls {
 	private static final int[][] axes = {								// { Joystick #, Axis # }
 			{0, JOY_X_AXIS},											// Joystick 0 (Standard)
 			{0, JOY_Y_AXIS},
+			{0, JOY_Z_AXIS},
+			{0, JOY_W_AXIS},
 			{1, JOY_X_AXIS},											// Joystick 1 (Standard)
 			{1, JOY_Y_AXIS},
+			{1, JOY_Z_AXIS},
+			{1, JOY_W_AXIS},
 			{2, XBOX_LEFT_X},											// Joystick 2 (Standard)
 			{2, XBOX_LEFT_Y},
 			{2, XBOX_RIGHT_X},
@@ -248,7 +260,11 @@ public class DriverStationControls {
 	private double[][] axesData = {										// { Deadband, axis invert }
 			{0.05,1.0},													// Joystick 0 (Standard)
 			{0.05,1.0},
+			{0.05,1.0},
+			{0.05,1.0},
 			{0.05,1.0},													// Joystick 1 (Standard)
+			{0.05,1.0},
+			{0.05,1.0},
 			{0.05,1.0},
 			{0.05,1.0},													// Joystick 2 (XBox)
 			{0.05,1.0},
@@ -268,7 +284,7 @@ public class DriverStationControls {
 		int i;
 		
 		createObjects(reset);
-		
+
 		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
 			buttonLastValues[i] = getButton(i);
 		}
@@ -283,10 +299,6 @@ public class DriverStationControls {
 		for (i=0; i< maxButtons; i++){									// Set buttons to the current values
 			buttonLastValues[i] = getButton(i);
 		}
-	}
-
-	public void setLogger (Logger logger){
-		LOG = logger;
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -318,14 +330,16 @@ public class DriverStationControls {
 		
 		boolean rising = false;
 		
-		if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
-			if (POVData[POVNumber][0] > 0)
-			{
-				rising = true;
+		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
+			if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
+				if (POVData[POVNumber][0] > 0)
+				{
+					rising = true;
+				}
+				POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 			}
-			POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 		}
-		return rising;
+			return rising;
 	}
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -336,13 +350,15 @@ public class DriverStationControls {
 	public boolean getPOVFalling(int POVNumber){
 		
 		boolean falling = false;
-		
-		if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
-			if (POVData[POVNumber][1] > 0)
-			{
-				falling = true;
+				
+		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
+			if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
+				if (POVData[POVNumber][1] > 0)
+				{
+					falling = true;
+				}
+				POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 			}
-			POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 		}
 		return falling;
 	}
@@ -353,11 +369,9 @@ public class DriverStationControls {
 	
 	private void createObjects(boolean reset)
 	{
-		int i;
-
 		if ((ds == null) || (reset == true))							// Get Instance of driver station
 			ds = DriverStation.getInstance();
-			
+		
 		if ((joysticks[0] == null) || (reset == true))
 			joysticks[0] = new Joystick(0);								// Create the Left driver Joystick
 		
@@ -391,7 +405,10 @@ public class DriverStationControls {
 
 	public boolean isPressed(int buttonNumber)
 	{
-		return (getButton(buttonNumber));								// Return True if pressed
+		if ((buttonNumber >= 0) && (buttonNumber < maxButtons))			// Check for valid button number
+			return (getButton(buttonNumber));							// Return True if pressed
+
+		return false;
 	}
 
 
@@ -401,7 +418,10 @@ public class DriverStationControls {
 
 	public boolean isReleased(int buttonNumber)
 	{
-		return (!getButton(buttonNumber));								// Return True if not pressed
+		if ((buttonNumber >= 0) && (buttonNumber < maxButtons))			// Check for valid button number
+			return (!getButton(buttonNumber));							// Return True if not pressed
+
+		return false;
 	}
 
 
@@ -411,7 +431,11 @@ public class DriverStationControls {
 
 	public boolean getRawButton(int joy, int button)
 	{
-		return joysticks[joy].getRawButton(button);						// Return current value
+		if ((joy >= 0) && (joy < maxJoysticks) && (button >= 0) && 
+				(button < maxButtons))
+			return joysticks[joy].getRawButton(button);					// Return current value
+
+		return false;
 	}
 
 	
@@ -427,7 +451,7 @@ public class DriverStationControls {
 		if (buttonData[buttonNumber][0] <  								// If a more recent (timewise) button
 				buttonDataGlobal[buttonNumber][0])						//   press has occurred...
 		{
-			if (buttonData[buttonNumber][0] > 0)						// and this is not the first time this
+			if (buttonDataGlobal[buttonNumber][0] > 0)						// and this is not the first time this
 				rising = true;											//	routine has been called, then TRUE
 
 			buttonData[buttonNumber][0] =  								// Store the falling edge time
@@ -448,7 +472,7 @@ public class DriverStationControls {
 		if (buttonData[buttonNumber][1] < 								// If a more recent (timewise) button
 				buttonDataGlobal[buttonNumber][1])						//   release has occurred...
 		{
-			if (buttonData[buttonNumber][0] > 0)						// and this is not the first time this
+			if (buttonDataGlobal[buttonNumber][1] > 0)						// and this is not the first time this
 				falling = true;											//	routine has been called, then TRUE
 			
 			buttonData[buttonNumber][1] = 								// Store the falling edge time
@@ -465,7 +489,7 @@ public class DriverStationControls {
 	{
 		double rawAxis, deadband;
 		
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for Valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for Valid Axis Number
 		{
 			rawAxis = getRawAxis(axisNumber);							// Get Axis Value
 			deadband = axesData[axisNumber][0];							// Local variable used for readability
@@ -484,7 +508,7 @@ public class DriverStationControls {
 
 	public double getRawAxis(int axisNumber)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for Valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for Valid Axis Number
 			return joysticks[axes[axisNumber][0]].						// Return raw value
 					getRawAxis(axes[axisNumber][1]);
 
@@ -503,7 +527,7 @@ public class DriverStationControls {
 	
 	public boolean setAxisDeadband(int axisNumber, double deadband)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes) &&				// Check for valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes) &&				// Check for valid Axis Number
 			(deadband >= 0) && (deadband <= 1.0))						//	 and valid deadband (0.0 - 1.0)
 		{
 			axesData[axisNumber][0] = deadband;							// Update deadband
@@ -519,7 +543,7 @@ public class DriverStationControls {
 		
 	public boolean setInverted(int axisNumber, boolean isInverted)
 	{
-		if ((axisNumber >= 0) && (axisNumber <= maxAxes))				// Check for valid Axis Number
+		if ((axisNumber >= 0) && (axisNumber < maxAxes))				// Check for valid Axis Number
 		{			
 			axesData[axisNumber][1] = isInverted ? -1.0 : 1.0;			// Update deadband
 			return true;												// Success
@@ -571,25 +595,21 @@ public class DriverStationControls {
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
 
-		createObjects(false);												// Ensure all objects have been created.
-
+		createObjects(false);											// Ensure all objects have been created.
+		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
 		{
 			for (i=0; i<maxButtons; i++){								// Cycle through each button
 				bValue = getButton(i);									// Get current button value
 				
-				if ((i == 9) && (bValue == true))
-					LOG.logMessage("9: " + bValue + " " + buttonLastValues[i]);
-				
 				if (bValue != buttonLastValues[i]){						// Has the button value changed?
-					if (bValue){											// It's been pressed
+					if (bValue)											// It's been pressed
 						buttonDataGlobal[i][0] =						// Update rising edge time
 							System.currentTimeMillis();
-					}
-					else{												// It's been released 
+					else												// It's been released 
 						buttonDataGlobal[i][1] =						// Update the falling edge time
 							System.currentTimeMillis();
-					}
+					
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
 			}
