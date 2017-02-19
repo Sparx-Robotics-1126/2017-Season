@@ -2,6 +2,7 @@ package org.gosparx.team1126.robot;
 
 import java.awt.List;
 
+import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.CSVReader;
 
@@ -23,8 +24,12 @@ public class Autonomous extends GenericSubsystem{
 	private long waitTime = 0;									// When we should stop waiting
 	private long critTime = 0;									// When we need to do this step by
 	private long autoStartTime;									// When we started auto
-	private boolean fromFile = false;							// Check if Autonomous mode should be read from local file.
+	private boolean fromFile = true;							// Check if Autonomous mode should be read from local file.
+	private long lastRead = 0;
 	private CSVReader reader;
+	private Drives drives;
+	private boolean firstRun = true;
+	private boolean runAuto;
 	
 	// All genericSubsystems that the Autonomous system needs to interface with will need to be defined.	
 
@@ -33,9 +38,10 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_FORWARD = 1;				// Drive Straight(inches, speed)
 	private static final int DRIVES_TURN = 2;					// Turn (angle, absolute = true)
 	private static final int DRIVES_MOVE = 3;					// Drive To (x, y, speed)
-	private static final int DRIVES_STOP = 4;					// Stop the Drives
-	private static final int DELAY = 5;							// Wait (seconds)
-	private static final int SETCRITSTEP = 6;					// Set Critical Timeout Step
+	private static final int DRIVES_SETCOORDS = 4;
+	private static final int DRIVES_STOP = 5;					// Stop the Drives
+	private static final int DELAY = 6;							// Wait (seconds)
+	private static final int SETCRITSTEP = 7;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
@@ -46,6 +52,7 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_FORWARD,										// Distance, Speed
 			DRIVES_TURN,										// Degrees, Absolute/Relative
 			DRIVES_MOVE,										// X, Y, Speed
+			DRIVES_SETCOORDS,
 			DRIVES_STOP,
 			DRIVES_DONE,
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
@@ -58,6 +65,7 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_Forward",
 			"Drives_Turn",
 			"Drives_Move",
+			"Drives_SetCoords",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
 			"Set Critical Step",
@@ -108,7 +116,7 @@ public class Autonomous extends GenericSubsystem{
 	@Override
 	protected boolean init() {
 
-//		drives = Drives.getInstance();
+		drives = Drives.getInstance();
 		reader = new CSVReader();
 		
 		chooser = new SendableChooser<int[][]>();
@@ -125,47 +133,33 @@ public class Autonomous extends GenericSubsystem{
 	************************************************************************************************/
 	@Override
 	protected boolean execute() {
-		if(dsc.isEnabled() && dsc.isAutonomous()){
+		if(dsc.isEnabled() && dsc.isAutonomous() && runAuto){
 			runAuto();
-		}else{
-			currentAuto = (int[][]) getCurrentAuto();//(int[][]) chooser.getSelected();
+		}else if (dsc.isDisabled() && dsc.isAutonomous()){
+			currentAuto = getCurrentAuto();//(int[][]) chooser.getSelected();
 			currStep = 0;
 			autoStartTime = System.currentTimeMillis();
 			incStep = true;
 			critTime = 0;
 			critStep = 0;
-			abortCommands();
+			//abortCommands();
 		}
+		
 		return false;
 	}
 	
 	private int[][] getCurrentAuto(){
-		if(fromFile){
-			return reader.readIntCSV("usr");
+		if(fromFile && System.currentTimeMillis() > lastRead + 10000 || fromFile && firstRun){
+			firstRun = false;
+			lastRead = System.currentTimeMillis();
+			LOG.logMessage("Auto imported");
+			return reader.readIntCSV("/home/lvuser/Auto");
+		} else if (fromFile){
 		} else {
 			return chooser.getSelected();
 		}
+		return currentAuto;
 	}
-	/*
-	private int[][] parseCSV(String filePath);
-	{
-		CSVReader csv;
-		String[][] string = null;
-		try {
-			csv = new CSVReader(new FileReader("C:/Users/Definitive/Documents/csv.csv"));
-			List<String[]> list = csv.readAll();
-			
-			string = new String[list.size()][];
-			string = list.toArray(string);
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return 
-	}*/
 	
 	/*************************************************************************************************
 	 * Actually loops through auto commands
@@ -193,25 +187,51 @@ public class Autonomous extends GenericSubsystem{
 				LOG.logMessage("runAuto invalid step #" + currStep);
 			}
 			
+			if (currentAuto[0][0] < 0){
+				currCommand = AUTOEND;
+				LOG.logMessage("Failed to read file");
+			}
+			
 			switch(currCommand){
 				case DRIVES_FORWARD:
-//					Place Drives Command Here
+					drives.autoDriveDistance(currentAuto[currStep][1], currentAuto[currStep][2]);
+					if(drives.isAutoDone())
+					{
+						incStep = true;
+					}
 					break;
 					
 				case DRIVES_TURN:
-//					Place Drives Command Here
+					drives.autoTurn(currentAuto[currStep][1], currentAuto[currStep][2]);
+					if(drives.isAutoDone())
+					{
+						incStep = true;
+					}
 					break;
 						
 				case DRIVES_MOVE:
-//					Place Drives Command Here
+					drives.autoDriveCoordinate(currentAuto[currStep][1], currentAuto[currStep][2], currentAuto[currStep][3]);
+					if(drives.isAutoDone())
+					{
+						incStep = true;
+					}
+					break;
+					
+				case DRIVES_SETCOORDS:
+					drives.setStartingCoordinate(currentAuto[currStep][1], currentAuto[currStep][2]);
+					incStep = true;
 					break;
 					
 				case DRIVES_STOP:
-//					Place Drives Command Here
+					if(drives.stopDrives()){
+						incStep = true;
+					}
 					break;
 				
 				case DRIVES_DONE:
-//					Place Drives Command Complete Check Here, if "done" then set incStep = TRUE
+					if(drives.isAutoDone()){
+						incStep = true;
+					}
 					break;
 				
 				case DELAY:
@@ -220,8 +240,9 @@ public class Autonomous extends GenericSubsystem{
 					break;
 
 				case WAITING:
-					if (System.currentTimeMillis() >= waitTime)
+					if (System.currentTimeMillis() >= waitTime){
 						incStep = true;
+					}
 					break;
 				
 				case SETCRITSTEP:
@@ -248,10 +269,7 @@ public class Autonomous extends GenericSubsystem{
 	// Aborts active commands in other subsystems
 	************************************************************************************************/
 	void abortCommands(){
-		// TODO: Put abort code here!
-		//  Checking each subsystem...
-		//	 Step 1: Identify if an active command exists
-		//	 Step 2: Run the appropriate subsystem ABORT procedure
+		drives.abortAuto();
 	}
 	
 	/*************************************************************************************************
@@ -287,5 +305,9 @@ public class Autonomous extends GenericSubsystem{
 	************************************************************************************************/
 	@Override
 	protected void writeLog() {
+	}
+	
+	public void setRunAuto(boolean auto){
+		runAuto = auto;
 	}
 }

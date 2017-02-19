@@ -236,7 +236,7 @@ public class Shooter extends GenericSubsystem{
 		shootingSpeedCurrent = encoderData.getSpeed();
 
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
-			LOG.logMessage("Max: " + max + " Min: " + min);
+//			LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
 			min = 10000;
 			time = System.currentTimeMillis()/1000.0;
@@ -248,7 +248,7 @@ public class Shooter extends GenericSubsystem{
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
 		
-		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
+//		LOG.logMessage(1,200,"Flywheel speed: " + shootingSpeedCurrent);
 		if(dsc.isOperatorControl())
 			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 //		if(isPressed){
@@ -276,10 +276,10 @@ public class Shooter extends GenericSubsystem{
 		}
 		if(dsc.isPressed(IO.AGITATOR_SERVO)){
 			servo.set(0);
-			LOG.logMessage("Running Servo");
+			//LOG.logMessage("Running Servo");
 		} else {
 			servo.set(.52);
-			LOG.logMessage("Stopped Servo");
+			//LOG.logMessage("Stopped Servo");
 		}
 		if(fireCtrl()){
 			ready = true;

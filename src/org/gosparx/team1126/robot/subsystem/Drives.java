@@ -97,7 +97,6 @@ public class Drives extends GenericSubsystem {
 	private double calculatedDistance;
 	private double offsetCorrection;
 	private double distanceToPoint;
-	private boolean isAutoDoneReady;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -201,7 +200,6 @@ public class Drives extends GenericSubsystem {
 		angleToEnd = 0;
 		calculatedDistance = 0;
 		distanceToPoint = 0;
-		isAutoDoneReady = false;
 		
 		return true;
 	}
@@ -256,11 +254,6 @@ public class Drives extends GenericSubsystem {
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
 		
-		if(currentDriveState.equals(DriveState.STANDBY)){
-			isAutoDoneReady = true;
-		}else{
-			isAutoDoneReady = false;
-		}
 		switch(currentDriveState){
 			
 		case STANDBY:
@@ -293,9 +286,7 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_STOP:
-			if(stopDrives()){
-				currentDriveState = DriveState.STANDBY;
-			}
+			stopDrives();
 			break;
 			
 		case TELEOP:
@@ -315,7 +306,8 @@ public class Drives extends GenericSubsystem {
 				rightPreviousDistance = 0;
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				autoTurn(270, 36);
+				LOG.logMessage("Turning");
+				autoTurn(90, 20);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -423,11 +415,11 @@ public class Drives extends GenericSubsystem {
 	 */
 	public void setTankSpeed(double right, double left, boolean isInverted){
 		if(!isInverted){
-			rightWantedSpeed = right * MAX_SPEED;
-			leftWantedSpeed = left * MAX_SPEED;
+			rightWantedSpeed = -right * MAX_SPEED;
+			leftWantedSpeed = -left * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(left * MAX_SPEED);
-			leftWantedSpeed = -(right * MAX_SPEED);
+			rightWantedSpeed = (left * MAX_SPEED);
+			leftWantedSpeed = (right * MAX_SPEED);
 		}
 	}
 
@@ -441,8 +433,8 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = -(yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 			leftWantedSpeed = -(yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
 		}else{
-			rightWantedSpeed = -(-(yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED);
-			leftWantedSpeed = -(-(yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED);
+			rightWantedSpeed = (yAxis - xAxis/X_SENSITIVITY) * MAX_SPEED;
+			leftWantedSpeed = (yAxis + xAxis/X_SENSITIVITY) * MAX_SPEED;
 		}
 	}
 	
@@ -454,7 +446,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoDriveDistance(double distance, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
@@ -466,17 +458,11 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = speed;
 		}
 		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_DISTANCE)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
 	public boolean autoDrivePoint(double distance, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
@@ -490,35 +476,23 @@ public class Drives extends GenericSubsystem {
 			wantedSpeed = speed;
 		}
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
 	public boolean autoDriveCoordinate(double x, double y, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		driveDone = false;
 		initialHeading = gyro.getAngle();
-		endY = x;
-		endX = y;
-		if(endX < currentX){
-			wantedSpeed = -speed;
-		}else{
+		endY = y;
+		endX = x;
+//		if(endY < currentY){
+//			wantedSpeed = -speed;
+//		}else{
 			wantedSpeed = speed;
-		}
+//		}
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
-			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
-			driveDone = true;
-		}else{
-			driveDone = false;
-		}
 		return true;
 	}
 	
@@ -548,6 +522,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			driveDone = true;
 		}
 	}
 	
@@ -581,6 +556,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Distance Traveled: " + averageDistance);
 			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			driveDone = true;
 		}
 	}
 	
@@ -591,18 +567,13 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		turnDone = false;
 		wantedAngle = angle;
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_TURN;
-		if(!currentDriveState.equals(DriveState.AUTO_TURN)){
-			turnDone = true;
-		}else{
-			turnDone = false;
-		}
 		return true;
 	}
 	
@@ -611,11 +582,14 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void turn(){
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
+		LOG.logMessage("Current Angle: " + currentAngle);
+		LOG.logMessage("angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
+			turnDone = true;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
 			wantedSpeed = 12 + Math.abs(angleOffset)/2;
@@ -665,6 +639,7 @@ public class Drives extends GenericSubsystem {
 		rightSetPower = STOP_MOTOR_POWER_SPEED;
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
 		if(Math.abs(averageSpeed) < .1){
+			currentDriveState = DriveState.STANDBY;
 			return true;
 		}else{
 			return false;
@@ -717,7 +692,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is in standby and , false otherwise
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
-		if(!isAutoDoneReady){
+		if(!isAutoDone()){
 			return false;
 		}
 		trig(xValue,yValue);
@@ -726,9 +701,8 @@ public class Drives extends GenericSubsystem {
 			autoDriveDistance(wantedDistance, driveSpeed);
 		}
 		if(driveDone){
-			isAutoDoneReady = true;
+			currentDriveState = DriveState.STANDBY;
 		}
-		isAutoDoneReady = false;
 		return true;
 	}
 	
@@ -736,7 +710,11 @@ public class Drives extends GenericSubsystem {
 	 * returns if the auto is done
 	 */
 	public boolean isAutoDone(){
-		return isAutoDoneReady;
+		if(currentDriveState.equals(DriveState.STANDBY)){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	/**
