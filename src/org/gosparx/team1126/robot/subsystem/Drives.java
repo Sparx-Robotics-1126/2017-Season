@@ -256,11 +256,6 @@ public class Drives extends GenericSubsystem {
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
 		
-		if(currentDriveState.equals(DriveState.STANDBY)){
-			isAutoDoneReady = true;
-		}else{
-			isAutoDoneReady = false;
-		}
 		switch(currentDriveState){
 			
 		case STANDBY:
@@ -317,7 +312,7 @@ public class Drives extends GenericSubsystem {
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
 				LOG.logMessage("Turning");
 				isAutoDoneReady = true;
-				autoTurn(180, 36);
+				autoTurn(90, 20);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -614,6 +609,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void turn(){
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
+		LOG.logMessage("Current Angle: " + currentAngle);
 		LOG.logMessage("angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
@@ -740,7 +736,11 @@ public class Drives extends GenericSubsystem {
 	 * returns if the auto is done
 	 */
 	public boolean isAutoDone(){
-		return isAutoDoneReady;
+		if(currentDriveState.equals(DriveState.STANDBY)){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
 	/**
