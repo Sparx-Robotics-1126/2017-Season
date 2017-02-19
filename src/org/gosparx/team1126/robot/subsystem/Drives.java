@@ -97,7 +97,7 @@ public class Drives extends GenericSubsystem {
 	private double calculatedDistance;
 	private double offsetCorrection;
 	private double distanceToPoint;
-	private boolean isAutoDone;
+	private boolean isAutoDoneReady;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -201,7 +201,7 @@ public class Drives extends GenericSubsystem {
 		angleToEnd = 0;
 		calculatedDistance = 0;
 		distanceToPoint = 0;
-		isAutoDone
+		isAutoDoneReady = false;
 		
 		return true;
 	}
@@ -256,6 +256,11 @@ public class Drives extends GenericSubsystem {
 		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
 		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
 		
+		if(currentDriveState.equals(DriveState.STANDBY)){
+			isAutoDoneReady = true;
+		}else{
+			isAutoDoneReady = false;
+		}
 		switch(currentDriveState){
 			
 		case STANDBY:
@@ -266,8 +271,12 @@ public class Drives extends GenericSubsystem {
 			}
 			break;
 			
-		case AUTO_DRIVE:
-			drive2();
+		case AUTO_DRIVE_DISTANCE:
+			driveDistance();
+			break;
+			
+		case AUTO_DRIVE_POINT:
+			drivePoint();
 			break;
 			
 		case AUTO_TURN:
@@ -325,7 +334,7 @@ public class Drives extends GenericSubsystem {
 				isDiagnostic = false;
 			}
 			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
-				autoDrive2(144, 40);
+				autoDrivePoint(144, 40);
 			}
 			
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
@@ -442,9 +451,12 @@ public class Drives extends GenericSubsystem {
 	 * @param distance the distance the robot will go, if distance > 0 then forward
 	 * if distance < 0 then backward 
 	 * @param speed the speed at which the robot should drive
-	 * @return true if the robot has reached its destination, false otherwise
+	 * @return true if the robot is ready to go, false otherwise
 	 */
-	public void autoDrive(double distance, double speed){
+	public boolean autoDriveDistance(double distance, double speed){
+		if(!isAutoDoneReady){
+			return false;
+		}
 		driveDone = false;
 		wantedDistance = distance;
 		initialHeading = gyro.getAngle();
@@ -453,16 +465,20 @@ public class Drives extends GenericSubsystem {
 		}else{
 			wantedSpeed = speed;
 		}
-		currentDriveState = DriveState.AUTO_DRIVE;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE)){
+		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
+		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_DISTANCE)){
 			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
 			driveDone = true;
 		}else{
 			driveDone = false;
 		}
+		return true;
 	}
 	
-	public void autoDrive2(double distance, double speed){
+	public boolean autoDrivePoint(double distance, double speed){
+		if(!isAutoDoneReady){
+			return false;
+		}
 		driveDone = false;
 		wantedDistance = distance;
 		initialHeading = gyro.getAngle();
@@ -477,19 +493,20 @@ public class Drives extends GenericSubsystem {
 		}else{
 			wantedSpeed = speed;
 		}
-		currentDriveState = DriveState.AUTO_DRIVE;
-		if(!currentDriveState.equals(DriveState.AUTO_DRIVE)){
+		currentDriveState = DriveState.AUTO_DRIVE_POINT;
+		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
 			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
 			driveDone = true;
 		}else{
 			driveDone = false;
 		}
+		return true;
 	}
 	
 	/**
 	 * Help method for auto drive
 	 */
-	private void drive(){
+	private void driveDistance(){
 		double calculatedDistance = wantedDistance;
 		LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = gyro.getAngle() - initialHeading;
@@ -515,7 +532,7 @@ public class Drives extends GenericSubsystem {
 		}
 	}
 	
-	private void drive2(){
+	private void drivePoint(){
 		calculatedDistance = wantedDistance;
 		double xChange = endX - currentX;
 		LOG.logMessage("change in x: " + xChange);
@@ -555,7 +572,10 @@ public class Drives extends GenericSubsystem {
 	 * @param speed the speed at which the robot should turn
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
-	public void autoTurn(double angle, double speed){
+	public boolean autoTurn(double angle, double speed){
+		if(!isAutoDoneReady){
+			return false;
+		}
 		turnDone = false;
 		wantedAngle = angle;
 		wantedSpeed = speed;
@@ -565,6 +585,7 @@ public class Drives extends GenericSubsystem {
 		}else{
 			turnDone = false;
 		}
+		return true;
 	}
 	
 	/**
@@ -651,7 +672,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
 		}
 		if(Math.abs(changeY) > 3){
-			autoDrive(changeY, HOLDING_DRIVE_SPEED);
+			autoDriveDistance(changeY, HOLDING_DRIVE_SPEED);
 		}
 		if((Math.abs(changeAngle) > 3) && driveDone){
 			autoTurn(previousAngle, HOLDING_TURN_SPEED);
@@ -666,6 +687,7 @@ public class Drives extends GenericSubsystem {
 	public void setStartingCoordinate(double x, double y){
 		currentX = x;
 		currentY = y;
+		gyro.zeroYaw();
 	}
 	
 	/**
@@ -674,25 +696,29 @@ public class Drives extends GenericSubsystem {
 	 * @param yValue the y value the robot needs to travel to
 	 * @param driveSpeed the speed at which the robot needs to drive
 	 * @param turnSpeed the speed at which the robot needs to turn
-	 * @return true if the robot has made it to the coordinate, false otherwise
+	 * @return true if the robot is in standby and , false otherwise
 	 */
 	public boolean travelToCoordinate(double xValue, double yValue, double driveSpeed, double turnSpeed){
+		if(!isAutoDoneReady){
+			return false;
+		}
 		trig(xValue,yValue);
 		autoTurn(wantedAngle, turnSpeed);
 		if(turnDone){;
-			autoDrive(wantedDistance, driveSpeed);
+			autoDriveDistance(wantedDistance, driveSpeed);
 		}
 		if(driveDone){
-			return true;
+			isAutoDoneReady = true;
 		}
-		return false;
+		isAutoDoneReady = false;
+		return true;
 	}
 	
+	/**
+	 * returns if the auto is done
+	 */
 	public boolean isAutoDone(){
-		if(currentDriveState.equals(DriveState.STANDBY)){
-			isAutoDone = true;
-		}
-		
+		return isAutoDoneReady;
 	}
 	
 	/**
@@ -825,7 +851,8 @@ public class Drives extends GenericSubsystem {
 	 */
 	public enum DriveState{
 		STANDBY,
-		AUTO_DRIVE,
+		AUTO_DRIVE_DISTANCE,
+		AUTO_DRIVE_POINT,
 		AUTO_TURN,
 		AUTO_HOLD,
 		AUTO_ABORT,
@@ -842,8 +869,10 @@ public class Drives extends GenericSubsystem {
 			switch(this){
 			case STANDBY:
 				return "Auto Standby";
-			case AUTO_DRIVE:
-				return "Auto Drive";
+			case AUTO_DRIVE_DISTANCE:
+				return "Auto Drive Distance";
+			case AUTO_DRIVE_POINT:
+				return "Auto Drive Point";
 			case AUTO_TURN:
 				return "Auto Turn";
 			case AUTO_HOLD:
