@@ -484,11 +484,30 @@ public class Drives extends GenericSubsystem {
 		initialHeading = gyro.getAngle();
 		endY = currentY + distance*Math.cos(Math.toRadians(initialHeading));
 		endX = currentX + distance*Math.sin(Math.toRadians(initialHeading));
-		LOG.logMessage("currentX : " + currentX);
-		LOG.logMessage("currentY : " + currentY);
-		LOG.logMessage("endX : " + endX);
-		LOG.logMessage("endY : " + endY);
 		if(distance < 0){
+			wantedSpeed = -speed;
+		}else{
+			wantedSpeed = speed;
+		}
+		currentDriveState = DriveState.AUTO_DRIVE_POINT;
+		if(!currentDriveState.equals(DriveState.AUTO_DRIVE_POINT)){
+			LOG.logMessage("Auto Drive is done, current distance: " + averageDistance);
+			driveDone = true;
+		}else{
+			driveDone = false;
+		}
+		return true;
+	}
+	
+	public boolean autoDriveCoordinate(double x, double y, double speed){
+		if(!isAutoDoneReady){
+			return false;
+		}
+		driveDone = false;
+		initialHeading = gyro.getAngle();
+		endY = x;
+		endX = y;
+		if(endX < currentX){
 			wantedSpeed = -speed;
 		}else{
 			wantedSpeed = speed;
@@ -533,17 +552,16 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	private void drivePoint(){
-		calculatedDistance = wantedDistance;
 		double xChange = endX - currentX;
-		LOG.logMessage("change in x: " + xChange);
+			LOG.logMessage("change in x: " + xChange);
 		double yChange = endY - currentY;
 		distanceToPoint = Math.sqrt((xChange * xChange) + (yChange * yChange));
-		LOG.logMessage("Distance to point: " + distanceToPoint);
+			LOG.logMessage("Distance to point: " + distanceToPoint);
 		angleToEnd = Math.atan2(xChange, yChange) - Math.toRadians(currentAngle);
-		LOG.logMessage("Angle offset to end: " + angleToEnd);
+			LOG.logMessage("Angle offset to end: " + angleToEnd);
 		offsetCorrection = Math.sin(angleToEnd) * distanceToPoint;
-		LOG.logMessage("Offset correction: " + offsetCorrection);
-		LOG.logMessage("wanted distance: " + wantedDistance);
+			LOG.logMessage("Offset correction: " + offsetCorrection);
+			LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
