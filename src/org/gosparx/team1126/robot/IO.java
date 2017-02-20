@@ -98,10 +98,6 @@ public class IO {
 	
 	public static final int HOLD_DRIVES										= 6;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= DriverStationControls.OP_XBOX_Y;
-	
-	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
-	
 	public static final int SCALING_RT										= 9;
 	
 	public static final int RIGHT_JOY_X										= 2;
@@ -122,10 +118,14 @@ public class IO {
 	
 	public static final int ACQ_BACKWARD									= 6;
 	
-	public static final int FLYWHEEL_INCREASE = DriverStationControls.OP_XBOX_X;
+	public static final int AGITATOR_ON										= DriverStationControls.OP_XBOX_Y;
 	
-	public static final int FLYWHEEL_DECREASE = DriverStationControls.OP_XBOX_B;
+	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
-	public static final int SHOOTER_FLIP_TURN_ON = DriverStationControls.LEFT_JOY_MIDDLE;
+	public static final int FLYWHEEL_INCREASE 								= DriverStationControls.OP_XBOX_X;
+	
+	public static final int FLYWHEEL_DECREASE 								= DriverStationControls.OP_XBOX_B;
+	
+	public static final int FLIP_SHOOTER_SYSTEM_ON 							= DriverStationControls.LEFT_JOY_MIDDLE;
 
 }

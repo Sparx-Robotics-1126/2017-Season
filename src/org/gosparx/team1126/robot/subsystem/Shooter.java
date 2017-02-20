@@ -46,7 +46,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean turretButton;
 	
-	/**
+	/**+
 	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
@@ -84,7 +84,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the minimum encoder speed during currentTime
 	 */
-	private double min;
+	private double min; 
 	
 	/**
 	 * also used for logging messages with the currentTime
@@ -103,7 +103,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private CANTalon flyWheel;
 	
-	private CANTalon intake;
+	private CANTalon feeder;
 	
 	private CANTalon turret;
 	
@@ -118,7 +118,7 @@ public class Shooter extends GenericSubsystem{
 //*****************************************Constants*************************************\\
 	
 	/**
-	 * 
+	 * used for the turret absolute encoder
 	 */
 	private final double DEGREE_PER_VOLT = 0.1;
 	
@@ -193,7 +193,7 @@ public class Shooter extends GenericSubsystem{
 		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
 		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
-		intake = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
+		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
 		servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
@@ -221,7 +221,7 @@ public class Shooter extends GenericSubsystem{
 		String subsystemName = "Shooter";
 		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
 		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
-		LiveWindow.addActuator(subsystemName, "Intake", intake);
+		LiveWindow.addActuator(subsystemName, "Intake", feeder);
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 	}
 
@@ -268,8 +268,8 @@ public class Shooter extends GenericSubsystem{
 //				isPressed = false;
 //			}
 //		}
-		if((dsc.isPressed(IO.SHOOTER_FLIP_TURN_ON)&&(speedButton == false))
-				||(!(dsc.isPressed(IO.SHOOTER_FLIP_TURN_ON))&&(speedButton == true))){
+		if((dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)&&(speedButton == false))
+				||(!(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON))&&(speedButton == true))){
 			LOG.logMessage("Shooter on");
 			if(speedButton == true){
 				speedButton = false;
@@ -281,26 +281,26 @@ public class Shooter extends GenericSubsystem{
 				isPressed = false;
 			}
 		}
-//		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
-//			speed += 50;
-//			LOG.logMessage("up");
-//		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-//			LOG.logMessage("Down");
-//			speed -= 50;
-//		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
+			speed += 50;
+			LOG.logMessage("up");
+		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
+			LOG.logMessage("Down");
+			speed -= 50;
+		}
+		if(dsc.getButtonRising(IO.AGITATOR_ON)){
 			servo.set(1);
 			LOG.logMessage("Servo is pressed");
 		}	
 		if(fireCtrl()){
 			ready = true;
 			if(dsc.isPressed(IO.BUTTON_FIRE))
-				intake.set(INTAKE_BALL_SPEED);
+				feeder.set(INTAKE_BALL_SPEED);
 			else
-				intake.set(0);
+				feeder.set(0);
 		}else{
 			ready = false;
-			intake.set(0);
+			feeder.set(0);
 		}
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
@@ -440,7 +440,7 @@ public class Shooter extends GenericSubsystem{
 		switch(currentEnum){
 		case DONE:
 			flyWheel.set(0);
-			intake.set(0);
+			feeder.set(0);
 			turret.set(0);
 			break;
 		case FLYWHEEL:
@@ -473,7 +473,6 @@ public class Shooter extends GenericSubsystem{
 			break;
 		}
 	}
-
 	
 	public enum DiagnosticsEnuuum{
 		DONE,
