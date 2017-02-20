@@ -220,8 +220,8 @@ public class Shooter extends GenericSubsystem{
 	protected void liveWindow(){
 		String subsystemName = "Shooter";
 		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
-		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
-		LiveWindow.addActuator(subsystemName, "Intake", feeder);
+		LiveWindow.addActuator(subsystemName, "FlyWheel", flyWheel);
+		LiveWindow.addActuator(subsystemName, "FeederWheel", feeder);
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 	}
 
@@ -377,25 +377,25 @@ public class Shooter extends GenericSubsystem{
 		return true;	 
 	}
 	
-	//done
+	//done (until tested)
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-/*		if(!turretButton){
-			turret.set(0);
-			return false;
-		}
-		if(turretDegreeCurrent < turretSettings()-1){
-			turret.set(-.5);
-		}else if(turretDegreeCurrent > turretSettings()+1){
-			turret.set(.5);
-		}else{
-			turret.set(0);
-			return true;
-		}*/
+//		if(!turretButton){
+//			turret.set(0);
+//			return false;
+//		}
+//		if(turretDegreeCurrent < turretSettings()-1){
+//			turret.set(-.5);
+//		}else if(turretDegreeCurrent > turretSettings()+1){
+//			turret.set(.5);
+//		}else{
+//			turret.set(0);
+//			return true;
+//		}
 		return true;
 	}
 	
@@ -433,6 +433,7 @@ public class Shooter extends GenericSubsystem{
 		this.distance = distance;
 	}
 	
+	//done
 	/**
 	 * checks all the motors
 	 */
@@ -474,6 +475,10 @@ public class Shooter extends GenericSubsystem{
 		}
 	}
 	
+	//done
+	/**
+	 * creates the enums cases
+	 */
 	public enum DiagnosticsEnuuum{
 		DONE,
 		FLYWHEEL,

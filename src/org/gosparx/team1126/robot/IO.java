@@ -126,6 +126,6 @@ public class IO {
 	
 	public static final int FLYWHEEL_DECREASE 								= DriverStationControls.OP_XBOX_B;
 	
-	public static final int FLIP_SHOOTER_SYSTEM_ON 							= DriverStationControls.LEFT_JOY_MIDDLE;
+	public static final int FLIP_SHOOTER_SYSTEM_ON 							= DriverStationControls.LEFT_JOY_MIDDLE; //the flip
 
 }
