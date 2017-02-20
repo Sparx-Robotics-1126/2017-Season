@@ -153,9 +153,9 @@ public class Autonomous extends GenericSubsystem{
 		if(fromFile && System.currentTimeMillis() > lastRead + 10000 || fromFile && firstRun){
 			firstRun = false;
 			lastRead = System.currentTimeMillis();
-			LOG.logMessage("Auto imported");
+//			LOG.logMessage("Auto imported");
 			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
-			LOG.logMessage(Arrays.deepToString(currentAuto));
+//			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){
 		} else {
