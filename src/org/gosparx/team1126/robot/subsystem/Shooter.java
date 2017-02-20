@@ -195,7 +195,7 @@ public class Shooter extends GenericSubsystem{
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
-		servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
+	 	servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
 		speedButton = false;
@@ -248,19 +248,21 @@ public class Shooter extends GenericSubsystem{
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
 		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
+		
 //		if(dsc.isOperatorControl())	
 //			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 //		if(isPressed){
 //			speedButton = true;
-//			turretButton = true;
+//			turretButton = true;                       old way to turn on system using y button
 //		}else{
 //			speedButton = false;
 //			turretButton = false;
 //		}
+		
 //		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
 //			if(speedButton == true){
 //				speedButton = false;
-//				turretButton = false;				alternate way to turn on shooter
+//				turretButton = false;				alternate way to turn on shooter using y button
 //				isPressed = false;
 //			}else{
 //				speedButton = true;
@@ -268,18 +270,26 @@ public class Shooter extends GenericSubsystem{
 //				isPressed = false;
 //			}
 //		}
+		
 		if((dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)&&(speedButton == false))
 				||(!(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON))&&(speedButton == true))){
-			LOG.logMessage("Shooter on");
 			if(speedButton == true){
+				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
-				isPressed = false;
 			}else{
+				LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
-				isPressed = false;
 			}
+		}else if(isPressed == true){
+			LOG.logMessage("AUTO - Shooter on");
+			speedButton = true;
+			turretButton = false;
+		}else if(isPressed == false){
+			LOG.logMessage("AUTO - Shooter off");
+			speedButton = false;
+			speedButton = false;
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
@@ -306,10 +316,12 @@ public class Shooter extends GenericSubsystem{
 			diagnostics();
 		else
 			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
+		
 //		dsc.sharedData.systemReady = ready;
 //		dsc.sharedData.turretAngle = turretDegreeCurrent;
 //		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
-		//System.out.println("t");
+//		System.out.println("t");
+		
 		return false;
 	}
 
@@ -414,12 +426,13 @@ public class Shooter extends GenericSubsystem{
 	//done
 	/**
 	 * Sets the shooting system on for auto
-	 * @param isOn - if auto is ready to shoot
-	 * @return - true
+	 * @param isOn - auto sends 1 to shoot
 	 */
-	public boolean setSystemState(boolean isOn){
-		isPressed = isOn;
-		return true;
+	public void setSystemState(int isOn){
+		if(isOn == 1){
+			isPressed = true;
+		}else
+			isPressed = false;
 	}
 	
 	//done
@@ -487,6 +500,7 @@ public class Shooter extends GenericSubsystem{
 		TURRET_WAIT;
 	}
 	
+	//done
 	/**
 	 * checks to make sure the encoder is working correctly
 	 * @param name- the name of the motor
