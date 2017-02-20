@@ -32,6 +32,10 @@ public class IO {
 	
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 16;
 	
+	public static final int DIO_SHOOTER_LIMITSWITCH_RIGHT					= 20;
+	
+	public static final int DIO_SHOOTER_LIMITSWITCH_LEFT					= 21;
+	
 	public static final int DIO_SHOOTER_ENC_A                               = 22;
 	
 	public static final int DIO_SHOOTER_ENC_B								= 23;
@@ -104,7 +108,7 @@ public class IO {
 	
 	public static final int HOLD_DRIVES										= DriverStationControls.RIGHT_JOY_RIGHT;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= DriverStationControls.OP_XBOX_Y;
+	public static final int FLIP_SHOOTING_SYSTEM_ON							= DriverStationControls.LEFT_JOY_MIDDLE;
 	
 	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
@@ -132,7 +136,6 @@ public class IO {
 	
 	public static final int FLYWHEEL_DECREASE 								= DriverStationControls.OP_XBOX_B;
 	
-	public static final int AGITATOR_SERVO									= DriverStationControls.OP_XBOX_L1;
-	
-	
+	public static final int AGITATOR_SERVO									= DriverStationControls.OP_XBOX_Y;
+
 }
