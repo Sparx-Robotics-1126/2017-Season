@@ -46,7 +46,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean turretButton;
 	
-	/**
+	/**+
 	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
@@ -84,14 +84,12 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the minimum encoder speed during currentTime
 	 */
-	private double min;
+	private double min; 
 	
 	/**
 	 * also used for logging messages with the currentTime
 	 */
 	private double time;
-	
-	private Servo servo;
 	
 //*****************************************Objects***************************************\\
 	
@@ -105,7 +103,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private CANTalon flyWheel;
 	
-	private CANTalon intake;
+	private CANTalon feeder;
 	
 	private CANTalon turret;
 	
@@ -115,10 +113,16 @@ public class Shooter extends GenericSubsystem{
 	
 	private DiagnosticsEnuuum currentEnum;
 	
+	private Servo servo;
+	
+	private DigitalInput limitSwitchRight;
+	
+	private DigitalInput limitSwitchLeft;
+	
 //*****************************************Constants*************************************\\
 	
 	/**
-	 * 
+	 * used for the turret absolute encoder
 	 */
 	private final double DEGREE_PER_VOLT = 0.1;
 	
@@ -193,10 +197,12 @@ public class Shooter extends GenericSubsystem{
 		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
 		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
-		intake = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
+		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
-		servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
+	 	servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
+		limitSwitchRight = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_RIGHT);
+		limitSwitchLeft = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_LEFT);
 		shootingSpeedCurrent = 0;
 		speedButton = false;
 		turretButton = false;
@@ -220,8 +226,8 @@ public class Shooter extends GenericSubsystem{
 	protected void liveWindow(){
 		String subsystemName = "Shooter";
 		LiveWindow.addActuator(subsystemName, "Turret Motor", turret);
-		LiveWindow.addActuator(subsystemName, "Flywheel", flyWheel);
-		LiveWindow.addActuator(subsystemName, "Intake", intake);
+		LiveWindow.addActuator(subsystemName, "FlyWheel", flyWheel);
+		LiveWindow.addActuator(subsystemName, "FeederWheel", feeder);
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 	}
 
@@ -236,7 +242,7 @@ public class Shooter extends GenericSubsystem{
 		shootingSpeedCurrent = encoderData.getSpeed();
 
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
-//			LOG.logMessage("Max: " + max + " Min: " + min);
+			LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
 			min = 10000;
 			time = System.currentTimeMillis()/1000.0;
@@ -247,25 +253,49 @@ public class Shooter extends GenericSubsystem{
 		
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
+		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 		
-//		LOG.logMessage(1,200,"Flywheel speed: " + shootingSpeedCurrent);
-		if(dsc.isOperatorControl())
-			isPressed = dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON);
+//		if(dsc.isOperatorControl())	
+//			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
 //		if(isPressed){
 //			speedButton = true;
-//			turretButton = true;
+//			turretButton = true;                       old way to turn on system using y button
 //		}else{
 //			speedButton = false;
 //			turretButton = false;
 //		}
-		if(dsc.getButtonRising(IO.FLIP_SHOOTING_SYSTEM_ON)){
+		
+//		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
+//			if(speedButton == true){
+//				speedButton = false;
+//				turretButton = false;				alternate way to turn on shooter using y button
+//				isPressed = false;
+//			}else{
+//				speedButton = true;
+//				turretButton = true;
+//				isPressed = false;
+//			}
+//		}
+		
+		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false))
+				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true))){
 			if(speedButton == true){
+				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
 			}else{
+				LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
 			}
+		}else if(isPressed == true){
+			LOG.logMessage("AUTO - Shooter on");
+			speedButton = true;
+			turretButton = false;
+		}else if(isPressed == false){
+			LOG.logMessage("AUTO - Shooter off");
+			speedButton = false;
+			speedButton = false;
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
@@ -274,31 +304,33 @@ public class Shooter extends GenericSubsystem{
 			LOG.logMessage("Down");
 			speed -= 50;
 		}
-		if(dsc.isPressed(IO.AGITATOR_SERVO)){
-			servo.set(0);
-			//LOG.logMessage("Running Servo");
-		} else {
-			servo.set(.52);
-			//LOG.logMessage("Stopped Servo");
-		}
+		if(dsc.getButtonRising(IO.AGITATOR_SERVO)){
+			servo.set(1);
+			LOG.logMessage("Servo is pressed");
+		}	
 		if(fireCtrl()){
 			ready = true;
 			if(dsc.isPressed(IO.BUTTON_FIRE))
-				intake.set(INTAKE_BALL_SPEED);
+				feeder.set(INTAKE_BALL_SPEED);
 			else
-				intake.set(0);
+				feeder.set(0);
 		}else{
 			ready = false;
-			intake.set(0);
+			feeder.set(0);
 		}
+//		if(limitSwitchRight){
+//			
+//		}
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
 		else
 			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
+		
 //		dsc.sharedData.systemReady = ready;
 //		dsc.sharedData.turretAngle = turretDegreeCurrent;
 //		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
-		//System.out.println("t");
+//		System.out.println("t");
+		
 		return false;
 	}
 
@@ -317,11 +349,11 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-//		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
 		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
 		//LOG.logMessage("Turret Degree Off: " + degreeOff);
-//		LOG.logMessage("Distance Away: " + distance);
-//		LOG.logMessage("IsPressed: " + isPressed);
+		LOG.logMessage("Distance Away: " + distance);
+		LOG.logMessage("IsPressed: " + isPressed);
 	}
 	
 	//framework done
@@ -338,7 +370,7 @@ public class Shooter extends GenericSubsystem{
 	//framework done
 	/**
 	 * calculates the direction to turn
-	 * @return - the degree and direction
+	 * @return - the degree and direction(positive or negative)
 	 */
 	private double turretSettings(){
 		return degreeOff;
@@ -346,7 +378,7 @@ public class Shooter extends GenericSubsystem{
 	
 	//done 
 	/**
-	 * checks if the motors are ready and are at a correct speed
+	 * checks if the motors are ready and are at a correct speed9999
 	 * @param button - if the button is pressed 
 	 * @return - if this system is ready
 	 */
@@ -366,25 +398,25 @@ public class Shooter extends GenericSubsystem{
 		return true;	 
 	}
 	
-	//done
+	//done (until tested)
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-/*		if(!turretButton){
-			turret.set(0);
-			return false;
-		}
-		if(turretDegreeCurrent < turretSettings()-1){
-			turret.set(-.5);
-		}else if(turretDegreeCurrent > turretSettings()+1){
-			turret.set(.5);
-		}else{
-			turret.set(0);
-			return true;
-		}*/
+//		if(!turretButton){
+//			turret.set(0);
+//			return false;
+//		}
+//		if(turretDegreeCurrent < turretSettings()-1){
+//			turret.set(-.5);
+//		}else if(turretDegreeCurrent > turretSettings()+1){
+//			turret.set(.5);
+//		}else{
+//			turret.set(0);
+//			return true;
+//		}
 		return true;
 	}
 	
@@ -403,12 +435,13 @@ public class Shooter extends GenericSubsystem{
 	//done
 	/**
 	 * Sets the shooting system on for auto
-	 * @param isOn - if auto is ready to shoot
-	 * @return - true
+	 * @param isOn - auto sends 1 to shoot
 	 */
-	public boolean setSystemState(boolean isOn){
-		isPressed = isOn;
-		return true;
+	public void setSystemState(int isOn){
+		if(isOn == 1){
+			isPressed = true;
+		}else
+			isPressed = false;
 	}
 	
 	//done
@@ -422,6 +455,7 @@ public class Shooter extends GenericSubsystem{
 		this.distance = distance;
 	}
 	
+	//done
 	/**
 	 * checks all the motors
 	 */
@@ -429,7 +463,7 @@ public class Shooter extends GenericSubsystem{
 		switch(currentEnum){
 		case DONE:
 			flyWheel.set(0);
-			intake.set(0);
+			feeder.set(0);
 			turret.set(0);
 			break;
 		case FLYWHEEL:
@@ -462,8 +496,11 @@ public class Shooter extends GenericSubsystem{
 			break;
 		}
 	}
-
 	
+	//done
+	/**
+	 * creates the enums cases
+	 */
 	public enum DiagnosticsEnuuum{
 		DONE,
 		FLYWHEEL,
@@ -472,6 +509,7 @@ public class Shooter extends GenericSubsystem{
 		TURRET_WAIT;
 	}
 	
+	//done
 	/**
 	 * checks to make sure the encoder is working correctly
 	 * @param name- the name of the motor
