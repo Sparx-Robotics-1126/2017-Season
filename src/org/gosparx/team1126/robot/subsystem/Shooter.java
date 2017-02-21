@@ -210,7 +210,7 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		distance =  100;
 		ready = false;
-		speed = 1450;
+		speed = 1800;
 		currentTime = 0;
 		max = 0;
 		min = 10000;
@@ -277,8 +277,8 @@ public class Shooter extends GenericSubsystem{
 //			}
 //		}
 		
-		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false))
-				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true))){
+		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
+				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
 			if(speedButton == true){
 				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
@@ -288,12 +288,13 @@ public class Shooter extends GenericSubsystem{
 				speedButton = true;
 				turretButton = true;
 			}
-		}else if(isPressed == true){
-			LOG.logMessage("AUTO - Shooter on");
+		}
+		if(isPressed == true && dsc.isAutonomous()){
+		//	LOG.logMessage("AUTO - Shooter on");
 			speedButton = true;
 			turretButton = false;
-		}else if(isPressed == false){
-			LOG.logMessage("AUTO - Shooter off");
+		}else if(isPressed == false && dsc.isAutonomous()){
+	   //		LOG.logMessage("AUTO - Shooter off");
 			speedButton = false;
 			speedButton = false;
 		}
