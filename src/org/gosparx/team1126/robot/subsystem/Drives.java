@@ -230,6 +230,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
+		
 		if(!previousDriveState.equals(currentDriveState)){
 			if(currentDriveState.equals(DriveState.DISABLED)){
 				rightMotorTop.enableBrakeMode(false);
@@ -247,6 +248,7 @@ public class Drives extends GenericSubsystem {
 				leftMotorBack.enableBrakeMode(true);
 			}
 		}		
+		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
@@ -264,9 +266,6 @@ public class Drives extends GenericSubsystem {
 		leftCurrentSpeed = leftEncoderData.getSpeed();
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
-		if(dsc.isEnabled()){
-			LOG.logMessage(18, 50, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
-		}
 		rightCurrentDistance = rightEncoderData.getDistance();
 		leftCurrentDistance = leftEncoderData.getDistance();
 		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
@@ -347,10 +346,9 @@ public class Drives extends GenericSubsystem {
 			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
 				autoDrivePoint(144, 40);
 			}
-			
+																				//Tank and Arcade Drive Options
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), 								// In case driver wants to use Arcade drive 
-					//dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
 			break;
 			
 		case DISABLED:
@@ -364,10 +362,13 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
-			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
-			//leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
+			if(dsc.isOperatorControl()){
+				rightSetPower = rightWantedSpeed/MAX_SPEED;
+				leftSetPower = leftWantedSpeed/MAX_SPEED;
+			}else{
+				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			}
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed
@@ -417,19 +418,17 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-//		LOG.logMessage(0, 25, "Current Speeds (Right, Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
-//		LOG.logMessage(1, 10, "Wanted Speeds (Right, Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
-//		LOG.logMessage(2, 10, "Set Powers (Right, Left): (" + rightSetPower + "," + leftSetPower + ")");
-//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
-//		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
-//		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
-//		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-//		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
-//		if(isInverse){
-//			LOG.logMessage(10, 10, "The drives are inverted");
-//		}else{
-//			LOG.logMessage(11, 10, "The drives are not inverted");
-//		}
+		if(dsc.isEnabled()){
+			LOG.logMessage(0, 2, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
+			LOG.logMessage(1, 2, "(Right, Left) Current Speeds: (" + rightCurrentSpeed + ", " + leftCurrentSpeed + ")");
+			LOG.logMessage(2, 2, "(Right, Left) Wanted Speeds : (" + rightWantedSpeed + ", " + leftWantedSpeed + ")");
+			LOG.logMessage(3, 2, "(Right, Left) Set Powers : (" + rightSetPower + ", " + leftSetPower + ")");
+			LOG.logMessage(4, 2, "Current Angle: " + currentAngle);
+			LOG.logMessage(5, 2, "Wanted Angle: " + wantedAngle);
+			LOG.logMessage(6, 2, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+			LOG.logMessage(7, 2, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+		}
+
 	}
 
 	/**
@@ -668,7 +667,7 @@ public class Drives extends GenericSubsystem {
 	 * @return if the drives have actually stopped
 	 */
 	public boolean stopDrives(){
-//		LOG.logMessage("StopDrives (" + ")");
+		LOG.logMessage("StopDrives()");
 		currentDriveState = DriveState.AUTO_STOP;
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
@@ -851,22 +850,6 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
-	 * Accessor method for current x position
-	 * @return  current x value
-	 */
-	public double getCurrentX(){
-		return currentX;
-	}
-	
-	/**
-	 * Accessor method for current y position
-	 * @return current y value
-	 */
-	public double getCurrentY(){
-		return currentY;
-	}
-	
-	/**
 	 * Calculates the wanted angle and wanted distance to travel to a coordinate
 	 * @param newX the x value of the position we're driving to
 	 * @param newY the y value of the position we're driving to 
@@ -892,38 +875,11 @@ public class Drives extends GenericSubsystem {
 		AUTO_STOP,
 		TELEOP,
 		DISABLED;
-
-		/**
-		 * Gets the name of the robot state
-		 * @return the correct robot state 
-		 */
-		@Override
-		public String toString(){
-			switch(this){
-			case STANDBY:
-				return "Auto Standby";
-			case AUTO_DRIVE_DISTANCE:
-				return "Auto Drive Distance";
-			case AUTO_DRIVE_POINT:
-				return "Auto Drive Point";
-			case AUTO_TURN:
-				return "Auto Turn";
-			case AUTO_HOLD:
-				return "Auto Hold";
-			case AUTO_ABORT:
-				return "Auto Abort";
-			case AUTO_STOP:
-				return "Auto Stop";
-			case TELEOP:
-				return "Teleop";
-			case DISABLED:
-				return "Disabled";
-			default:
-				return "Error :(";
-			}
-		}
 	}
 	
+	/**
+	 * Cases for diagnostics
+	 */
 	public enum DiagnosticState{
 		DONE,
 		TOP,
