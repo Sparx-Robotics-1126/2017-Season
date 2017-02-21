@@ -98,6 +98,7 @@ public class Drives extends GenericSubsystem {
 	private double calculatedDistance;
 	private double offsetCorrection;
 	private double distanceToPoint;
+	private boolean autoReady;
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -202,7 +203,7 @@ public class Drives extends GenericSubsystem {
 		angleToEnd = 0;
 		calculatedDistance = 0;
 		distanceToPoint = 0;
-		
+		autoReady = false;
 		return true;
 	}
 
@@ -308,25 +309,6 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
-			if(dsc.getRawButton(0, DriverStationControls.JOY_RIGHT)){
-				rightEncoder.reset();
-				rightEncoderData.reset();
-				leftEncoder.reset();
-				leftEncoderData.reset();
-				gyro.zeroYaw();
-				LOG.logMessage("Zeroing Gyro");
-				currentX = 0;
-				currentY = 0;
-				previousX = 0;
-				previousY = 0;
-				previousAngle = 0;
-				leftPreviousDistance = 0;
-				rightPreviousDistance = 0;
-			}
-			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				LOG.logMessage("Turning");
-				autoTurn(90, 20);
-			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
 			}
@@ -342,9 +324,6 @@ public class Drives extends GenericSubsystem {
 			}else{
 				currentDiagnosticState = DiagnosticState.TOP;
 				isDiagnostic = false;
-			}
-			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
-				autoDrivePoint(144, 40);
 			}
 																				//Tank and Arcade Drive Options
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
@@ -435,6 +414,7 @@ public class Drives extends GenericSubsystem {
 	 * sets the speed based on the power of the joysticks for tank drive
 	 * @param right the power from the right joystick
 	 * @param left the power from the left joystick
+	 * @param isInverted if the drives are inverted
 	 */
 	public void setTankSpeed(double right, double left, boolean isInverted){
 		if(!isInverted){
@@ -450,6 +430,7 @@ public class Drives extends GenericSubsystem {
 	 * sets the speed based on the power of the joystick for arcade dribe
 	 * @param xAxis value from the xAxis on the joystick
 	 * @param yAxis value from the yAxis on the joystick
+	 * @param isInverted if the drives are inverted
 	 */
 	public void setArcadeSpeed(double xAxis, double yAxis, boolean isInverted){
 		if(!isInverted){
@@ -527,7 +508,7 @@ public class Drives extends GenericSubsystem {
 	 * Help method for auto drive
 	 */
 	private void driveDistance(){
-		double calculatedDistance = wantedDistance;
+		calculatedDistance = wantedDistance;
 		//LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
@@ -676,6 +657,7 @@ public class Drives extends GenericSubsystem {
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
 		if(Math.abs(leftCurrentSpeed) < .1 && Math.abs(rightCurrentSpeed) < .1){
 			currentDriveState = DriveState.STANDBY;
+			autoReady = true;
 			LOG.logMessage("Ending stop drives (X,Y) (" + currentX + "," + currentY + ")");
 			return true;
 		}else{
@@ -695,6 +677,7 @@ public class Drives extends GenericSubsystem {
 	 * hold the x since we don't have lateral movement
 	 */
 	public void hold(){
+		autoReady = true;
 		double changeX = currentX - previousX;
 		double changeY = currentY - previousY;
 		double changeAngle = currentAngle - previousAngle;
@@ -739,6 +722,7 @@ public class Drives extends GenericSubsystem {
 		}
 		if(driveDone){
 			currentDriveState = DriveState.STANDBY;
+			autoReady = true;
 		}
 		return true;
 	}
@@ -747,7 +731,7 @@ public class Drives extends GenericSubsystem {
 	 * returns if the auto is done
 	 */
 	public boolean isAutoDone(){
-		if(currentDriveState.equals(DriveState.STANDBY)){
+		if(currentDriveState.equals(DriveState.STANDBY) || autoReady){
 			return true;
 		}else{
 			return false;
