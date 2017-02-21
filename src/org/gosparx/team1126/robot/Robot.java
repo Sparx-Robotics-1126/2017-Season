@@ -27,8 +27,6 @@ public class Robot extends SampleRobot{
 	 */
 	public Robot() {
 		dsc = new DriverStationControls(true);
-		vision = new visionNetworkTable();
-		vision.networkTable();
 		subsystems = new GenericSubsystem[]{
 //        	Drives.getInstance(),
 //			Autonomous.getInstance(),
@@ -38,10 +36,12 @@ public class Robot extends SampleRobot{
 //			LogWriter.getInstance(),
 		};
 
+
 		for(GenericSubsystem system: subsystems){
 			system.start();
 			System.out.println(system.getName());
 		}
+		vision.networkTable();
 	}
 
 	/**

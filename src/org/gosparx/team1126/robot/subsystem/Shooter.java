@@ -235,7 +235,7 @@ public class Shooter extends GenericSubsystem{
 		shootingSpeedCurrent = encoderData.getSpeed();
 
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
-			LOG.logMessage("Max: " + max + " Min: " + min);
+		//	LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
 			min = 10000;
 			time = System.currentTimeMillis()/1000.0;
@@ -246,7 +246,7 @@ public class Shooter extends GenericSubsystem{
 		
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
-		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
+		//LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 		
 //		if(dsc.isOperatorControl())	
 //			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
@@ -292,14 +292,14 @@ public class Shooter extends GenericSubsystem{
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
-			LOG.logMessage("up");
+			//LOG.logMessage("up");
 		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-			LOG.logMessage("Down");
+			//LOG.logMessage("Down");
 			speed -= 50;
 		}
 		if(dsc.getButtonRising(IO.AGITATOR_ON)){
 			servo.set(1);
-			LOG.logMessage("Servo is pressed");
+			//LOG.logMessage("Servo is pressed");
 		}	
 		if(fireCtrl()){
 			ready = true;
@@ -337,11 +337,11 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
-		LOG.logMessage("Turret degree: " + turretDegreeCurrent);
-		LOG.logMessage("Turret Degree Off: " + degreeOff);
-		LOG.logMessage("Distance Away: " + distance);
-		LOG.logMessage("IsPressed: " + isPressed);
+//		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+//		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
+//		//LOG.logMessage("Turret Degree Off: " + degreeOff);
+//		LOG.logMessage("Distance Away: " + distance);
+//		LOG.logMessage("IsPressed: " + isPressed);
 	}
 	
 	//framework done
@@ -402,6 +402,7 @@ public class Shooter extends GenericSubsystem{
 			return false;
 		}
 		degreeOff = turretSettings();
+		LOG.logMessage("Degree: " + degreeOff);
 		if(limitSwitchRight.get()){
 			turret.set(-0.01);
 		}else if(limitSwitchLeft.get()){
