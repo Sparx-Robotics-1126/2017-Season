@@ -15,21 +15,13 @@ public class visionNetworkTable implements ITableListener{
 	private static String clientLift = "peg"; //For reciving angle and distance for lift
 	private static String clientHighGoal = "highGoal"; ////For reciving angle and distance for HighGoal 
 	private SharedData.Target currentMode; //BOILER or LIFT //0 is off, 1 is Highgoal, 2 is lift
+	private SharedData.Target lastMode;
 	double[] arrTargetData;
-	/*########################################################################*/	
-	public static void main(String[] args)
-	{
-		visionNetworkTable instance = new visionNetworkTable();
-		instance.serverUpdate();
-		double[] d = {2.0,2.0};
-		instance.valueChanged(client, clientHighGoal, d, true);
-	}
-
-
-	/*########################################################################*/
+	
 	public visionNetworkTable() //Constructor
 	{
 		currentMode = SharedData.Target.BOILER;
+		lastMode = currentMode;
 		NetworkTable.setClientMode();
 		NetworkTable.setIPAddress(IP); //Sets Ip address
 		client = NetworkTable.getTable("targetData"); //Gets client table 
@@ -39,54 +31,55 @@ public class visionNetworkTable implements ITableListener{
 	}
 
 	/*#####################################################################################*/	
-	private void serverUpdate() //For sending mode
+	public void serverUpdate() //For sending mode
 	{
 		try{	 
-			currentMode = SharedData.targetType;		
-			client.putValue(serverKey, new Boolean(currentMode == SharedData.Target.LIFT)); //Puts the mode in table
-			System.out.println("Mode:"+currentMode); //Prints the mode for debug
-
-			try{Thread.sleep(5);} //Pauses for 5 mili
-			catch(Exception e)
+			if(!lastMode.equals(SharedData.targetType))
 			{
-				System.out.println("\n"+"Sleep problem??"); //If somthing went wrong
-				System.out.println(e.getMessage());
-			}}catch(Exception e){System.out.print("connection error");}
+				currentMode = SharedData.targetType;
+				client.putValue(serverKey, new Boolean(currentMode == SharedData.Target.LIFT)); //Puts the mode in table
+				lastMode=currentMode;
+			}
+		}
+		catch(Exception e)
+		{
+			System.out.print("Connection error with Jetson board");
+		}
+		
 	}
 	/*#####################################################################################*/	
 	@Override //For listener 
 	public void valueChanged(ITable itable, String Values_Key, Object val, boolean bln)
 	{
-		System.out.println("Change detected: "+val.getClass()+" at "+Values_Key+"\n Itable"+itable);
+		//System.out.println("Change detected: "+val.getClass()+" at "+Values_Key+"\n Itable"+itable);
 		try //Catch exection e
-		{
-			arrTargetData = (double[]) val; 
+		{ 
 			if(Values_Key.equals(clientLift) || Values_Key.equals(clientHighGoal)) 
 			{
+				arrTargetData = (double[]) val; 
 				SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
-				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
+//				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
 
 				try{Thread.sleep(5); System.out.println("Sleeping");} //Pauses	
 				catch(InterruptedException e)
 				{
-					System.out.println("\n"+"InterruptedException exception at run"+"\n");
+					System.out.println("\n"+"InterruptedException exception during sleep"+"\n");
 					System.out.println(e.getMessage()+"\n");
 				}
 
-				//System.out.print(val); //Prints info
 			}
 			else
 			{
-				System.out.println("Invalid key taken");
+				System.out.println("Invalid key taken (from Jetson board)");
 			} 
 		}
 
 		catch (Exception e)
 		{
-			System.out.println("\n"+"Error, value changed: "+Values_Key+" "+bln+" "+val+"\n");
+			System.out.println("Jetson error, value changed: "+Values_Key+" "+bln+" "+val);
 			System.out.println(e.getMessage());
 			// Print an error.
 		}
 	}	
-/*#####################################################################################*/	
+	/*#####################################################################################*/	
 }	
