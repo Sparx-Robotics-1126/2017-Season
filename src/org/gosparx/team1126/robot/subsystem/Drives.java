@@ -251,8 +251,6 @@ public class Drives extends GenericSubsystem {
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_X, JOYSTICK_DEADBAND);
-		
-		
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
 			LOG.logMessage("Recreating NavX");
