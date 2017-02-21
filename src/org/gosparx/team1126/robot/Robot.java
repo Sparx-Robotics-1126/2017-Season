@@ -4,11 +4,14 @@ import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
+import org.gosparx.team1126.robot.util.visionNetworkTable;
 
 import edu.wpi.first.wpilibj.SampleRobot;
 
 public class Robot extends SampleRobot{
 
+	protected visionNetworkTable vision;
+	
 	/**
 	 * An array of all of the subsystems on the robot
 	 */
@@ -24,7 +27,8 @@ public class Robot extends SampleRobot{
 	 */
 	public Robot() {
 		dsc = new DriverStationControls(true);
-		
+		vision = new visionNetworkTable();
+		vision.networkTable();
 		subsystems = new GenericSubsystem[]{
 //        	Drives.getInstance(),
 //			Autonomous.getInstance(),

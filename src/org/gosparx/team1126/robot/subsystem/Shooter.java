@@ -16,6 +16,7 @@ import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.util.SharedData;
 
 public class Shooter extends GenericSubsystem{
 
@@ -392,8 +393,11 @@ public class Shooter extends GenericSubsystem{
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
-	private boolean turretCtrl(){
+	private boolean turretCtrl(boolean bool){
 		if(!turretButton){
+			turret.set(0);
+			return false;
+		}else if(!bool){
 			turret.set(0);
 			return false;
 		}
@@ -421,7 +425,12 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		if(speedCtrl() && turretCtrl()){
+		boolean bool;
+		if(dsc.sharedData.targetType == SharedData.Target.BOILER)
+			bool = true;
+		else
+			bool = false;
+		if(speedCtrl() && turretCtrl(bool)){
 			return true;
 		}
 		return false;
