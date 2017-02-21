@@ -33,6 +33,12 @@ public abstract class GenericSubsystem extends Thread {
 	 */
 	protected double lastTime; 
 
+	
+	/**
+	 * The last time the thread was ran
+	 */
+	protected double lastTime; 
+	
 	/**
 	 * This constructs a new subsystem with the given name and priority.
 	 * 

@@ -47,6 +47,14 @@ public class AbsoluteEncoderData {
 		deg = deg <= 0 ? deg+360: deg;
 		return deg;
 	}
+	
+	/**
+	 * a relative + or - from zero
+	 * @return 
+	 */
+	public double relDegrees(){
+		return (input.getVoltage() - zeroPos) * degreesPerVolt;
+	}
 
 	/**
 	 * @return The current voltage of the enc
@@ -60,5 +68,21 @@ public class AbsoluteEncoderData {
 	 */
 	public void reset(){
 		zeroPos = input.getVoltage();
+	}
+	
+	/**
+	 * sets the zeroPos to the passed value
+	 * @param zeroVoltage - the new zeroPos
+	 */
+	public void setZero(double zeroVoltage){
+		zeroPos = zeroVoltage;
+	}
+	
+	/**
+	 * gets the zero position
+	 * @return - the zeroPos
+	 */
+	public double getZero(){
+		return zeroPos;
 	}
 }

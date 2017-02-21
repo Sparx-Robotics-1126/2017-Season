@@ -4,20 +4,23 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 
+
 public class DriverStationControls {
 
 	// General Joystick Data
 	
-	private static final int maxJoysticks = 3;
-	private static final int maxButtons = 18;
-	private static final int maxAxes = 14;
+	private static final int maxJoysticks = 4;
+	private static final int maxButtons = 21;
+	private static final int maxAxes = 16;
 	private static final int maxPOVs = 8;
 	private static final int leftJoystickButtons = -1;
 	private static final int rightJoystickButtons = 3;
 	private static final int xboxControllerButtons = 7;
+	private static final int boxControllerButtons = 17;
 	private static final int leftJoystickAxis = 0;
 	private static final int rightJoystickAxis = 4;
 	private static final int xboxControllerAxis = 8;
+	private static final int boxControllerAxis = 14;
 
 	// Generic Joystick Mapping
 	
@@ -57,10 +60,10 @@ public class DriverStationControls {
 
 	public static final int XBOX_LEFT_X = 0;
 	public static final int XBOX_LEFT_Y = 1;
-	public static final int XBOX_L2 = 2;
-	public static final int XBOX_R2 = 3;
-	public static final int XBOX_RIGHT_X = 4;
-	public static final int XBOX_RIGHT_Y = 5;
+	public static final int XBOX_RIGHT_X = 2;
+	public static final int XBOX_RIGHT_Y = 3;
+	public static final int XBOX_L2 = 4;
+	public static final int XBOX_R2 = 5;
 	
 	public static final int XBOX_POV = 0;
 	public static final int XBOX_A = 1;
@@ -95,6 +98,24 @@ public class DriverStationControls {
 	public static final int OP_XBOX_L3 = xboxControllerButtons + XBOX_L3;
 	public static final int OP_XBOX_R3 = xboxControllerButtons + XBOX_R3;
 		
+	// Generic Box Mapping
+	
+	public static final int BOX_SHOOTER = 0;
+	public static final int BOX_ACQUIRE = 1;
+	public static final int BOX_TARGET = 2;
+	
+	public static final int BOX_TURRET = 0;
+	public static final int BOX_DISTANCE = 1;
+	
+	// Box Mapping
+	
+	public static final int OP_BOX_SHOOTER = boxControllerButtons + BOX_SHOOTER;
+	public static final int OP_BOX_ACQUIRE = boxControllerButtons + BOX_ACQUIRE;
+	public static final int OP_BOX_TARGET = boxControllerButtons + BOX_TARGET;
+	
+	public static final int OP_BOX_TURRET = boxControllerAxis + BOX_TURRET;
+	public static final int OP_BOX_DISTANCE = boxControllerAxis + BOX_DISTANCE;
+	
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
@@ -121,7 +142,10 @@ public class DriverStationControls {
 			{2, XBOX_BACK},
 			{2, XBOX_START},
 			{2, XBOX_L3},
-			{2, XBOX_R3}
+			{2, XBOX_R3},
+			{3, BOX_SHOOTER},											// Index 18 - Start of Joystick #4
+			{3, BOX_ACQUIRE},
+			{3, BOX_TARGET}
 	};
 	
 	// Time (in milliseconds - from the system.CurrentTimeMillis()) that the last press or release of a button occurred
@@ -179,7 +203,12 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},
+			{0,0},
+			{0,0},														// Joystick 3 (Box)
+			{0,0},
 			{0,0}
+			
+			
 	};
 	
 	private long[][]buttonData = {										// {Rising Edge, Falling Edge}
@@ -199,6 +228,9 @@ public class DriverStationControls {
 			{0,0},
 			{0,0},
 			{0,0},
+			{0,0},
+			{0,0},
+			{0,0},														// Joystick 3 (Box)
 			{0,0},
 			{0,0}
 	};
@@ -224,6 +256,9 @@ public class DriverStationControls {
 			false,
 			false,
 			false,
+			false,
+			false,														// Joystick 3 (Box)
+			false,
 			false
 	};
 	
@@ -243,7 +278,9 @@ public class DriverStationControls {
 			{2, XBOX_RIGHT_X},
 			{2, XBOX_RIGHT_Y},
 			{2, XBOX_L2},
-			{2, XBOX_R2}
+			{2, XBOX_R2},
+			{3, BOX_TURRET},											// Joystick 3 (Standard)
+			{3, BOX_DISTANCE}
 	};
 	
 	private static final int[][] povs = {
@@ -271,7 +308,9 @@ public class DriverStationControls {
 			{0.05,1.0},
 			{0.05,1.0},
 			{0.05,1.0},
-			{0.05,1.0}
+			{0.05,1.0},
+			{0.0,1.0},													// Joystick 3 (Box)
+			{0.0,1.0}
 	};
 	
 	//-----------------------------------------------------------------------------------------------------------
@@ -594,7 +633,8 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-
+		boolean POVValue;
+		
 		createObjects(false);											// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
@@ -611,6 +651,16 @@ public class DriverStationControls {
 							System.currentTimeMillis();
 					
 					buttonLastValues[i] = bValue;						// Store updated button value
+				}
+			}
+			for (i=0; i<maxPOVs; i++){
+				POVValue = getPOV(i);
+				if (POVValue != POVLastValues[i]){
+					if(POVValue)
+						POVDataGlobal[i][0] = System.currentTimeMillis();
+					else
+						POVDataGlobal[i][1] = System.currentTimeMillis();
+					POVLastValues[i] = POVValue;
 				}
 			}
 		}

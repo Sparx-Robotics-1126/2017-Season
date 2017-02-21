@@ -69,6 +69,7 @@ public class Drives extends GenericSubsystem {
 	
 	private static Drives drives;												// An instance of drives
 	private DriveState currentDriveState;										// The current state
+	private DriveState previousDriveState;										// The previous state
 	private AHRS gyro; 															// NAVX gyro
 	private double currentX;													// Starting x value of the robot
 	private double currentY;													// Starting y value of the robot
@@ -168,6 +169,7 @@ public class Drives extends GenericSubsystem {
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
+		previousDriveState = DriveState.STANDBY;
 		currentDiagnosticState = DiagnosticState.DONE;
 		try{
 			gyro = new AHRS(SerialPort.Port.kUSB);
@@ -228,11 +230,29 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
-		
+		if(!previousDriveState.equals(currentDriveState)){
+			if(currentDriveState.equals(DriveState.DISABLED)){
+				rightMotorTop.enableBrakeMode(false);
+				rightMotorFront.enableBrakeMode(false);
+				rightMotorBack.enableBrakeMode(false);
+				leftMotorTop.enableBrakeMode(false);
+				leftMotorFront.enableBrakeMode(false);
+				leftMotorBack.enableBrakeMode(false);
+			}else if(previousDriveState.equals(DriveState.DISABLED)){
+				rightMotorTop.enableBrakeMode(true);
+				rightMotorFront.enableBrakeMode(true);
+				rightMotorBack.enableBrakeMode(true);
+				leftMotorTop.enableBrakeMode(true);
+				leftMotorFront.enableBrakeMode(true);
+				leftMotorBack.enableBrakeMode(true);
+			}
+		}		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_X, JOYSTICK_DEADBAND);
+		
+		
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
 			LOG.logMessage("Recreating NavX");
@@ -245,8 +265,7 @@ public class Drives extends GenericSubsystem {
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
 		currentAngle = gyro.getAngle() % 360;
 		if(dsc.isEnabled()){
-			LOG.logMessage(16, 50, "Raw Angle: " + gyro.getAngle());
-			LOG.logMessage(18, 50, "(X, Y) field position: ( " + currentX + ", " + currentY + ")");
+			LOG.logMessage(18, 50, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
 		}
 		rightCurrentDistance = rightEncoderData.getDistance();
 		leftCurrentDistance = leftEncoderData.getDistance();
@@ -337,7 +356,7 @@ public class Drives extends GenericSubsystem {
 		case DISABLED:
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
-			currentDriveState = DriveState.AUTO_STOP;
+			currentDriveState = DriveState.STANDBY;
 			break;
 			
 		default:
@@ -368,6 +387,13 @@ public class Drives extends GenericSubsystem {
 			leftMotorFront.set(leftSetPower);
 			leftMotorBack.set(leftSetPower);
 		}
+		dsc.sharedData.x = currentX;
+		dsc.sharedData.y = currentY;
+		dsc.sharedData.heading = initialHeading;
+		dsc.sharedData.leftSpeed = leftCurrentSpeed;
+		dsc.sharedData.rightSpeed = rightCurrentSpeed;
+		dsc.sharedData.avgSpeed = averageSpeed;
+		previousDriveState = currentDriveState;
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
 		previousX = currentX;
@@ -391,21 +417,19 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-//		LOG.logMessage(0, 25, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
-//		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
-//		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+//		LOG.logMessage(0, 25, "Current Speeds (Right, Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+//		LOG.logMessage(1, 10, "Wanted Speeds (Right, Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
+//		LOG.logMessage(2, 10, "Set Powers (Right, Left): (" + rightSetPower + "," + leftSetPower + ")");
+//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
 //		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
 //		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
 //		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
+//		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
 //		if(isInverse){
 //			LOG.logMessage(10, 10, "The drives are inverted");
 //		}else{
 //			LOG.logMessage(11, 10, "The drives are not inverted");
 //		}
-//		LOG.logMessage(12, 5, "Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
-//		LOG.logMessage(13, 5, "Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
 	}
 
 	/**
@@ -446,6 +470,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoDriveDistance(double distance, double speed){
+		LOG.logMessage("AutoDriveDistance (" + distance + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -462,6 +487,7 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	public boolean autoDrivePoint(double distance, double speed){
+		LOG.logMessage("AutoDrivePoint (" + distance + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -481,12 +507,14 @@ public class Drives extends GenericSubsystem {
 	
 	public boolean autoDriveCoordinate(double x, double y, double speed){
 		if(!isAutoDone()){
+			LOG.logMessage("Error: AutoDrive Coordinate isAutoDone is false");
 			return false;
 		}
 		driveDone = false;
-		initialHeading = gyro.getAngle();
+		initialHeading = Math.toDegrees(Math.atan2(x-currentX, y-currentY));
 		endY = y;
 		endX = x;
+		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ") Ang " + initialHeading);
 //		if(endY < currentY){
 //			wantedSpeed = -speed;
 //		}else{
@@ -501,51 +529,53 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void driveDistance(){
 		double calculatedDistance = wantedDistance;
-		LOG.logMessage("wanted distance: " + wantedDistance);
+		//LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
 			calculatedDistance -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
 		}
 		distanceToGo = calculatedDistance - averageDistance;
-		LOG.logMessage("Distance to go: " + distanceToGo);
+		//LOG.logMessage("Distance to go: " + distanceToGo);
 		if(wantedSpeed > distanceToGo + 40){
 			wantedSpeed = distanceToGo + 40;
 		}
-		LOG.logMessage("wanted Speed: " + wantedSpeed);
+		//LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = straightCorrection/4 + wantedSpeed;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4;
 		if(averageDistance >= Math.abs(calculatedDistance - .5)){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
-			LOG.logMessage("Distance Traveled: " + averageDistance);
-			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+			//LOG.logMessage("Distance Traveled: " + averageDistance);
+			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("ending drive to distance");
 			driveDone = true;
+			return;
 		}
 	}
 	
 	private void drivePoint(){
 		double xChange = endX - currentX;
-			LOG.logMessage("change in x: " + xChange);
+			//LOG.logMessage("change in x: " + xChange);
 		double yChange = endY - currentY;
 		distanceToPoint = Math.sqrt((xChange * xChange) + (yChange * yChange));
-			LOG.logMessage("Distance to point: " + distanceToPoint);
-		angleToEnd = Math.atan2(xChange, yChange) - Math.toRadians(currentAngle);
-			LOG.logMessage("Angle offset to end: " + angleToEnd);
+			//LOG.logMessage("Distance to point: " + distanceToPoint);
+		angleToEnd = Math.IEEEremainder(Math.atan2(xChange, yChange) - Math.toRadians(currentAngle), Math.PI * 2.0);
+			//LOG.logMessage("Angle offset to end: " + angleToEnd);
 		offsetCorrection = Math.sin(angleToEnd) * distanceToPoint;
-			LOG.logMessage("Offset correction: " + offsetCorrection);
-			LOG.logMessage("wanted distance: " + wantedDistance);
-		straightCorrection = gyro.getAngle() - initialHeading;
+			//LOG.logMessage("Offset correction: " + offsetCorrection);
+			//LOG.logMessage("wanted distance: " + wantedDistance);
+		straightCorrection = Math.IEEEremainder(gyro.getAngle() - initialHeading, 360);
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
-			distanceToPoint -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
+			distanceToPoint -= ((Math.abs(averageSpeed) - 12) * .32 +.5);
 		}
 		if(wantedSpeed > distanceToPoint + 40){
 			wantedSpeed = distanceToPoint + 40;
 		}
-		LOG.logMessage("wanted Speed: " + wantedSpeed);
+		//LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = wantedSpeed + straightCorrection/4 - offsetCorrection/2;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4 + offsetCorrection/2;
 		if((distanceToPoint < .5) || (Math.abs(angleToEnd) > Math.toRadians(90))){
@@ -553,10 +583,12 @@ public class Drives extends GenericSubsystem {
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
 			offsetCorrection = 0;
-			LOG.logMessage("Distance Traveled: " + averageDistance);
-			LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+			//LOG.logMessage("Distance Traveled: " + averageDistance);
+			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("Ending drive to a coordinate.  angToEnd " + angleToEnd + "  distToPt " + distanceToPoint);
 			driveDone = true;
+			return;
 		}
 	}
 	
@@ -567,6 +599,7 @@ public class Drives extends GenericSubsystem {
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
 	public boolean autoTurn(double angle, double speed){
+		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
 		}
@@ -582,14 +615,17 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void turn(){
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
-		LOG.logMessage("Current Angle: " + currentAngle);
-		LOG.logMessage("angleOffset: " + angleOffset);
+		//LOG.logMessage("Current Angle: " + currentAngle);
+		//LOG.logMessage("angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("Ending Auto turn");
+			LOG.logMessage("Current Angle: " + currentAngle);
 			turnDone = true;
+			return;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
 			wantedSpeed = 12 + Math.abs(angleOffset)/2;
@@ -632,14 +668,16 @@ public class Drives extends GenericSubsystem {
 	 * @return if the drives have actually stopped
 	 */
 	public boolean stopDrives(){
+//		LOG.logMessage("StopDrives (" + ")");
 		currentDriveState = DriveState.AUTO_STOP;
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
 		leftWantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightSetPower = STOP_MOTOR_POWER_SPEED;
 		leftSetPower = STOP_MOTOR_POWER_SPEED;
-		if(Math.abs(averageSpeed) < .1){
+		if(Math.abs(leftCurrentSpeed) < .1 && Math.abs(rightCurrentSpeed) < .1){
 			currentDriveState = DriveState.STANDBY;
+			LOG.logMessage("Ending stop drives (X,Y) (" + currentX + "," + currentY + ")");
 			return true;
 		}else{
 			return false;
@@ -782,7 +820,6 @@ public class Drives extends GenericSubsystem {
 			}
 			break;
 		default:
-			LOG.logError("Error, we are in the default diagnostic state");
 			currentDiagnosticState = DiagnosticState.DONE;
 		}
 	}
@@ -898,3 +935,4 @@ public class Drives extends GenericSubsystem {
 		
 	}
 }
+

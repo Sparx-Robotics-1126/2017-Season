@@ -12,9 +12,9 @@ public class IO {
 
 	/**************************************PWM*****************************************/
 	
-	public static final int PWM_BALLACQ_SERVO_AGITATOR						= 4;
+	public static final int PWM_BALLACQ_SERVO_AGITATOR						= 14;
 	
-	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 5;
+	public static final int PWM_BALLACQ_SERVO_FUELGATE  					= 15;
 	
 	/************************************DIO*******************************************/
 	
@@ -31,6 +31,10 @@ public class IO {
 	public static final int DIO_SHOOTER_ABS_ENC								= 15;
 	
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 16;
+	
+	public static final int DIO_SHOOTER_LIMITSWITCH_RIGHT					= 20;
+	
+	public static final int DIO_SHOOTER_LIMITSWITCH_LEFT					= 21;
 	
 	public static final int DIO_SHOOTER_ENC_A                               = 22;
 	
@@ -51,9 +55,9 @@ public class IO {
 	
 	// CAN 2017 - New definitions for 2017 robot
 	
-	public static final int CAN_BALLACQ_RIGHT								= 8;
+	public static final int CAN_BALLACQ_RIGHT								= 1;
 	
-	public static final int CAN_BALLACQ_LEFT								= 2;
+	public static final int CAN_BALLACQ_LEFT								= 8;
 	
 	public static final int CAN_CLIMBING_WINCH	   							= 3;
 	
@@ -65,7 +69,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_INTAKE_FEEDER						= 7;
 	
-	public static final int CAN_SHOOTER_TURRET								= 1;
+	public static final int CAN_SHOOTER_TURRET								= 2;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 9;
 	
@@ -92,6 +96,10 @@ public class IO {
 	
 	/***********************BUTTONS/JOYSTICK******************************************/
 	
+	public static final int AUTO_TURN										= DriverStationControls.LEFT_JOY_TRIGGER;
+	
+	public static final int AUTO_DRIVE										= DriverStationControls.RIGHT_JOY_LEFT;
+	
 	public static final int RESET_ENCODER									= DriverStationControls.LEFT_JOY_RIGHT;
 
 	public static final int ABORT_AUTO_DRIVES								= DriverStationControls.LEFT_JOY_LEFT;
@@ -100,7 +108,7 @@ public class IO {
 	
 	public static final int HOLD_DRIVES										= DriverStationControls.RIGHT_JOY_RIGHT;
 	
-	public static final int BUTTON_SHOOTING_SYSTEM_ON						= DriverStationControls.OP_XBOX_Y;
+	public static final int FLIP_SHOOTING_SYSTEM_ON							= DriverStationControls.LEFT_JOY_MIDDLE;
 	
 	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
@@ -124,4 +132,10 @@ public class IO {
 	
 	public static final int ACQ_BACKWARD									= 6;
 	
+	public static final int FLYWHEEL_INCREASE							    = DriverStationControls.OP_XBOX_X;
+	
+	public static final int FLYWHEEL_DECREASE 								= DriverStationControls.OP_XBOX_B;
+	
+	public static final int AGITATOR_SERVO									= DriverStationControls.OP_XBOX_Y;
+
 }

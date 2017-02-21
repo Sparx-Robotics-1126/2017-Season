@@ -1,7 +1,10 @@
 package org.gosparx.team1126.robot;
 
+import org.gosparx.team1126.robot.subsystem.BallAcq;
 import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.subsystem.Scaling;
+import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
 
@@ -27,12 +30,12 @@ public class Robot extends SampleRobot{
 		dsc = new DriverStationControls(true);
 		
 		subsystems = new GenericSubsystem[]{
+			BallAcq.getInstance(),
 			Drives.getInstance(),
-        	
-//			Autonomous.getInstance(),
-//        	BallAcqNew.getInstance(),
-//			CameraController.getInstance(), 
+			Scaling.getInstance(),
+			Shooter.getInstance(),
 			LogWriter.getInstance(),
+			Autonomous.getInstance(),
 		};
 
 		for(GenericSubsystem system: subsystems){
@@ -45,6 +48,7 @@ public class Robot extends SampleRobot{
 	 *  Called one time when the robot enters autonomous
 	 */
 	public void autonomous() {
+		Autonomous.getInstance().setRunAuto(true);
 		System.out.println("Auto Started");
 	}
 
@@ -52,16 +56,20 @@ public class Robot extends SampleRobot{
 	 *  Called one time when the robot enters teleop
 	 */
 	public void operatorControl() {
+		Autonomous.getInstance().setRunAuto(false);
+		//Drives.getInstance().abortAuto();
 	}
 
 	/**
 	 *  Called one time when the robot enters test
 	 */
 	public void test() {
+		Autonomous.getInstance().setRunAuto(false);
 	}
 	
 	
 	@Override
 	public void disabled(){
+		Autonomous.getInstance().setRunAuto(false);
 	}
 }
