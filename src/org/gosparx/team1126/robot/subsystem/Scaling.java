@@ -108,7 +108,6 @@ public class Scaling extends GenericSubsystem {
 	@Override
 	protected void liveWindow() {
 		
-		
 	}
 
 	private void readControls(){

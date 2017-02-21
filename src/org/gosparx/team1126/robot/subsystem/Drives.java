@@ -69,6 +69,7 @@ public class Drives extends GenericSubsystem {
 	
 	private static Drives drives;												// An instance of drives
 	private DriveState currentDriveState;										// The current state
+	private DriveState previousDriveState;										// The previous state
 	private AHRS gyro; 															// NAVX gyro
 	private double currentX;													// Starting x value of the robot
 	private double currentY;													// Starting y value of the robot
@@ -168,6 +169,7 @@ public class Drives extends GenericSubsystem {
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
+		previousDriveState = DriveState.STANDBY;
 		currentDiagnosticState = DiagnosticState.DONE;
 		try{
 			gyro = new AHRS(SerialPort.Port.kUSB);
@@ -228,7 +230,23 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
-		
+		if(!previousDriveState.equals(currentDriveState)){
+			if(currentDriveState.equals(DriveState.DISABLED)){
+				rightMotorTop.enableBrakeMode(false);
+				rightMotorFront.enableBrakeMode(false);
+				rightMotorBack.enableBrakeMode(false);
+				leftMotorTop.enableBrakeMode(false);
+				leftMotorFront.enableBrakeMode(false);
+				leftMotorBack.enableBrakeMode(false);
+			}else if(previousDriveState.equals(DriveState.DISABLED)){
+				rightMotorTop.enableBrakeMode(true);
+				rightMotorFront.enableBrakeMode(true);
+				rightMotorBack.enableBrakeMode(true);
+				leftMotorTop.enableBrakeMode(true);
+				leftMotorFront.enableBrakeMode(true);
+				leftMotorBack.enableBrakeMode(true);
+			}
+		}		
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
@@ -367,6 +385,13 @@ public class Drives extends GenericSubsystem {
 			leftMotorFront.set(leftSetPower);
 			leftMotorBack.set(leftSetPower);
 		}
+		dsc.sharedData.x = currentX;
+		dsc.sharedData.y = currentY;
+		dsc.sharedData.heading = initialHeading;
+		dsc.sharedData.leftSpeed = leftCurrentSpeed;
+		dsc.sharedData.rightSpeed = rightCurrentSpeed;
+		dsc.sharedData.avgSpeed = averageSpeed;
+		previousDriveState = currentDriveState;
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
 		previousX = currentX;
@@ -390,21 +415,19 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected void writeLog() {
-//		LOG.logMessage(0, 25, "Current Speeds (Right,Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
-//		LOG.logMessage(1, 10, "Wanted Speeds (Right,Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
-//		LOG.logMessage(2, 10, "Set Powers (Right,Left): (" + rightSetPower + "," + leftSetPower + ")");
-		//LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
+//		LOG.logMessage(0, 25, "Current Speeds (Right, Left): (" + rightCurrentSpeed + "," + leftCurrentSpeed + ")");
+//		LOG.logMessage(1, 10, "Wanted Speeds (Right, Left): (" + rightWantedSpeed + "," + leftWantedSpeed + ")");
+//		LOG.logMessage(2, 10, "Set Powers (Right, Left): (" + rightSetPower + "," + leftSetPower + ")");
+//		LOG.logMessage(3, 10, "Current Angle: " + currentAngle);
 //		LOG.logMessage(4, 10, "Wanted Angle: " + wantedAngle);
 //		LOG.logMessage(5, 10, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
 //		LOG.logMessage(6, 10, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-		//LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
+//		LOG.logMessage(9, 10, "Current Position (x,y): (" + currentX + "," + currentY + ")");
 //		if(isInverse){
 //			LOG.logMessage(10, 10, "The drives are inverted");
 //		}else{
 //			LOG.logMessage(11, 10, "The drives are not inverted");
 //		}
-//		LOG.logMessage(12, 5, "Right Y: " + dsc.getAxis(IO.RIGHT_JOY_Y));
-//		LOG.logMessage(13, 5, "Left Y: " + dsc.getAxis(IO.LEFT_JOY_Y));
 	}
 
 	/**
@@ -675,7 +698,7 @@ public class Drives extends GenericSubsystem {
 		double changeY = currentY - previousY;
 		double changeAngle = currentAngle - previousAngle;
 		if (Math.abs(changeX) > 3){
-		//	LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
+			LOG.logMessage("We have been pushed off course! Lateral Change: " + changeX);
 		}
 		if(Math.abs(changeY) > 3){
 			autoDriveDistance(changeY, HOLDING_DRIVE_SPEED);
@@ -795,7 +818,6 @@ public class Drives extends GenericSubsystem {
 			}
 			break;
 		default:
-			//LOG.logError("Error, we are in the default diagnostic state");
 			currentDiagnosticState = DiagnosticState.DONE;
 		}
 	}
