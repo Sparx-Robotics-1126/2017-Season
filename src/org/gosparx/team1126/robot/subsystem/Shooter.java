@@ -16,6 +16,7 @@ import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.util.SharedData;
 
 public class Shooter extends GenericSubsystem{
 
@@ -95,11 +96,13 @@ public class Shooter extends GenericSubsystem{
 	
 	private static Shooter shoot;
 	
+	//private SharedData shareddata;
+	
 	private Encoder encoder;
 	
 	private EncoderData encoderData;
 	
-	//private AbsoluteEncoderData turretSensor;
+	private AbsoluteEncoderData turretSensor;
 	
 	private CANTalon flyWheel;
 	
@@ -280,11 +283,11 @@ public class Shooter extends GenericSubsystem{
 		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
 				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
 			if(speedButton == true){
-				LOG.logMessage("TELE - Shooter off");
+			//	LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
 			}else{
-				LOG.logMessage("TELE - Shooter on");
+			//	LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
 			}
@@ -405,19 +408,31 @@ public class Shooter extends GenericSubsystem{
 	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
-	private boolean turretCtrl(){
-//		if(!turretButton){
-//			turret.set(0);
-//			return false;
-//		}
-//		if(turretDegreeCurrent < turretSettings()-1){
-//			turret.set(-.5);
-//		}else if(turretDegreeCurrent > turretSettings()+1){
-//			turret.set(.5);
-//		}else{
-//			turret.set(0);
-//			return true;
-//		}
+	private boolean turretCtrl(boolean bool){
+		if(!turretButton){
+			turret.set(0);
+			return false;
+		}
+		if(!bool){
+			turret.set(0);
+			return false;
+		}
+		degreeOff = turretSettings();
+		LOG.logMessage("degree " + degreeOff);
+		if(limitSwitchRight.get()){
+			turret.set(-0.01);
+		}else if(limitSwitchLeft.get()){
+			turret.set(0.01);
+		}else{
+			if(turretDegreeCurrent < turretSettings()-1){
+				turret.set(-.5);
+			}else if(turretDegreeCurrent > turretSettings()+1){
+				turret.set(.5);
+			}else{
+				turret.set(0);
+			return true;
+			}
+		}	
 		return true;
 	}
 	
@@ -427,7 +442,12 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		if(speedCtrl() && turretCtrl()){
+		boolean bool;
+		if(dsc.sharedData.targetType == SharedData.Target.BOILER)
+			bool = true;
+		else
+			bool = false;
+		if(speedCtrl() && turretCtrl(bool)){
 			return true;
 		}
 		return false;
