@@ -100,7 +100,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private EncoderData encoderData;
 	
-	private AbsoluteEncoderData turretSensor;
+	//private AbsoluteEncoderData turretSensor;
 	
 	private CANTalon flyWheel;
 	
@@ -189,8 +189,8 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init(){
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
-		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
-		turretSensor.setZero(ZERO_VOLTAGE);
+		//turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
+		//turretSensor.setZero(ZERO_VOLTAGE);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
@@ -395,7 +395,6 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(boolean bool){
-		LOG.logMessage("hello");
 		if(!turretButton){
 			turret.set(0);
 			return false;
