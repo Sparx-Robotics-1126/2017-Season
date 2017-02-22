@@ -21,9 +21,10 @@ public class VisionNetworkTable implements ITableListener
 
 	public VisionNetworkTable() //Constructor
 	{
+		System.out.println("exec");
 		currentMode = SharedData.Target.BOILER;
-		NetworkTable.setClientMode();
-		NetworkTable.setIPAddress(IP); 
+		//NetworkTable.setClientMode();
+		//NetworkTable.setIPAddress(IP); 
 		client = NetworkTable.getTable("targetData");  
 		client.addTableListener(this, true);
 	}
@@ -50,7 +51,8 @@ public class VisionNetworkTable implements ITableListener
 			{
 				arrTargetData = (double[]) val; 
 				SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
-
+				System.out.println("Target data I: " + arrTargetData[1]);
+				System.out.println("Target data II: " + arrTargetData[0]);
 				try{Thread.sleep(5);} //Pauses	
 				catch(InterruptedException e)
 				{

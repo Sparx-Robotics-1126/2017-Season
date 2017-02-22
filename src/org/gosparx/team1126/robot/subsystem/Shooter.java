@@ -270,23 +270,24 @@ public class Shooter extends GenericSubsystem{
 //			}
 //		}
 		
-		if((dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)&&(speedButton == false))
-				||(!(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON))&&(speedButton == true))){
-			if(speedButton == true && dsc.isOperatorControl()){
-				//LOG.logMessage(1, 20, "TELE - Shooter off");
+		if((dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
+				||(!(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
+			if(speedButton == true){
+				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
-			}else if(speedButton == false && dsc.isOperatorControl()){
-				//LOG.logMessage(2, 20, "TELE - Shooter on");
+			}else{
+				LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
 			}
-		}else if(isPressed == true && dsc.isAutonomous()){
-			//LOG.logMessage(3, 20, "AUTO - Shooter on");
+		}
+		if(isPressed == true && dsc.isAutonomous()){
+		//	LOG.logMessage("AUTO - Shooter on");
 			speedButton = true;
 			turretButton = false;
 		}else if(isPressed == false && dsc.isAutonomous()){
-			//LOG.logMessage(4, 20,"AUTO - Shooter off");
+	   //		LOG.logMessage("AUTO - Shooter off");
 			speedButton = false;
 			speedButton = false;
 		}
@@ -315,7 +316,7 @@ public class Shooter extends GenericSubsystem{
 			diagnostics();
 		else
 			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
-		
+
 		dsc.sharedData.systemReady = ready;
 		dsc.sharedData.turretAngle = turretDegreeCurrent;
 		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;		
@@ -337,7 +338,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-//		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
 //		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
 //		//LOG.logMessage("Turret Degree Off: " + degreeOff);
 //		LOG.logMessage("Distance Away: " + distance);
@@ -394,10 +395,12 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(boolean bool){
+		LOG.logMessage("hello");
 		if(!turretButton){
 			turret.set(0);
 			return false;
-		}else if(!bool){
+		}
+		if(!bool){
 			turret.set(0);
 			return false;
 		}
@@ -409,9 +412,9 @@ public class Shooter extends GenericSubsystem{
 			turret.set(0.01);
 		}else{
 			if(turretDegreeCurrent < turretSettings()-1){
-				turret.set(-.10);
+				turret.set(-.20);
 			}else if(turretDegreeCurrent > turretSettings()+1){
-				turret.set(.10);
+				turret.set(.20);
 			}else{
 				turret.set(0);
 			return true;
