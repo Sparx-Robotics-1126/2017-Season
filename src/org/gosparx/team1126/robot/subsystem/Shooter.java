@@ -96,8 +96,6 @@ public class Shooter extends GenericSubsystem{
 	
 	private static Shooter shoot;
 	
-	//private SharedData shareddata;
-	
 	private Encoder encoder;
 	
 	private EncoderData encoderData;
@@ -110,17 +108,13 @@ public class Shooter extends GenericSubsystem{
 	
 	private CANTalon turret;
 	
-	//private DigitalInput A;
-	
-	//private DigitalInput B;
-	
 	private DiagnosticsEnuuum currentEnum;
 	
 	private Servo servo;
 	
-	private DigitalInput limitSwitchRight;
-	
 	private DigitalInput limitSwitchLeft;
+	
+	private DigitalInput limitSwitchRight;
 	
 //*****************************************Constants*************************************\\
 	
@@ -195,17 +189,13 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init(){
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
-		//turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURNING, DEGREE_PER_VOLT);
-		//turretSensor.setZero(ZERO_VOLTAGE);
-		//A = new DigitalInput(IO.DIO_SHOOTER_ENC_A);
-		//B = new DigitalInput(IO.DIO_SHOOTER_ENC_B);
+		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
+		turretSensor.setZero(ZERO_VOLTAGE);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
 	 	servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
-		limitSwitchRight = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_RIGHT);
-		limitSwitchLeft = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_LEFT);
 		shootingSpeedCurrent = 0;
 		speedButton = false;
 		turretButton = false;
@@ -213,7 +203,7 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		distance =  100;
 		ready = false;
-		speed = 1800;
+		speed = 1450;
 		currentTime = 0;
 		max = 0;
 		min = 10000;
@@ -245,7 +235,7 @@ public class Shooter extends GenericSubsystem{
 		shootingSpeedCurrent = encoderData.getSpeed();
 
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
-			LOG.logMessage("Max: " + max + " Min: " + min);
+		//	LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
 			min = 10000;
 			time = System.currentTimeMillis()/1000.0;
@@ -256,7 +246,7 @@ public class Shooter extends GenericSubsystem{
 		
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
-		LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
+		//LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
 		
 //		if(dsc.isOperatorControl())	
 //			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
@@ -283,11 +273,11 @@ public class Shooter extends GenericSubsystem{
 		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
 				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
 			if(speedButton == true){
-			//	LOG.logMessage("TELE - Shooter off");
+				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
 			}else{
-			//	LOG.logMessage("TELE - Shooter on");
+				LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
 			}
@@ -303,14 +293,14 @@ public class Shooter extends GenericSubsystem{
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
-			LOG.logMessage("up");
+			//LOG.logMessage("up");
 		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-			LOG.logMessage("Down");
+			//LOG.logMessage("Down");
 			speed -= 50;
 		}
 		if(dsc.getButtonRising(IO.AGITATOR_SERVO)){
 			servo.set(1);
-			LOG.logMessage("Servo is pressed");
+			//LOG.logMessage("Servo is pressed");
 		}	
 		if(fireCtrl()){
 			ready = true;
@@ -322,19 +312,14 @@ public class Shooter extends GenericSubsystem{
 			ready = false;
 			feeder.set(0);
 		}
-//		if(limitSwitchRight){
-//			
-//		}
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
 		else
 			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
-		
-//		dsc.sharedData.systemReady = ready;
-//		dsc.sharedData.turretAngle = turretDegreeCurrent;
-//		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;
-//		System.out.println("t");
-		
+
+		dsc.sharedData.systemReady = ready;
+		dsc.sharedData.turretAngle = turretDegreeCurrent;
+		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;		
 		return false;
 	}
 
@@ -354,10 +339,10 @@ public class Shooter extends GenericSubsystem{
 	@Override
 	protected void writeLog(){
 		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
-		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
-		//LOG.logMessage("Turret Degree Off: " + degreeOff);
-		LOG.logMessage("Distance Away: " + distance);
-		LOG.logMessage("IsPressed: " + isPressed);
+//		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
+//		//LOG.logMessage("Turret Degree Off: " + degreeOff);
+//		LOG.logMessage("Distance Away: " + distance);
+//		LOG.logMessage("IsPressed: " + isPressed);
 	}
 	
 	//framework done
@@ -371,12 +356,13 @@ public class Shooter extends GenericSubsystem{
 
 	}
 	
-	//framework done
+	//done
 	/**
 	 * calculates the direction to turn
 	 * @return - the degree and direction(positive or negative)
 	 */
 	private double turretSettings(){
+		degreeOff = dsc.sharedData.angleToBoiler;
 		return degreeOff;
 	}
 	
@@ -418,21 +404,21 @@ public class Shooter extends GenericSubsystem{
 			return false;
 		}
 		degreeOff = turretSettings();
-		LOG.logMessage("degree " + degreeOff);
+		LOG.logMessage("Degree: " + degreeOff);
 		if(limitSwitchRight.get()){
 			turret.set(-0.01);
 		}else if(limitSwitchLeft.get()){
 			turret.set(0.01);
 		}else{
 			if(turretDegreeCurrent < turretSettings()-1){
-				turret.set(-.5);
+				turret.set(-.20);
 			}else if(turretDegreeCurrent > turretSettings()+1){
-				turret.set(.5);
+				turret.set(.20);
 			}else{
 				turret.set(0);
 			return true;
 			}
-		}	
+		}
 		return true;
 	}
 	
