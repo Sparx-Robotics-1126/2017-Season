@@ -362,10 +362,10 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
-			rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			//rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
-			//leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
+			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
+			leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed
