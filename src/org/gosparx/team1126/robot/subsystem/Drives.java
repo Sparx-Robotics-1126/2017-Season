@@ -20,7 +20,7 @@ public class Drives extends GenericSubsystem {
 	/** Constants */
 
 	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
-	private static final double DISTANCE_PER_TICK = .031219576995;				// The Formula: (Gear Ratio * Circumference)/ticks
+	private static final double CALCULATED_DISTANCE_PER_TICK = .031219576995;	// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double RIGHT_DISTANCE_PER_TICK = .03068;				// was .03068
 	private static final double LEFT_DISTANCE_PER_TICK = .02993;				// was .02993
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
@@ -72,33 +72,33 @@ public class Drives extends GenericSubsystem {
 	private DriveState previousDriveState;										// The previous state
 	private AHRS gyro; 															// NAVX gyro
 	private double currentX;													// Starting x value of the robot
-	private double currentY;													// Starting y value of the robot
+	private double currentY;													// Starting Y value of the robot
 	private double previousX;													// Previous X value
 	private double previousY;													// Previous Y value
 	private double currentAngle;												// Current angle
 	private boolean isInverse;													// If the drives is inverted
 	private double wantedSpeed;													// Speed passed in through methods
-	private double wantedDistance;												// Wanted Distance
-	private double wantedAngle;													// Wanted Angle
+	private double wantedDistance;												// Wanted distance
+	private double wantedAngle;													// Wanted angle
 	private double angleOffset;													// Offset of the angle
 	private boolean turnDone;													// True if auto turn is done
 	private boolean driveDone;													// True if auto drive is done
-	private double averageSpeed;												// Average Speed
-	private double averageDistance;												// Average Distance
-	private double previousAngle;												// Previous Angle
+	private double averageSpeed;												// Average speed
+	private double averageDistance;												// Average distance
+	private double previousAngle;												// Previous angle
 	private DiagnosticState currentDiagnosticState;								// Current diagnostic state
-	private boolean isDiagnostic;												// whether diagnostics are being run
-	private long diagnosticTime;												// the time diagnostic starts												
-	private double initialHeading;
-	private double straightCorrection;
-	private double distanceToGo;
-	private double endX;
-	private double endY;
-	private double angleToEnd;
-	private double calculatedDistance;
-	private double offsetCorrection;
-	private double distanceToPoint;
-	private boolean autoReady;
+	private boolean isDiagnostic;												// Whether diagnostics are being run
+	private long diagnosticTime;												// Time diagnostic starts												
+	private double initialHeading;												// Intial heading of the robot
+	private double straightCorrection;											// Correction for going straight
+	private double distanceToGo;												// Distance left in auto drive		
+	private double endX;														// End X coordinate	
+	private double endY;														// End Y coordinate
+	private double angleToEnd;													// Angle to end coordinate
+	private double calculatedDistance;											// Calculated distance left (based on testing)
+	private double offsetCorrection;											// Correction for the offset to the end point
+	private double distanceToPoint;												// Distance to the end point	
+	private boolean autoReady;													// Whether auto is ready (for use of calling auto functions in teleop)
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -276,6 +276,7 @@ public class Drives extends GenericSubsystem {
 		switch(currentDriveState){
 			
 		case STANDBY:
+			autoReady = true;
 			if(dsc.isDisabled()){
 				currentDriveState = DriveState.DISABLED;
 			}else if(dsc.isOperatorControl()){
@@ -284,18 +285,22 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_DRIVE_DISTANCE:
+			autoReady = false;
 			driveDistance();
 			break;
 			
 		case AUTO_DRIVE_POINT:
+			autoReady = false;
 			drivePoint();
 			break;
 			
 		case AUTO_TURN:
+			autoReady = false;
 			turn();
 			break;
 			
 		case AUTO_HOLD:
+			autoReady = false;
 			hold();
 			break;
 			
@@ -573,12 +578,12 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
-	 * Turns the robot in auto
+	 * Turns the robot to a specific heading, relative to the angle/heading the robot started at
 	 * @param angle the angle the robot needs to turn
 	 * @param speed the speed at which the robot should turn
 	 * @return true if the robot has turned to the angle, false otherwise
 	 */
-	public boolean autoTurn(double angle, double speed){
+	public boolean autoTurnToHeading(double angle, double speed){
 		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
 		if(!isAutoDone()){
 			return false;
@@ -591,12 +596,28 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
+	 * Turns the robot angle degrees from its current angle
+	 * @param angle the angle the robot needs to turn
+	 * @param speed the speed at which the robot should turn
+	 * @return true if the robot has turned to the angle, false otherwise
+	 */
+	public boolean autoTurnToAngle(double angle, double speed){
+		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
+		if(!isAutoDone()){
+			return false;
+		}
+		turnDone = false;
+		wantedAngle = currentAngle + angle;
+		wantedSpeed = speed;
+		currentDriveState = DriveState.AUTO_TURN;
+		return true;
+	}
+	
+	/**
 	 * Helper method for auto turn
 	 */
 	private void turn(){
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
-		//LOG.logMessage("Current Angle: " + currentAngle);
-		//LOG.logMessage("angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
 			rightWantedSpeed = 0;
@@ -688,7 +709,7 @@ public class Drives extends GenericSubsystem {
 			autoDriveDistance(changeY, HOLDING_DRIVE_SPEED);
 		}
 		if((Math.abs(changeAngle) > 3) && driveDone){
-			autoTurn(previousAngle, HOLDING_TURN_SPEED);
+			autoTurnToHeading(previousAngle, HOLDING_TURN_SPEED);
 		}
 	}
 	
@@ -716,7 +737,7 @@ public class Drives extends GenericSubsystem {
 			return false;
 		}
 		trig(xValue,yValue);
-		autoTurn(wantedAngle, turnSpeed);
+		autoTurnToHeading(wantedAngle, turnSpeed);
 		if(turnDone){;
 			autoDriveDistance(wantedDistance, driveSpeed);
 		}
