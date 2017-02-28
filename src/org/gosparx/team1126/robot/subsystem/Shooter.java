@@ -273,23 +273,18 @@ public class Shooter extends GenericSubsystem{
 		if((dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
 				||(!(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
 			if(speedButton == true){
-				LOG.logMessage("TELE - Shooter off");
 				speedButton = false;
 				turretButton = false;
 			}else{
-				LOG.logMessage("TELE - Shooter on");
 				speedButton = true;
 				turretButton = true;
 			}
-		}
-		if(isPressed == true && dsc.isAutonomous()){
-		//	LOG.logMessage("AUTO - Shooter on");
+		}else if(isPressed){
 			speedButton = true;
+			turretButton = true;
+		}else if(!isPressed){
+			speedButton = false;
 			turretButton = false;
-		}else if(isPressed == false && dsc.isAutonomous()){
-	   //		LOG.logMessage("AUTO - Shooter off");
-			speedButton = false;
-			speedButton = false;
 		}
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 50;
@@ -383,8 +378,8 @@ public class Shooter extends GenericSubsystem{
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
 			flyWheel.set(FLYWHEEL_DECAY + (shootingSpeed * 0.0001));
 		}
-		if(Math.abs(shootingSpeedCurrent - shootingSpeed) < FlYWHEEL_DEADBAND)
-				return true;
+		if(Math.abs(shootingSpeedCurrent - shootingSpeed) > FlYWHEEL_DEADBAND)
+				return false;
 		return true;	 
 	}
 	
@@ -444,10 +439,12 @@ public class Shooter extends GenericSubsystem{
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
-	public void setSystemState(int isOn){
-		if(isOn == 1){
+	public void shooterSystemState(int isOn){
+		if(isOn == 1)
 			isPressed = true;
-		}else
+		else if(isOn == 0)
+			isPressed = false;
+		else 
 			isPressed = false;
 	}
 	
