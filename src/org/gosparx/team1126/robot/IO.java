@@ -26,7 +26,7 @@ public class IO {
 
 	public static final int DIO_LEFT_DRIVES_ENC_B	                        = 13;
 	
-	public static final int DIO_GEARACQ_ENC									= 14;
+	public static final int DIO_GEARACQ_SENSOR								= 14;
 	
 	public static final int DIO_SHOOTER_ABS_ENC								= 15;
 	
@@ -57,7 +57,7 @@ public class IO {
 	
 	public static final int CAN_BALLACQ_RIGHT								= 1;
 	
-	public static final int CAN_BALLACQ_LEFT								= 8;
+	public static final int CAN_SHOOTER_TURRET								= 2;
 	
 	public static final int CAN_CLIMBING_WINCH	   							= 3;
 	
@@ -69,7 +69,7 @@ public class IO {
 	
 	public static final int CAN_SHOOTER_INTAKE_FEEDER						= 7;
 	
-	public static final int CAN_SHOOTER_TURRET								= 2;
+	public static final int CAN_BALLACQ_LEFT								= 8;
 	
 	public static final int CAN_SHOOTER_FLYWHEEL                            = 9;
 	

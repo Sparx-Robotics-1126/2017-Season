@@ -4,6 +4,7 @@ import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.sensors.PID;
 import org.gosparx.team1126.robot.util.DriverStationControls;
+import org.gosparx.team1126.robot.util.SharedData;
 
 import com.ctre.CANTalon;
 import com.kauailabs.navx.frc.AHRS;
@@ -19,7 +20,6 @@ public class Drives extends GenericSubsystem {
 
 	/** Constants */
 
-	// TODO : Calculate KI, KP, MAX_SPEED for 2017 Robot
 	private static final double CALCULATED_DISTANCE_PER_TICK = .031219576995;	// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double RIGHT_DISTANCE_PER_TICK = .03068;				// was .03068
 	private static final double LEFT_DISTANCE_PER_TICK = .02993;				// was .02993
@@ -285,23 +285,23 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_DRIVE_DISTANCE:
+			driveDistance();			
 			autoReady = false;
-			driveDistance();
 			break;
 			
 		case AUTO_DRIVE_POINT:
+			drivePoint();			
 			autoReady = false;
-			drivePoint();
 			break;
 			
 		case AUTO_TURN:
+			turn();			
 			autoReady = false;
-			turn();
 			break;
 			
 		case AUTO_HOLD:
+			hold();			
 			autoReady = false;
-			hold();
 			break;
 			
 		case AUTO_ABORT:
@@ -372,12 +372,12 @@ public class Drives extends GenericSubsystem {
 			leftMotorFront.set(leftSetPower);
 			leftMotorBack.set(leftSetPower);
 		}
-		dsc.sharedData.x = currentX;
-		dsc.sharedData.y = currentY;
-		dsc.sharedData.heading = initialHeading;
-		dsc.sharedData.leftSpeed = leftCurrentSpeed;
-		dsc.sharedData.rightSpeed = rightCurrentSpeed;
-		dsc.sharedData.avgSpeed = averageSpeed;
+		SharedData.x = currentX;
+		SharedData.y = currentY;
+		SharedData.heading = initialHeading;
+		SharedData.leftSpeed = leftCurrentSpeed;
+		SharedData.rightSpeed = rightCurrentSpeed;
+		SharedData.avgSpeed = averageSpeed;
 		previousDriveState = currentDriveState;
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
@@ -500,11 +500,7 @@ public class Drives extends GenericSubsystem {
 		endY = y;
 		endX = x;
 		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ") Ang " + initialHeading);
-//		if(endY < currentY){
-//			wantedSpeed = -speed;
-//		}else{
-			wantedSpeed = speed;
-//		}
+		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
 		return true;
 	}
@@ -514,26 +510,21 @@ public class Drives extends GenericSubsystem {
 	 */
 	private void driveDistance(){
 		calculatedDistance = wantedDistance;
-		//LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
 			calculatedDistance -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
 		}
 		distanceToGo = calculatedDistance - averageDistance;
-		//LOG.logMessage("Distance to go: " + distanceToGo);
 		if(wantedSpeed > distanceToGo + 40){
 			wantedSpeed = distanceToGo + 40;
 		}
-		//LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = straightCorrection/4 + wantedSpeed;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4;
 		if(averageDistance >= Math.abs(calculatedDistance - .5)){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
-			//LOG.logMessage("Distance Traveled: " + averageDistance);
-			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("ending drive to distance");
 			driveDone = true;
@@ -543,15 +534,10 @@ public class Drives extends GenericSubsystem {
 	
 	private void drivePoint(){
 		double xChange = endX - currentX;
-			//LOG.logMessage("change in x: " + xChange);
 		double yChange = endY - currentY;
 		distanceToPoint = Math.sqrt((xChange * xChange) + (yChange * yChange));
-			//LOG.logMessage("Distance to point: " + distanceToPoint);
 		angleToEnd = Math.IEEEremainder(Math.atan2(xChange, yChange) - Math.toRadians(currentAngle), Math.PI * 2.0);
-			//LOG.logMessage("Angle offset to end: " + angleToEnd);
 		offsetCorrection = Math.sin(angleToEnd) * distanceToPoint;
-			//LOG.logMessage("Offset correction: " + offsetCorrection);
-			//LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = Math.IEEEremainder(gyro.getAngle() - initialHeading, 360);
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
@@ -560,7 +546,6 @@ public class Drives extends GenericSubsystem {
 		if(wantedSpeed > distanceToPoint + 40){
 			wantedSpeed = distanceToPoint + 40;
 		}
-		//LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = wantedSpeed + straightCorrection/4 - offsetCorrection/2;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4 + offsetCorrection/2;
 		if((distanceToPoint < .5) || (Math.abs(angleToEnd) > Math.toRadians(90))){
@@ -568,8 +553,6 @@ public class Drives extends GenericSubsystem {
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
 			offsetCorrection = 0;
-			//LOG.logMessage("Distance Traveled: " + averageDistance);
-			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("Ending drive to a coordinate.  angToEnd " + angleToEnd + "  distToPt " + distanceToPoint);
 			driveDone = true;
@@ -737,7 +720,7 @@ public class Drives extends GenericSubsystem {
 			return false;
 		}
 		trig(xValue,yValue);
-		autoTurnToHeading(wantedAngle, turnSpeed);
+		autoTurnToAngle(wantedAngle, turnSpeed);
 		if(turnDone){;
 			autoDriveDistance(wantedDistance, driveSpeed);
 		}
