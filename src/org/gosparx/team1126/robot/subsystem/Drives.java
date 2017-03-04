@@ -254,8 +254,6 @@ public class Drives extends GenericSubsystem {
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_X, JOYSTICK_DEADBAND);
-		
-		
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
 			LOG.logMessage("Recreating NavX");
@@ -346,6 +344,7 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
+<<<<<<< HEAD
 			if(dsc.isOperatorControl()){
 				rightSetPower = rightWantedSpeed/MAX_SPEED;
 				leftSetPower = leftWantedSpeed/MAX_SPEED;
@@ -353,6 +352,12 @@ public class Drives extends GenericSubsystem {
 				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			}
+=======
+			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
+			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
+			rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
+			leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
+>>>>>>> refs/heads/master
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed

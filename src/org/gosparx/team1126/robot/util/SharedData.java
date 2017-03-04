@@ -2,6 +2,8 @@ package org.gosparx.team1126.robot.util;
 
 public class SharedData {
 
+	public static final double INVALIDTARGETTYPE = 99999;
+	
 	// Drives Subsystem Shared Data
 
 	public static double x;
@@ -17,44 +19,82 @@ public class SharedData {
 	public static double turretAngle;
 	public static double shooterSpeed;
 	public static boolean systemReady;
+	public static boolean shootingOn;
 
 
 	// Camera SubSystem Shared Data
 
-	public enum Target { BOILER, LIFT };
+	public enum Target { NONE, BOILER, LIFT };
+	public static Target targetType = Target.NONE;
 
-	public static double distanceToBoiler;
-	public static double angleToBoiler;
-	//public static double distanceToLift; //For if there is no ultra sonic sound sensor 
-	public static double angleToLift;
-	public static Target targetType;
-	private static double targetXBoiler, targetYBoiler; // (X, Y) at image time
-	//private static double targetXLift, targetYLift;
-	private static long imageTime;						// Time of Image
+	public static double distanceToBoiler, distanceToLift;
+	public static double angleToBoiler, angleToLift;
+	private static double targetXBoiler, targetYBoiler; 			// (X, Y) at image time
+	private static double targetXLift, targetYLift;
+	private static long liftImageTime, boilerImageTime;				// Time of Image
 
+	
+	// Camera routine to set the location of the found target.  Data passed is the target
+	// type, distance and angle to the target from a fixed reference point on the robot
+	
 	public static void setTarget (Target type, double distance, double angle){
-		if(type==Target.BOILER){
+		if(type == Target.BOILER){
 			distanceToBoiler = distance;
 			angleToBoiler = angle;
 			targetXBoiler = x + Math.sin(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
 			targetYBoiler = y + Math.cos(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
+			boilerImageTime = System.currentTimeMillis();
 		}
-		else
+		else if (type == Target.LIFT)
 		{
 			angleToLift = angle;
-//			distanceToLift=distance;
-//			targetXLift = x + Math.sin(Math.toRadians(heading + angleToLift)) * distanceToLift;
-//			targetYLift = y + Math.cos(Math.toRadians(heading + angleToLift)) * distanceToLift;
+			liftImageTime = System.currentTimeMillis();
+			distanceToLift = distance;
+			targetXLift = x + Math.sin(Math.toRadians(heading + angleToLift)) * distanceToLift;
+			targetYLift = y + Math.cos(Math.toRadians(heading + angleToLift)) * distanceToLift;
 		}
-		imageTime = System.currentTimeMillis();
 	}
 
-	public static double getCorrectedTargetAngle(){
-		return(Math.IEEEremainder((Math.atan2(targetXBoiler - x, targetYBoiler - y) - heading), 360.0));
+	// Returns the angle to the desired target based on the last camera image data and compensated
+	// by the movement of the robot.
+	
+	public static double getCorrectedTargetAngle(Target type){
+		if (type == Target.BOILER)
+			return(Math.IEEEremainder((Math.atan2(targetXBoiler - x, targetYBoiler - y) - heading), 360.0));
+		else if (type == Target.LIFT)
+			return(Math.IEEEremainder((Math.atan2(targetXLift - x, targetYLift - y) - heading), 360.0));		
+		else
+		  return INVALIDTARGETTYPE;
 	}
 
+<<<<<<< HEAD
 	public static double getCorrectedTargetDistance(){
 		return (Math.sqrt(Math.pow(targetXBoiler - x, 2) + Math.pow(targetYBoiler - y, 2)));
 	}
 }
 
+=======
+	// Returns the distance to the desired target based on the last camera image data and compensated
+	// by the movement of the robot.
+	
+	public static double getCorrectedTargetDistance(Target type){
+		if (type == Target.BOILER)
+			return (Math.sqrt(Math.pow(targetXBoiler - x, 2) + Math.pow(targetYBoiler - y, 2)));
+		else if (type == Target.LIFT)
+			return (Math.sqrt(Math.pow(targetXLift - x, 2) + Math.pow(targetYLift - y, 2)));			
+		else
+			return INVALIDTARGETTYPE;
+	}
+	
+	// Return the amount of time since the last image of the specified type was received (in seconds)
+	
+	public static double getImageTime(Target type){
+		if (type == Target.BOILER)
+			return (System.currentTimeMillis() - boilerImageTime) / 1000.0;
+		else if (type == Target.LIFT)
+			return (System.currentTimeMillis() - liftImageTime) / 1000.0;
+		else
+			return INVALIDTARGETTYPE;
+	}
+}
+>>>>>>> refs/heads/master
