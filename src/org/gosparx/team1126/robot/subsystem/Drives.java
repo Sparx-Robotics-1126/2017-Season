@@ -333,7 +333,7 @@ public class Drives extends GenericSubsystem {
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
 				LOG.logMessage("Turning");
-				autoTurn(90, 20);
+				autoTurnToHeading(90, 20);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;

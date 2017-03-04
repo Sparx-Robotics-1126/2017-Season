@@ -1,12 +1,10 @@
-package org.gosparx.team1126.robot.util;
+package org.gosparx.team1126.robot.subsystem;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Calendar;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-
-import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 

@@ -4,11 +4,11 @@ import org.gosparx.team1126.robot.subsystem.Autonomous;
 import org.gosparx.team1126.robot.subsystem.BallAcq;
 import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
+import org.gosparx.team1126.robot.subsystem.LogWriter;
 import org.gosparx.team1126.robot.subsystem.Scaling;
 import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.gosparx.team1126.robot.subsystem.Vision;
 import org.gosparx.team1126.robot.util.DriverStationControls;
-import org.gosparx.team1126.robot.util.LogWriter;
 
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;

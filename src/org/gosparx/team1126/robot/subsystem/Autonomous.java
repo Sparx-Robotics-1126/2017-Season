@@ -200,7 +200,7 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case DRIVES_TURN:
-					drives.autoTurn(currentAuto[currStep][1], currentAuto[currStep][2]);
+					drives.autoTurnToHeading(currentAuto[currStep][1], currentAuto[currStep][2]);
 					currCommand = DRIVES_DONE;
 					break;
 						

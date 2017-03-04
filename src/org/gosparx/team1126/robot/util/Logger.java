@@ -2,6 +2,8 @@ package org.gosparx.team1126.robot.util;
 
 import java.text.DecimalFormat;
 
+import org.gosparx.team1126.robot.subsystem.LogWriter;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 
