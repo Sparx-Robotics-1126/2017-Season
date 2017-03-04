@@ -2,7 +2,6 @@ package org.gosparx.team1126.robot.subsystem;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.util.VisionNetworkTable;
-import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.SharedData;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
@@ -43,7 +42,7 @@ public class Vision extends GenericSubsystem {
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
 		reset.set(false);														// Reset the Jetson board
 		startTime = System.currentTimeMillis();
-		target = dsc.sharedData.targetType;
+		target = SharedData.targetType;
 		return true;
 	}
 
@@ -55,9 +54,9 @@ public class Vision extends GenericSubsystem {
 		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
-		if (dsc.sharedData.targetType != target){
+		if (SharedData.targetType != target){
 			visionSystem.serverUpdate();
-			target = dsc.sharedData.targetType;
+			target = SharedData.targetType;
 		}
 		
 		return false;
