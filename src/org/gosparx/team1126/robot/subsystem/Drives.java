@@ -31,7 +31,7 @@ public class Drives extends GenericSubsystem {
 	private static final double RIGHT_KI = .08;									// Integral for the right PID
 	private static final double RIGHT_KP = .025;								// Proportional for the right PID
 	private static final double LEFT_KI = .08;									// Integral for the left PID
-	private static final double left_KP = .025;									// Proportional for the left PID
+	private static final double LEFT_KP = .025;									// Proportional for the left PID
 	private static final double X_SENSITIVITY = 1.25;							// Sensitivity in the x-axis for arcade drive
 	private static final double JOYSTICK_DEADBAND = .1; 						// Axis for the deadband
 	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
@@ -158,7 +158,7 @@ public class Drives extends GenericSubsystem {
 		leftMotorBack.enableBrakeMode(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, -LEFT_DISTANCE_PER_TICK);		
-		leftPID = new PID(LEFT_KI, left_KP, LEFT_FF);
+		leftPID = new PID(LEFT_KI, LEFT_KP, LEFT_FF);
 		leftPID.breakMode(true);
 		leftPID.setMaxMin(-0.95, 0.95);
 		leftPID.setSPRamp(200);
@@ -471,6 +471,12 @@ public class Drives extends GenericSubsystem {
 		return true;
 	}
 	
+	/**
+	 * Drives the robot  a distance by calculating the end point
+	 * @param distance the distance to go
+	 * @param speed the speed to drive
+	 * @return true if the robot is ready to go, false otherwise
+	 */
 	public boolean autoDrivePoint(double distance, double speed){
 		LOG.logMessage("AutoDrivePoint (" + distance + ", " + speed + ")");
 		if(!isAutoDone()){
@@ -490,6 +496,13 @@ public class Drives extends GenericSubsystem {
 		return true;
 	}
 	
+	/**
+	 * Drives the robot to a certain coordinate
+	 * @param x the x value if the end coordinate
+	 * @param y the y value of the end coordinate
+	 * @param speed the speed to drive 
+	 * @return true if the robot is ready to go, false otherwise
+	 */
 	public boolean autoDriveCoordinate(double x, double y, double speed){
 		if(!isAutoDone()){
 			LOG.logMessage("Error: AutoDrive Coordinate isAutoDone is false");
@@ -506,9 +519,10 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
-	 * Help method for auto drive
+	 * Helper method for auto drive
 	 */
 	private void driveDistance(){
+		autoReady = false;
 		calculatedDistance = wantedDistance;
 		straightCorrection = gyro.getAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
@@ -528,11 +542,16 @@ public class Drives extends GenericSubsystem {
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("ending drive to distance");
 			driveDone = true;
+			autoReady = true;
 			return;
 		}
 	}
 	
+	/**
+	 * Helper method for auto driving to a coordinate
+	 */
 	private void drivePoint(){
+		autoReady = false;
 		double xChange = endX - currentX;
 		double yChange = endY - currentY;
 		distanceToPoint = Math.sqrt((xChange * xChange) + (yChange * yChange));
@@ -556,6 +575,7 @@ public class Drives extends GenericSubsystem {
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("Ending drive to a coordinate.  angToEnd " + angleToEnd + "  distToPt " + distanceToPoint);
 			driveDone = true;
+			autoReady = true;
 			return;
 		}
 	}
@@ -564,7 +584,7 @@ public class Drives extends GenericSubsystem {
 	 * Turns the robot to a specific heading, relative to the angle/heading the robot started at
 	 * @param angle the angle the robot needs to turn
 	 * @param speed the speed at which the robot should turn
-	 * @return true if the robot has turned to the angle, false otherwise
+	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoTurnToHeading(double angle, double speed){
 		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
@@ -582,7 +602,7 @@ public class Drives extends GenericSubsystem {
 	 * Turns the robot angle degrees from its current angle
 	 * @param angle the angle the robot needs to turn
 	 * @param speed the speed at which the robot should turn
-	 * @return true if the robot has turned to the angle, false otherwise
+	 * @return true if the robot is ready to go, false otherwise
 	 */
 	public boolean autoTurnToAngle(double angle, double speed){
 		LOG.logMessage("AutoTurn (" + angle + ", " + speed + ")");
@@ -600,6 +620,7 @@ public class Drives extends GenericSubsystem {
 	 * Helper method for auto turn
 	 */
 	private void turn(){
+		autoReady = false;
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
@@ -609,6 +630,7 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Ending Auto turn");
 			LOG.logMessage("Current Angle: " + currentAngle);
 			turnDone = true;
+			autoReady = true;
 			return;
 		}
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
@@ -653,6 +675,7 @@ public class Drives extends GenericSubsystem {
 	 */
 	public boolean stopDrives(){
 		LOG.logMessage("StopDrives()");
+		autoReady = false;
 		currentDriveState = DriveState.AUTO_STOP;
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
 		rightWantedSpeed = STOP_MOTOR_POWER_SPEED;
@@ -671,9 +694,14 @@ public class Drives extends GenericSubsystem {
 	
 	/**
 	 * holds the drives a certain position
+	 * @return true if the robot is ready to go, false otherwise
 	 */
-	public void holdDrives(){
+	public boolean holdDrives(){
+		if(!isAutoDone()){
+			return false;
+		}
 		currentDriveState = DriveState.AUTO_HOLD;
+		return true;
 	}
 	
 	/**
@@ -681,7 +709,7 @@ public class Drives extends GenericSubsystem {
 	 * hold the x since we don't have lateral movement
 	 */
 	public void hold(){
-		autoReady = true;
+		autoReady = false;
 		double changeX = currentX - previousX;
 		double changeY = currentY - previousY;
 		double changeAngle = currentAngle - previousAngle;
@@ -693,6 +721,11 @@ public class Drives extends GenericSubsystem {
 		}
 		if((Math.abs(changeAngle) > 3) && driveDone){
 			autoTurnToHeading(previousAngle, HOLDING_TURN_SPEED);
+		}
+		if(turnDone){
+			currentDriveState = DriveState.STANDBY;
+			autoReady = true;
+			
 		}
 	}
 	
