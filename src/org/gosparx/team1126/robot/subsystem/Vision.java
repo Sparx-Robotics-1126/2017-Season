@@ -2,6 +2,7 @@ package org.gosparx.team1126.robot.subsystem;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.util.VisionNetworkTable;
+import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.SharedData;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
@@ -54,9 +55,18 @@ public class Vision extends GenericSubsystem {
 		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
-		if (SharedData.targetType != target){
-			visionSystem.serverUpdate();
-			target = SharedData.targetType;
+		if (dsc.isOperatorControl()){											// When in operator control, 
+			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
+				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
+			else if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
+				SharedData.targetType = SharedData.Target.LIFT;
+			else
+				SharedData.targetType = SharedData.Target.NONE;
+		}
+		
+		if (SharedData.targetType != target){									// Check for a change in target
+			visionSystem.serverUpdate();										// This can happed from the code
+			target = SharedData.targetType;										//  above, or Autonomous
 		}
 		
 		return false;

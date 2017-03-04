@@ -112,6 +112,8 @@ public class IO {
 	
 	public static final int FLIP_SHOOTING_SYSTEM_ON							= DriverStationControls.LEFT_JOY_MIDDLE;
 	
+	public static final int FLIP_TARGET_LIFT								= DriverStationControls.OP_XBOX_L2;
+	
 	public static final int BUTTON_FIRE										= DriverStationControls.OP_XBOX_A;
 	
 	public static final int SCALING_RT										= DriverStationControls.OP_XBOX_R2;
