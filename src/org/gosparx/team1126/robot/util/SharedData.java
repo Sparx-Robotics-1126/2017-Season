@@ -67,13 +67,6 @@ public class SharedData {
 		  return INVALIDTARGETTYPE;
 	}
 
-<<<<<<< HEAD
-	public static double getCorrectedTargetDistance(){
-		return (Math.sqrt(Math.pow(targetXBoiler - x, 2) + Math.pow(targetYBoiler - y, 2)));
-	}
-}
-
-=======
 	// Returns the distance to the desired target based on the last camera image data and compensated
 	// by the movement of the robot.
 	
@@ -97,4 +90,3 @@ public class SharedData {
 			return INVALIDTARGETTYPE;
 	}
 }
->>>>>>> refs/heads/master

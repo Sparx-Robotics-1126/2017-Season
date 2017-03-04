@@ -36,6 +36,7 @@ public class Drives extends GenericSubsystem {
 	private static final double JOYSTICK_DEADBAND = .1; 						// Axis for the deadband
 	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
 	private static final double LEFT_FF = .00538;								// Feed forward for left PID
+	private static final double LIFT_TAPE_DISTANCE = 4;
 	
 	/** Right */
 	
@@ -344,7 +345,7 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
-<<<<<<< HEAD
+			
 			if(dsc.isOperatorControl()){
 				rightSetPower = rightWantedSpeed/MAX_SPEED;
 				leftSetPower = leftWantedSpeed/MAX_SPEED;
@@ -352,12 +353,6 @@ public class Drives extends GenericSubsystem {
 				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
 			}
-=======
-			//rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
-			//leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-			rightSetPower = rightWantedSpeed/MAX_SPEED;			        	// In case driver doesn't want PID loop
-			leftSetPower = leftWantedSpeed/MAX_SPEED;							// In case driver doesn't want PID loop
->>>>>>> refs/heads/master
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed
@@ -523,6 +518,22 @@ public class Drives extends GenericSubsystem {
 		return true;
 	}
 	
+	/**
+	 * drives the robot to the lift
+	 * @param speed the speed to drive
+	 * @return true if the robot is ready to go, false otherwise
+	 */
+	public boolean moveToLift(double speed){
+		if(!isAutoDone()){
+			return false;
+		}
+		driveDone = false;
+		initialHeading = SharedData.angleToLift;
+		wantedSpeed = speed;
+		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_DISTANCE;
+		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
+		return true;
+	}
 	/**
 	 * Helper method for auto drive
 	 */
@@ -779,6 +790,8 @@ public class Drives extends GenericSubsystem {
 			return false;
 		}
 	}
+	
+	
 	
 	/**
 	 * Checks all the motors
