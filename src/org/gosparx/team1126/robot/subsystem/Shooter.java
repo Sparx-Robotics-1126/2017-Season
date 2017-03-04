@@ -17,6 +17,7 @@ import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.SharedData;
+import org.gosparx.team1126.robot.util.SharedData.Target;
 
 public class Shooter extends GenericSubsystem{
 
@@ -36,6 +37,11 @@ public class Shooter extends GenericSubsystem{
 	 * current turret degree - 2/3 rotation per 30 degrees
 	 */
 	private double turretDegreeCurrent;
+	
+	/**
+	 * current turret speed
+	 */
+	private double turretSpeedCurrent;
 		
 	/**
 	 * if the shooter subsystem(speed method) is ready 
@@ -100,7 +106,7 @@ public class Shooter extends GenericSubsystem{
 	
 	private EncoderData encoderData;
 	
-	//private AbsoluteEncoderData turretSensor;
+	private AbsoluteEncoderData turretSensor;
 	
 	private CANTalon flyWheel;
 	
@@ -189,14 +195,15 @@ public class Shooter extends GenericSubsystem{
 	protected boolean init(){
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
-		//turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
-		//turretSensor.setZero(ZERO_VOLTAGE);
+		turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
+		turretSensor.setZero(ZERO_VOLTAGE);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
 	 	servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
 		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
+		turretSpeedCurrent = 0;
 		speedButton = false;
 		turretButton = false;
 		isPressed = false;
@@ -233,7 +240,7 @@ public class Shooter extends GenericSubsystem{
 	protected boolean execute(){
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
-
+		turretDegreeCurrent = turretSensor.getDegrees();
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
 		//	LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
@@ -405,16 +412,16 @@ public class Shooter extends GenericSubsystem{
 		}else if(limitSwitchLeft.get()){
 			turret.set(0.01);
 		}else{
-			if(turretDegreeCurrent < turretSettings()-1){
-				turret.set(-.20);
-			}else if(turretDegreeCurrent > turretSettings()+1){
-				turret.set(.20);
+			if(turretDegreeCurrent < degreeOff-1){
+				turret.set(-.10);
+			}else if(turretDegreeCurrent > degreeOff+1){
+				turret.set(.10);
 			}else{
 				turret.set(0);
-			return true;
+				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 	
 	//done
