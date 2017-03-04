@@ -23,37 +23,51 @@ public class SharedData {
 
 	public enum Target { BOILER, LIFT };
 
-	public static double distanceToBoiler;
-	public static double angleToBoiler;
-	//public static double distanceToLift; //For if there is no ultra sonic sound sensor 
-	public static double angleToLift;
+	public static double distanceToBoiler, distanceToLift;
+	public static double angleToBoiler, angleToLift;
+	//public static double distanceToLift; 							//For if there is no ultra sonic sound sensor 
 	public static Target targetType;
-	private static double targetXBoiler, targetYBoiler; // (X, Y) at image time
-	//private static double targetXLift, targetYLift;
-	private static long imageTime;						// Time of Image
-
+	private static double targetXBoiler, targetYBoiler; 			// (X, Y) at image time
+	private static double targetXLift, targetYLift;
+	private static long liftImageTime, boilerImageTime;				// Time of Image
+	
 	public static void setTarget (Target type, double distance, double angle){
 		if(type==Target.BOILER){
 			distanceToBoiler = distance;
 			angleToBoiler = angle;
 			targetXBoiler = x + Math.sin(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
 			targetYBoiler = y + Math.cos(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
+			boilerImageTime = System.currentTimeMillis();
 		}
 		else
 		{
 			angleToLift = angle;
-//			distanceToLift=distance;
-//			targetXLift = x + Math.sin(Math.toRadians(heading + angleToLift)) * distanceToLift;
-//			targetYLift = y + Math.cos(Math.toRadians(heading + angleToLift)) * distanceToLift;
+			liftImageTime = System.currentTimeMillis();
+			distanceToLift = distance;
+			targetXLift = x + Math.sin(Math.toRadians(heading + angleToLift)) * distanceToLift;
+			targetYLift = y + Math.cos(Math.toRadians(heading + angleToLift)) * distanceToLift;
 		}
-		imageTime = System.currentTimeMillis();
 	}
 
-	public static double getCorrectedTargetAngle(){
-		return(Math.IEEEremainder((Math.atan2(targetXBoiler - x, targetYBoiler - y) - heading), 360.0));
+	public static double getCorrectedTargetAngle(Target type){
+		if (type == Target.BOILER)
+			return(Math.IEEEremainder((Math.atan2(targetXBoiler - x, targetYBoiler - y) - heading), 360.0));
+		else
+			return(Math.IEEEremainder((Math.atan2(targetXLift - x, targetYLift - y) - heading), 360.0));		
 	}
 
-	public static double getCorrectedTargetDistance(){
-		return (Math.sqrt(Math.pow(targetXBoiler - x, 2) + Math.pow(targetYBoiler - y, 2)));
+	public static double getCorrectedTargetDistance(Target type){
+		if (type == Target.BOILER)
+			return (Math.sqrt(Math.pow(targetXBoiler - x, 2) + Math.pow(targetYBoiler - y, 2)));
+		else
+			return (Math.sqrt(Math.pow(targetXLift - x, 2) + Math.pow(targetYLift - y, 2)));			
+	}
+	
+	public static double getBoilerImageTime(){
+		return boilerImageTime;
+	}
+	
+	public static double getLiftImageTime(){
+		return liftImageTime;
 	}
 }
