@@ -4,6 +4,7 @@ import java.awt.List;
 import java.util.Arrays;
 
 import org.gosparx.team1126.robot.util.CSVReader;
+import org.gosparx.team1126.robot.util.SharedData.Target;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -27,6 +28,7 @@ public class Autonomous extends GenericSubsystem{
 	private long lastRead = 0;
 	private CSVReader reader;
 	private Drives drives;
+	private Shooter shooter;
 	private boolean firstRun = true;
 	private boolean runAuto;
 	
@@ -40,8 +42,9 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_LIFT = 4;
 	private static final int DRIVES_SETCOORDS = 5;
 	private static final int DRIVES_STOP = 6;					// Stop the Drives
-	private static final int DELAY = 7;							// Wait (seconds)
-	private static final int SETCRITSTEP = 8;					// Set Critical Timeout Step
+	private static final int SHOOTER_TOGGLE = 7;
+	private static final int DELAY = 8;							// Wait (seconds)
+	private static final int SETCRITSTEP = 9;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
@@ -55,6 +58,7 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_LIFT,
 			DRIVES_SETCOORDS,
 			DRIVES_STOP,
+			SHOOTER_TOGGLE,
 			DRIVES_DONE,
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
 			DELAY,												// Time (msec)
@@ -68,6 +72,7 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_Move",
 			"Drives_Lift",
 			"Drives_SetCoords",
+			"Shooter_Toggle",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
 			"Set Critical Step",
@@ -119,6 +124,7 @@ public class Autonomous extends GenericSubsystem{
 	protected boolean init() {
 
 		drives = Drives.getInstance();
+		shooter = Shooter.getInstance();
 		reader = new CSVReader();
 		
 		chooser = new SendableChooser<int[][]>();
@@ -213,6 +219,7 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case DRIVES_LIFT:
+					dsc.sharedData.targetType = Target.LIFT;
 					drives.moveToLift(currentAuto[currStep][1]);
 					currCommand = DRIVES_DONE;
 					break;
@@ -228,6 +235,14 @@ public class Autonomous extends GenericSubsystem{
 					}
 					break;
 				
+				case SHOOTER_TOGGLE:
+					shooter.shooterSystemState(currentAuto[currStep][1]);
+					if(currentAuto[currStep][1] == 1){
+						dsc.sharedData.targetType = Target.BOILER;
+					}
+					incStep = true;
+					break;
+					
 				case DRIVES_DONE:
 					if(drives.isAutoDone()){
 						incStep = true;
@@ -254,11 +269,13 @@ public class Autonomous extends GenericSubsystem{
 				case AUTOEND:
 					abortCommands(); 
 					incStep = false;
+					dsc.sharedData.targetType = Target.NONE;
 					break;
 				
 				default:
 					incStep = false;
 					currCommand = AUTOEND;
+					dsc.sharedData.targetType = Target.NONE;
 					LOG.logError("Unknown auto command: " + currentAuto[currStep]);
 					break;
 			}			
