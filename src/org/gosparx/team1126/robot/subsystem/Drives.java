@@ -525,12 +525,14 @@ public class Drives extends GenericSubsystem {
 	 */
 	public boolean moveToLift(double speed){
 		if(!isAutoDone()){
+			LOG.logMessage("Error: moveToLit isAutoDone is false");
 			return false;
 		}
 		driveDone = false;
-		initialHeading = SharedData.angleToLift;
+		initialHeading = gyro.getAngle();
 		wantedSpeed = speed;
 		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_DISTANCE;
+		LOG.logMessage("moveToLift(" + speed + ") Ang " + initialHeading);
 		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
 		return true;
 	}
