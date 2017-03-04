@@ -444,11 +444,12 @@ public class Shooter extends GenericSubsystem{
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
-	public void setSystemState(int isOn){
+	public void shooterSystemState(int isOn){
 		if(isOn == 1){
 			isPressed = true;
-		}else
+		} else {
 			isPressed = false;
+		}
 	}
 	
 	//done
