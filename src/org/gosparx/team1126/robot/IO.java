@@ -128,4 +128,6 @@ public class IO {
 	
 	public static final int FLIP_SHOOTER_SYSTEM_ON 							= DriverStationControls.LEFT_JOY_MIDDLE; //the flip
 
+	public static final int FLIP_TARGET_LIFT                                = DriverStationControls.OP_XBOX_L2;
+
 }

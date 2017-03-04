@@ -241,6 +241,14 @@ public class Shooter extends GenericSubsystem{
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.getDegrees();
+		if(dsc.isOperatorControl()){
+			if(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)){
+				dsc.sharedData.targetType = dsc.sharedData.targetType.BOILER;
+			}else if(dsc.isPressed(IO.FLIP_TARGET_LIFT)){
+				dsc.sharedData.targetType = dsc.sharedData.targetType.LIFT;
+			}else
+				dsc.sharedData.targetType = dsc.sharedData.targetType.NONE;
+		}
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
 		//	LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
@@ -393,15 +401,10 @@ public class Shooter extends GenericSubsystem{
 	//done (until tested)
 	/**
 	 * checks if the turret is ready to fire(correct angle to fire)
-	 * @param button - if the button is pressed
 	 * @return - if this system is ready
 	 */
-	private boolean turretCtrl(boolean bool){
+	private boolean turretCtrl(){
 		if(!turretButton){
-			turret.set(0);
-			return false;
-		}
-		if(!bool){
 			turret.set(0);
 			return false;
 		}
@@ -430,14 +433,10 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean fireCtrl(){
-		boolean bool;
 		if(dsc.sharedData.targetType == SharedData.Target.BOILER)
-			bool = true;
-		else
-			bool = false;
-		if(speedCtrl() && turretCtrl(bool)){
-			return true;
-		}
+			if(speedCtrl() && turretCtrl()){
+				return true;
+			}
 		return false;
 	}
 	
