@@ -241,14 +241,6 @@ public class Shooter extends GenericSubsystem{
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.getDegrees();
-		if(dsc.isOperatorControl()){
-			if(dsc.isPressed(IO.FLIP_SHOOTER_SYSTEM_ON)){
-				dsc.sharedData.targetType = dsc.sharedData.targetType.BOILER;
-			}else if(dsc.isPressed(IO.FLIP_TARGET_LIFT)){
-				dsc.sharedData.targetType = dsc.sharedData.targetType.LIFT;
-			}else
-				dsc.sharedData.targetType = dsc.sharedData.targetType.NONE;
-		}
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
 		//	LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
