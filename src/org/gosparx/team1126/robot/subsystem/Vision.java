@@ -2,18 +2,20 @@ package org.gosparx.team1126.robot.subsystem;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.util.VisionNetworkTable;
-import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.SharedData;
 
 import edu.wpi.first.wpilibj.DigitalOutput;
+import edu.wpi.first.wpilibj.Relay;
 
 public class Vision extends GenericSubsystem {
 
 	private static Vision vision;												// An instance of drives
 	protected VisionNetworkTable visionSystem;
 	private DigitalOutput reset;												// Reset Jetson board on bootup
+	private Relay led;															// LED Control
 	private long startTime;
 	private SharedData.Target target;
+
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -42,6 +44,8 @@ public class Vision extends GenericSubsystem {
 		visionSystem = new VisionNetworkTable();
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
 		reset.set(false);														// Reset the Jetson board
+		led = new Relay(0, Relay.Direction.kForward);
+		led.set(Relay.Value.kOff);												// Turn off the LED
 		startTime = System.currentTimeMillis();
 		target = SharedData.targetType;											// Get Initial state of target
 		return true;
@@ -55,7 +59,9 @@ public class Vision extends GenericSubsystem {
 		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
-		if (dsc.isOperatorControl()){											// When in operator control, 
+		if (dsc.isDisabled())
+			SharedData.targetType = SharedData.Target.NONE;
+		else if (dsc.isOperatorControl()){										// When in operator control, 
 			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
 				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
 			else if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
@@ -65,6 +71,8 @@ public class Vision extends GenericSubsystem {
 		}
 		
 		if (SharedData.targetType != target){									// Check for a change in target
+			led.set((target == SharedData.Target.NONE) ? 
+					Relay.Value.kOff : Relay.Value.kOn);
 			visionSystem.serverUpdate();										// This can happed from the code
 			target = SharedData.targetType;										//  above, or Autonomous
 		}
