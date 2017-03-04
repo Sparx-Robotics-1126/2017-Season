@@ -37,10 +37,11 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_FORWARD = 1;				// Drive Straight(inches, speed)
 	private static final int DRIVES_TURN = 2;					// Turn (angle, absolute = true)
 	private static final int DRIVES_MOVE = 3;					// Drive To (x, y, speed)
-	private static final int DRIVES_SETCOORDS = 4;
-	private static final int DRIVES_STOP = 5;					// Stop the Drives
-	private static final int DELAY = 6;							// Wait (seconds)
-	private static final int SETCRITSTEP = 7;					// Set Critical Timeout Step
+	private static final int DRIVES_LIFT = 4;
+	private static final int DRIVES_SETCOORDS = 5;
+	private static final int DRIVES_STOP = 6;					// Stop the Drives
+	private static final int DELAY = 7;							// Wait (seconds)
+	private static final int SETCRITSTEP = 8;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
@@ -51,6 +52,7 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_FORWARD,										// Distance, Speed
 			DRIVES_TURN,										// Degrees, Absolute/Relative
 			DRIVES_MOVE,										// X, Y, Speed
+			DRIVES_LIFT,
 			DRIVES_SETCOORDS,
 			DRIVES_STOP,
 			DRIVES_DONE,
@@ -64,6 +66,7 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_Forward",
 			"Drives_Turn",
 			"Drives_Move",
+			"Drives_Lift",
 			"Drives_SetCoords",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
@@ -206,6 +209,11 @@ public class Autonomous extends GenericSubsystem{
 						
 				case DRIVES_MOVE:
 					drives.autoDriveCoordinate(currentAuto[currStep][1], currentAuto[currStep][2], currentAuto[currStep][3]);
+					currCommand = DRIVES_DONE;
+					break;
+					
+				case DRIVES_LIFT:
+					drives.moveToLift(currentAuto[currStep][1]);
 					currCommand = DRIVES_DONE;
 					break;
 					

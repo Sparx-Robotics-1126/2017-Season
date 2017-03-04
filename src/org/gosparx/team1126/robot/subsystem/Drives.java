@@ -204,7 +204,7 @@ public class Drives extends GenericSubsystem {
 		angleToEnd = 0;
 		calculatedDistance = 0;
 		distanceToPoint = 0;
-		autoReady = false;
+		autoReady = true;
 		return true;
 	}
 
