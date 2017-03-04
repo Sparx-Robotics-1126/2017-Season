@@ -41,7 +41,7 @@ public class Vision extends GenericSubsystem {
 	protected boolean init(){
 		visionSystem = new VisionNetworkTable();
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
-		reset.set(false);
+		reset.set(false);														// Reset the Jetson board
 		startTime = System.currentTimeMillis();
 		target = dsc.sharedData.targetType;
 		return true;
@@ -52,7 +52,7 @@ public class Vision extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
-		if (System.currentTimeMillis() - startTime > 5000)
+		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
 		if (dsc.sharedData.targetType != target){

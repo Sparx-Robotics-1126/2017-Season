@@ -8,7 +8,6 @@ import org.gosparx.team1126.robot.subsystem.Shooter;
 import org.gosparx.team1126.robot.subsystem.Vision;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
-import org.gosparx.team1126.robot.util.VisionNetworkTable;
 
 import edu.wpi.first.wpilibj.SampleRobot;
 
