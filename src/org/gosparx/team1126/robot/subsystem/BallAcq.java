@@ -59,7 +59,7 @@ public class BallAcq extends GenericSubsystem{
 		leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
 		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
 		rightMotor.setInverted(true);
-		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_ENC);
+		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_SENSOR);
 		
 		return true;
 	}

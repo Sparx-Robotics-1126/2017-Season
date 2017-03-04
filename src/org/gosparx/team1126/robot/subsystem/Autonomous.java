@@ -1,10 +1,8 @@
-package org.gosparx.team1126.robot;
+package org.gosparx.team1126.robot.subsystem;
 
 import java.awt.List;
 import java.util.Arrays;
 
-import org.gosparx.team1126.robot.subsystem.Drives;
-import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.CSVReader;
 
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
