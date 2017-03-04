@@ -91,6 +91,9 @@ public class SharedData {
 			return INVALIDTARGETTYPE;
 	}
 	
+	// Determine if new data has arrived since last called.  Could be useful when initially turning on
+	// the camera to look for new image.
+	
 	public boolean newImage(Target type){
 		if ((type == Target.BOILER) && (boilerImageTime > newBoilerImage)){
 			newBoilerImage = boilerImageTime;
@@ -103,5 +106,12 @@ public class SharedData {
 		}
 		
 		return false;
+	}
+	
+	public void clearImageData ( Target type ){
+		if (type == Target.BOILER)
+			boilerImageTime = 0;
+		else if (type == Target.LIFT)
+			liftImageTime = 0;
 	}
 }

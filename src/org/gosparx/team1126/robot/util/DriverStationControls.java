@@ -100,7 +100,7 @@ public class DriverStationControls {
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
-	public static SharedData sharedData;
+	public SharedData sharedData;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
