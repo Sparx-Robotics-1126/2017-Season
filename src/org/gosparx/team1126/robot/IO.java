@@ -32,6 +32,8 @@ public class IO {
 	
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 16;
 	
+	public static final int DIO_JETSON_RESET								= 17;
+	
 	public static final int DIO_SHOOTER_LIMITSWITCH_RIGHT					= 20;
 	
 	public static final int DIO_SHOOTER_LIMITSWITCH_LEFT					= 21;
