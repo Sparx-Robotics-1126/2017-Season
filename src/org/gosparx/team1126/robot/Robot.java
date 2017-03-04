@@ -11,7 +11,6 @@ import org.gosparx.team1126.robot.subsystem.Vision;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 
 import edu.wpi.first.wpilibj.SampleRobot;
-import edu.wpi.first.wpilibj.Timer;
 
 public class Robot extends SampleRobot{
 

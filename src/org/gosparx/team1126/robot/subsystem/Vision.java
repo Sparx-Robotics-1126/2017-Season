@@ -42,7 +42,7 @@ public class Vision extends GenericSubsystem {
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
 		reset.set(false);														// Reset the Jetson board
 		startTime = System.currentTimeMillis();
-		target = SharedData.targetType;
+		target = SharedData.targetType;											// Get Initial state of target
 		return true;
 	}
 
