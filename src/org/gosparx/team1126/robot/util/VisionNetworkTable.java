@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.tables.ITableListener;
 public class VisionNetworkTable implements ITableListener{
 	/*########################################################################*/	
 	private static NetworkTable client;
-	
+
 	private String IP = "10.11.26.60"; //Jetsons boards IP
 	//private int port = 1735; //Jenson's board port (might not need)
 	private String serverKey = "mode"; //For sending mode
@@ -17,7 +17,7 @@ public class VisionNetworkTable implements ITableListener{
 	private SharedData.Target currentMode; //BOILER or LIFT //0 is off, 1 is Highgoal, 2 is lift
 	private SharedData.Target lastMode;
 	double[] arrTargetData;
-	
+
 	public VisionNetworkTable() //Constructor
 	{
 		currentMode = SharedData.Target.BOILER;
@@ -25,6 +25,7 @@ public class VisionNetworkTable implements ITableListener{
 		NetworkTable.setClientMode();
 		NetworkTable.setIPAddress(IP); //Sets Ip address
 		client = NetworkTable.getTable("targetData"); //Gets client table 
+
 		//Adds the listener to see if value changed
 		client.addTableListener(this, true);
 	}
@@ -36,13 +37,7 @@ public class VisionNetworkTable implements ITableListener{
 			if(!lastMode.equals(SharedData.targetType))
 			{
 				currentMode = SharedData.targetType;
-				if(currentMode==SharedData.Target.NONE)
-					client.putValue(serverKey, 0); //Puts the mode in table
-				else if(currentMode==SharedData.Target.LIFT)
-					client.putValue(serverKey, 1); //Puts the mode in table
-				else
-					client.putValue(serverKey, 2); //Puts the mode in table
-				
+				client.putValue(serverKey, new Boolean(currentMode == SharedData.Target.LIFT)); //Puts the mode in table
 				lastMode=currentMode;
 			}
 		}
@@ -50,45 +45,47 @@ public class VisionNetworkTable implements ITableListener{
 		{
 			System.out.print("Connection error with Jetson board");
 		}
-		
+
 	}
 	/*#####################################################################################*/	
 	@Override //For listener 
 	public void valueChanged(ITable itable, String Values_Key, Object val, boolean bln)
 	{
 		//System.out.println("Change detected: "+val.getClass()+" at "+Values_Key+"\n Itable"+itable);
-		try //Catch exection e
-		{ 
-			if(Values_Key.equals(clientLift) || Values_Key.equals(clientHighGoal)) 
-			{
-				arrTargetData = (double[]) val; 
-				if(arrTargetData[0] !=-180)
-					SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
-//				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
-
-				try{   //Pauses
-					Thread.sleep(5); 
-					System.out.println("Sleeping");
-					} 	
-				catch(InterruptedException e)
+		if(SharedData.targetType!=SharedData.Target.NONE){
+			try //Catch exection e
+			{ 
+				if(Values_Key.equals(clientLift) || Values_Key.equals(clientHighGoal)) 
 				{
-					System.out.println("\n"+"InterruptedException exception during sleep"+"\n");
-					System.out.println(e.getMessage()+"\n");
+					arrTargetData = (double[]) val; 
+					if(arrTargetData[0] !=-180)
+						SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
+					//				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
+
+					try{	 //Pauses
+						Thread.sleep(5); 
+						System.out.println("Sleeping");
+					}	
+					catch(InterruptedException e)
+					{
+						System.out.println("\n"+"InterruptedException exception during sleep"+"\n");
+						System.out.println(e.getMessage()+"\n");
+					}
+
 				}
-
+				else
+				{
+					System.out.println("Invalid key taken (from Jetson board)");
+				} 
 			}
-			else
-			{
-				System.out.println("Invalid key taken (from Jetson board)");
-			} 
-		}
 
-		catch (Exception e)
-		{
-			System.out.println("Jetson error, value changed: "+Values_Key+" "+bln+" "+val);
-			System.out.println(e.getMessage());
-			// Print an error.
-		}
-	}	
+			catch (Exception e)
+			{
+				System.out.println("Jetson error, value changed: "+Values_Key+" "+bln+" "+val);
+				System.out.println(e.getMessage());
+				// Print an error.
+			}
+		}	
+	}
 	/*#####################################################################################*/	
 }	
