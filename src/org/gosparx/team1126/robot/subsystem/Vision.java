@@ -71,7 +71,7 @@ public class Vision extends GenericSubsystem {
 		}
 		
 		if (SharedData.targetType != target){									// Check for a change in target
-			led.set((target == SharedData.Target.NONE) ? 
+			led.set((target == SharedData.Target.NONE) ? 						// Update LED status
 					Relay.Value.kOff : Relay.Value.kOn);
 			visionSystem.serverUpdate();										// This can happed from the code
 			target = SharedData.targetType;										//  above, or Autonomous
