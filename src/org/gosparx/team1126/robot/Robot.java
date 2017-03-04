@@ -5,9 +5,9 @@ import org.gosparx.team1126.robot.subsystem.Drives;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.subsystem.Scaling;
 import org.gosparx.team1126.robot.subsystem.Shooter;
+import org.gosparx.team1126.robot.subsystem.Vision;
 import org.gosparx.team1126.robot.util.DriverStationControls;
 import org.gosparx.team1126.robot.util.LogWriter;
-import org.gosparx.team1126.robot.util.VisionNetworkTable;
 
 import edu.wpi.first.wpilibj.SampleRobot;
 import edu.wpi.first.wpilibj.Timer;
@@ -18,11 +18,9 @@ public class Robot extends SampleRobot{
 	 * An array of all of the subsystems on the robot
 	 */
 	private GenericSubsystem[] subsystems;
-	
-	protected VisionNetworkTable vision;
-	
+		
 	// Create a DriverStationControls object in Robot to be able to reset the internal object.
-	// Deploying without rebooting seems to not distroy all the objects in dsc.
+	// Deploying without rebooting seems to not destroy all the objects in dsc.
 	
 	protected DriverStationControls dsc;
 
@@ -37,6 +35,7 @@ public class Robot extends SampleRobot{
 			Drives.getInstance(),
 			Scaling.getInstance(),
 			Shooter.getInstance(),
+			Vision.getInstance(),
 			LogWriter.getInstance(),
 			Autonomous.getInstance(),
 		};
@@ -45,7 +44,6 @@ public class Robot extends SampleRobot{
 			system.start();
 			System.out.println(system.getName());
 		}
-		vision = new VisionNetworkTable();
 	}
 
 	/**
