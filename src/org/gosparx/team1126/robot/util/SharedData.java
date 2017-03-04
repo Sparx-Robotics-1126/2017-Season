@@ -24,15 +24,16 @@ public class SharedData {
 
 	// Camera SubSystem Shared Data
 
-	public enum Target { NONE, BOILER, LIFT };
+	public static enum Target { NONE, BOILER, LIFT };
 	public static Target targetType = Target.NONE;
 
 	public static double distanceToBoiler, distanceToLift;
 	public static double angleToBoiler, angleToLift;
 	private static double targetXBoiler, targetYBoiler; 			// (X, Y) at image time
 	private static double targetXLift, targetYLift;
-	private static long liftImageTime, boilerImageTime;				// Time of Image
+	private static long liftImageTime = 0, boilerImageTime = 0;		// Time of Image
 
+	private long newLiftImage = 0, newBoilerImage = 0;
 	
 	// Camera routine to set the location of the found target.  Data passed is the target
 	// type, distance and angle to the target from a fixed reference point on the robot
@@ -88,5 +89,19 @@ public class SharedData {
 			return (System.currentTimeMillis() - liftImageTime) / 1000.0;
 		else
 			return INVALIDTARGETTYPE;
+	}
+	
+	public boolean newImage(Target type){
+		if ((type == Target.BOILER) && (boilerImageTime > newBoilerImage)){
+			newBoilerImage = boilerImageTime;
+			return true;
+		}
+		
+		if ((type == Target.LIFT) && (liftImageTime > newLiftImage)){
+			newLiftImage = liftImageTime;
+			return true;
+		}
+		
+		return false;
 	}
 }

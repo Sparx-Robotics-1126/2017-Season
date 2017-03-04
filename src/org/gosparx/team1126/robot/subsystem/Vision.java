@@ -61,6 +61,7 @@ public class Vision extends GenericSubsystem {
 		
 		if (dsc.isDisabled())
 			SharedData.targetType = SharedData.Target.NONE;
+
 		else if (dsc.isOperatorControl()){										// When in operator control, 
 			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
 				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
@@ -73,8 +74,14 @@ public class Vision extends GenericSubsystem {
 		if (SharedData.targetType != target){									// Check for a change in target
 			led.set((target == SharedData.Target.NONE) ? 						// Update LED status
 					Relay.Value.kOff : Relay.Value.kOn);
-			visionSystem.serverUpdate();										// This can happed from the code
-			target = SharedData.targetType;										//  above, or Autonomous
+			visionSystem.serverUpdate();										// Target change can occur from the		
+			target = SharedData.targetType;										//  code above, or Autonomous
+
+			if (target != SharedData.Target.BOILER)
+				dsc.sharedData.clearImageData(SharedData.Target.BOILER);
+
+			if (target != SharedData.Target.LIFT)
+				dsc.sharedData.clearImageData(SharedData.Target.LIFT);
 		}
 		
 		return false;
