@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.tables.ITableListener;
 
 //import edu.wpi.first.wpilibj.vision.VisionRunner.Listener;
 /*########################################################################*/	
-public class visionNetworkTable implements ITableListener{
+public class VisionNetworkTable implements ITableListener{
 	/*########################################################################*/	
 	private static NetworkTable client;
 	
@@ -18,14 +18,13 @@ public class visionNetworkTable implements ITableListener{
 	private SharedData.Target lastMode;
 	double[] arrTargetData;
 	
-	public visionNetworkTable() //Constructor
+	public VisionNetworkTable() //Constructor
 	{
 		currentMode = SharedData.Target.BOILER;
 		lastMode = currentMode;
 		NetworkTable.setClientMode();
 		NetworkTable.setIPAddress(IP); //Sets Ip address
 		client = NetworkTable.getTable("targetData"); //Gets client table 
-
 		//Adds the listener to see if value changed
 		client.addTableListener(this, true);
 	}
@@ -37,7 +36,13 @@ public class visionNetworkTable implements ITableListener{
 			if(!lastMode.equals(SharedData.targetType))
 			{
 				currentMode = SharedData.targetType;
-				client.putValue(serverKey, new Boolean(currentMode == SharedData.Target.LIFT)); //Puts the mode in table
+				if(currentMode==SharedData.Target.NONE)
+					client.putValue(serverKey, 0); //Puts the mode in table
+				else if(currentMode==SharedData.Target.LIFT)
+					client.putValue(serverKey, 1); //Puts the mode in table
+				else
+					client.putValue(serverKey, 2); //Puts the mode in table
+				
 				lastMode=currentMode;
 			}
 		}
@@ -61,7 +66,10 @@ public class visionNetworkTable implements ITableListener{
 					SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
 //				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
 
-				try{Thread.sleep(5); System.out.println("Sleeping");} //Pauses	
+				try{   //Pauses
+					Thread.sleep(5); 
+					System.out.println("Sleeping");
+					} 	
 				catch(InterruptedException e)
 				{
 					System.out.println("\n"+"InterruptedException exception during sleep"+"\n");
