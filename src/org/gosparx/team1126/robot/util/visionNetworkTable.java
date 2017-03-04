@@ -57,7 +57,8 @@ public class visionNetworkTable implements ITableListener{
 			if(Values_Key.equals(clientLift) || Values_Key.equals(clientHighGoal)) 
 			{
 				arrTargetData = (double[]) val; 
-				SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
+				if(arrTargetData[0] !=-180)
+					SharedData.setTarget(currentMode, arrTargetData[1], arrTargetData[0]);
 //				System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
 
 				try{Thread.sleep(5); System.out.println("Sleeping");} //Pauses	
