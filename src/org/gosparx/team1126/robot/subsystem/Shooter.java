@@ -319,6 +319,7 @@ public class Shooter extends GenericSubsystem{
 			ready = false;
 			feeder.set(0);
 		}
+		
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
 		else
