@@ -13,11 +13,15 @@ import edu.wpi.first.wpilibj.Utility;
 public class EncoderData {
     private Encoder controlled;
     private Counter counter;
-    private double distPerTick;
+    private double distPerTickForward;
+    private double distPerTickReverse;
     private long lastTime;
-    private long lastEncoderCount;
+    private long lastEncoderCount = 0;
     private double speed;
-    
+    private long forwardCount = 0;
+    private long reverseCount = 0;
+    private long deltaCount = 0;
+
     private boolean USE_COUNTER;
     
     /**
@@ -28,14 +32,16 @@ public class EncoderData {
     public EncoderData(Encoder controlled, double distPerTick){
         this.controlled = controlled;
         controlled.setDistancePerPulse(distPerTick);
-        this.distPerTick = distPerTick;
+        this.distPerTickForward = distPerTick;
+        this.distPerTickReverse = distPerTick;
         lastTime = Utility.getFPGATime();
         USE_COUNTER = false;
     }
     
     public EncoderData(Counter controlled, double distPerTick){
         this.counter = controlled;
-        this.distPerTick = distPerTick;
+        this.distPerTickForward = distPerTick;
+        this.distPerTickReverse = distPerTick;
         lastTime = Utility.getFPGATime();
         USE_COUNTER = true;
     }
@@ -43,19 +49,30 @@ public class EncoderData {
     /**
      * Method to accurately calculate speeds based on an encoder.  This routine
      * should be run with a minimum of 20 milliseconds between executions
-     * to allow for enough time to get an accurate speed calculation.
+     * to allow for enough time to get an accurate speed calculation.  This routine
+     * would probably benefit from being run as a task within a timer object every
+     * 5 milliseconds or so utilizing data from the past 20 milliseconds (or making
+     * it a user defined interval)
      */
     public void calculateSpeed() {
         long currentTime = Utility.getFPGATime();
         long encoderCount = USE_COUNTER ? counter.get() : controlled.get();
         long elapsedTime = currentTime - lastTime;
-        long deltaCount;
+        
         if (elapsedTime < 20000)
             return;
+        
         deltaCount = encoderCount - lastEncoderCount;
         lastTime = currentTime;
         lastEncoderCount = encoderCount;
-        speed = ((double) deltaCount * distPerTick) / (elapsedTime / 1000000.0);
+        
+        if (deltaCount > 0)
+        	forwardCount += deltaCount;
+        else if (deltaCount < 0)
+        	reverseCount += deltaCount;
+        
+        speed = getIncrementalDistance() /
+        		(elapsedTime / 1000000.0);
     }
     
     /**
@@ -72,20 +89,43 @@ public class EncoderData {
      * @return The distance driven since the last reset as scaled by the value from setDistancePerPulse().
      */
     public double getDistance() {
-        return USE_COUNTER ? counter.get() * distPerTick : controlled.getDistance();
+        return USE_COUNTER ? counter.get() * distPerTickForward : 
+        	(forwardCount * distPerTickForward + reverseCount * distPerTickReverse);
     }
 
+    /**
+     * Calculates the incremental distance traveled for the interval defined by calls to 
+     * calculateSpeed.
+     */
+    
+    public double getIncrementalDistance() {
+    	return ((double) deltaCount * ((deltaCount > 0) ? 
+        		distPerTickForward : distPerTickReverse));
+    }
+    
+    /**
+     * Set the Reverse Distance per Tick.  Only required if the reverse distance is different
+     * from the forward distance
+     */
+    
+    public void setReverseDistancePerPulse ( double reverseDist ){
+    	distPerTickReverse = reverseDist;
+    }
+    
     /**
      * Resets the encoder data
      */
     public void reset(){
-        if (USE_COUNTER){
+        if (USE_COUNTER)
             counter.reset();
-        } else {
+        else
             controlled.reset();
-        }
+        
         lastTime = Utility.getFPGATime();
         lastEncoderCount =  USE_COUNTER ? counter.get() : controlled.get();
+        forwardCount = 0;
+        reverseCount = 0;
+        deltaCount = 0;
     }
     
     /**
