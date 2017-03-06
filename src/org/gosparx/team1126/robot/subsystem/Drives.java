@@ -21,8 +21,10 @@ public class Drives extends GenericSubsystem {
 	/** Constants */
 
 	private static final double CALCULATED_DISTANCE_PER_TICK = .031219576995;	// The Formula: (Gear Ratio * Circumference)/ticks
-	private static final double RIGHT_DISTANCE_PER_TICK = .03068;				// was .03068
-	private static final double LEFT_DISTANCE_PER_TICK = .02993;				// was .02993
+	private static final double RIGHT_DISTANCE_PER_TICK = .03163;				// was .03068
+	private static final double LEFT_DISTANCE_PER_TICK = .03098;				// was .02993
+	private static final double RIGHT_REVERSE_DISTANCE_PER_TICK = .03380;
+	private static final double LEFT_REVERSE_DISTANCE_PER_TICK = .03264;
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
 	private static final double MAX_SPEED = 175;        						// Maximum speed for the robot
 	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
@@ -137,6 +139,7 @@ public class Drives extends GenericSubsystem {
 		rightMotorBack.enableBrakeMode(true);
 		rightEncoder = new Encoder(IO.DIO_RIGHT_DRIVES_ENC_A,IO.DIO_RIGHT_DRIVES_ENC_B);
 		rightEncoderData = new EncoderData(rightEncoder, RIGHT_DISTANCE_PER_TICK);	
+		rightEncoderData.setReverseDistancePerPulse(RIGHT_REVERSE_DISTANCE_PER_TICK);
 		rightPID = new PID(RIGHT_KI, RIGHT_KP, RIGHT_FF);
 		rightPID.breakMode(true);
 		rightPID.setMaxMin(-0.95, 0.95);
@@ -159,6 +162,7 @@ public class Drives extends GenericSubsystem {
 		leftMotorBack.enableBrakeMode(true);
 		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
 		leftEncoderData = new EncoderData(leftEncoder, -LEFT_DISTANCE_PER_TICK);		
+		leftEncoderData.setReverseDistancePerPulse(LEFT_REVERSE_DISTANCE_PER_TICK);
 		leftPID = new PID(LEFT_KI, LEFT_KP, LEFT_FF);
 		leftPID.breakMode(true);
 		leftPID.setMaxMin(-0.95, 0.95);
@@ -216,8 +220,8 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
-		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
-		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
+		//LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
+		//LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
 		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotorBack);
 		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
 		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotorFront);
@@ -235,17 +239,17 @@ public class Drives extends GenericSubsystem {
 		
 		if(!previousDriveState.equals(currentDriveState)){
 			if(currentDriveState.equals(DriveState.DISABLED)){
-				rightMotorTop.enableBrakeMode(false);
+				//rightMotorTop.enableBrakeMode(false);
 				rightMotorFront.enableBrakeMode(false);
 				rightMotorBack.enableBrakeMode(false);
-				leftMotorTop.enableBrakeMode(false);
+				//leftMotorTop.enableBrakeMode(false);
 				leftMotorFront.enableBrakeMode(false);
 				leftMotorBack.enableBrakeMode(false);
 			}else if(previousDriveState.equals(DriveState.DISABLED)){
-				rightMotorTop.enableBrakeMode(true);
+				//rightMotorTop.enableBrakeMode(true);
 				rightMotorFront.enableBrakeMode(true);
 				rightMotorBack.enableBrakeMode(true);
-				leftMotorTop.enableBrakeMode(true);
+				//leftMotorTop.enableBrakeMode(true);
 				leftMotorFront.enableBrakeMode(true);
 				leftMotorBack.enableBrakeMode(true);
 			}
@@ -287,23 +291,24 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case AUTO_DRIVE_DISTANCE:
-			driveDistance();			
 			autoReady = false;
+			driveDistance();			
 			break;
 			
 		case AUTO_DRIVE_POINT:
-			drivePoint();			
 			autoReady = false;
+			drivePoint();			
 			break;
 			
 		case AUTO_TURN:
-			turn();			
 			autoReady = false;
+			turn();			
 			break;
 			
 		case AUTO_HOLD:
-			hold();			
 			autoReady = false;
+			hold();			
+
 			break;
 			
 		case AUTO_ABORT:
@@ -316,7 +321,7 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
-			if(dsc.getRawButton(0, DriverStationControls.JOY_RIGHT)){
+			if(dsc.getButtonRising(DriverStationControls.LEFT_JOY_RIGHT)){
 				rightEncoder.reset();
 				rightEncoderData.reset();
 				leftEncoder.reset();
@@ -332,8 +337,10 @@ public class Drives extends GenericSubsystem {
 				rightPreviousDistance = 0;
 			}
 			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				LOG.logMessage("Turning");
-				autoTurnToHeading(90, 20);
+				//LOG.logMessage("Turning");
+				//autoTurnToHeading(90, 20);
+				LOG.logMessage("right distance = " + rightCurrentDistance);
+				LOG.logMessage("left distance = " + leftCurrentDistance);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -351,8 +358,8 @@ public class Drives extends GenericSubsystem {
 				currentDiagnosticState = DiagnosticState.TOP;
 				isDiagnostic = false;
 			}
-			if(dsc.getRawButton(1, DriverStationControls.JOY_MIDDLE)){
-				autoDrivePoint(144, 40);
+			if(dsc.getButtonRising(DriverStationControls.RIGHT_JOY_MIDDLE)){
+				autoDrivePoint(144, 50);
 			}
 			
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
@@ -390,10 +397,10 @@ public class Drives extends GenericSubsystem {
 				leftSetPower += .05;
 			}
 			
-			rightMotorTop.set(rightSetPower);
+			//rightMotorTop.set(rightSetPower);
 			rightMotorFront.set(rightSetPower);
 			rightMotorBack.set(rightSetPower);
-			leftMotorTop.set(leftSetPower);
+			//leftMotorTop.set(leftSetPower);
 			leftMotorFront.set(leftSetPower);
 			leftMotorBack.set(leftSetPower);
 		}
@@ -428,14 +435,14 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected void writeLog() {
 		if(dsc.isEnabled()){
-			LOG.logMessage(0, 2, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
-			LOG.logMessage(1, 2, "(Right, Left) Current Speeds: (" + rightCurrentSpeed + ", " + leftCurrentSpeed + ")");
-			LOG.logMessage(2, 2, "(Right, Left) Wanted Speeds : (" + rightWantedSpeed + ", " + leftWantedSpeed + ")");
-			LOG.logMessage(3, 2, "(Right, Left) Set Powers : (" + rightSetPower + ", " + leftSetPower + ")");
-			LOG.logMessage(4, 2, "Current Angle: " + currentAngle);
-			LOG.logMessage(5, 2, "Wanted Angle: " + wantedAngle);
-			LOG.logMessage(6, 2, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
-			LOG.logMessage(7, 2, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+			//LOG.logMessage(0, 2, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
+			//LOG.logMessage(1, 2, "(Right, Left) Current Speeds: (" + rightCurrentSpeed + ", " + leftCurrentSpeed + ")");
+			//LOG.logMessage(2, 2, "(Right, Left) Wanted Speeds : (" + rightWantedSpeed + ", " + leftWantedSpeed + ")");
+			//LOG.logMessage(3, 2, "(Right, Left) Set Powers : (" + rightSetPower + ", " + leftSetPower + ")");
+			//LOG.logMessage(4, 2, "Current Angle: " + currentAngle);
+			//LOG.logMessage(5, 2, "Wanted Angle: " + wantedAngle);
+			//LOG.logMessage(6, 2, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+			//LOG.logMessage(7, 2, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
 		}
 
 	}
@@ -714,10 +721,10 @@ public class Drives extends GenericSubsystem {
 	 * Aborts the auto drives
 	 */
 	public void abort(){
-		rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		//rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
 		rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
 		rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
-		leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+		//leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
 		leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
 		leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
@@ -839,16 +846,16 @@ public class Drives extends GenericSubsystem {
 	public void diagnostics(){
 		switch(currentDiagnosticState){
 		case DONE:
-			rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+			//rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
 			rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
 			rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
-			leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+			//leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
 			leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
 			leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
 			return;
 		case TOP:
-			rightMotorTop.set(CHECK_POWER);
-			leftMotorTop.set(CHECK_POWER);
+			//rightMotorTop.set(CHECK_POWER);
+			//leftMotorTop.set(CHECK_POWER);
 			diagnosticTime = System.currentTimeMillis();
 			currentDiagnosticState = DiagnosticState.TOP_WAIT;
 			break;
@@ -856,10 +863,10 @@ public class Drives extends GenericSubsystem {
 			if(System.currentTimeMillis() < diagnosticTime + 500){
 				return;
 			}else{
-				check("Top Right", rightCurrentSpeed, CHECK_POWER);
-				check("Top Left", leftCurrentSpeed, CHECK_POWER);
-				rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
-				leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+				//check("Top Right", rightCurrentSpeed, CHECK_POWER);
+				//check("Top Left", leftCurrentSpeed, CHECK_POWER);
+				//rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+				//leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
 				currentDiagnosticState = DiagnosticState.FRONT;
 			}
 			break;

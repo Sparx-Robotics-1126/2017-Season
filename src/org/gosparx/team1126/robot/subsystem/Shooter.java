@@ -240,8 +240,8 @@ public class Shooter extends GenericSubsystem{
 	protected boolean execute(){
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
-		LOG.logMessage(36, 300,"Flywheel speed: " + shootingSpeedCurrent);
-		LOG.logMessage(37, 300, "Wanted Flywheel speed: " + speed);
+		//LOG.logMessage(36, 300,"Flywheel speed: " + shootingSpeedCurrent);
+		//LOG.logMessage(37, 300, "Wanted Flywheel speed: " + speed);
 	//	turretDegreeCurrent = turretSensor.getDegrees();
 		if (System.currentTimeMillis()/1000.0 - time >1.0){
 		//	LOG.logMessage("Max: " + max + " Min: " + min);
@@ -282,11 +282,11 @@ public class Shooter extends GenericSubsystem{
 		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
 				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
 			if(speedButton == true){
-				LOG.logMessage("off,speed");
+				//LOG.logMessage("off,speed");
 				speedButton = false;
 				turretButton = false;
 			}else{
-				LOG.logMessage("on,speed");
+			//	LOG.logMessage("on,speed");
 				speedButton = true;
 				turretButton = true;
 			}
@@ -528,7 +528,7 @@ public class Shooter extends GenericSubsystem{
 	 * power is only going to be positive
 	 */
 	public void check(String name, double encoderSpeed){
-		LOG.logMessage(name + " speed: " + encoderSpeed);
+		//LOG.logMessage(name + " speed: " + encoderSpeed);
 		if(encoderSpeed > 5)
 			LOG.logMessage(name + " is going forward and the encoder is reading correctly");
 		else if(encoderSpeed < -5)
