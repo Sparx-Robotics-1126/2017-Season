@@ -2,8 +2,8 @@ package org.gosparx.team1126.robot.subsystem;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
-import org.gosparx.team1126.robot.sensors.PID;
 import org.gosparx.team1126.robot.util.DriverStationControls;
+import org.gosparx.team1126.robot.util.PID;
 import org.gosparx.team1126.robot.util.SharedData;
 
 import com.ctre.CANTalon;

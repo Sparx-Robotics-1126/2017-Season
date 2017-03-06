@@ -1,4 +1,4 @@
-package org.gosparx.team1126.robot.sensors;
+package org.gosparx.team1126.robot.util;
 
 /**
  * Logic of a Proportional Integral Derivative loop. Must be constructed first, then it must receive
