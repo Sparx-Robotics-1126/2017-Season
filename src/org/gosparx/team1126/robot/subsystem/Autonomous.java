@@ -6,6 +6,7 @@ import java.util.Arrays;
 import org.gosparx.team1126.robot.util.CSVReader;
 import org.gosparx.team1126.robot.util.SharedData.Target;
 
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -220,6 +221,7 @@ public class Autonomous extends GenericSubsystem{
 					
 				case DRIVES_LIFT:
 					dsc.sharedData.targetType = Target.LIFT;
+					Timer.delay(3);	//REMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVE
 					drives.moveToLift(currentAuto[currStep][1]);
 					currCommand = DRIVES_DONE;
 					break;

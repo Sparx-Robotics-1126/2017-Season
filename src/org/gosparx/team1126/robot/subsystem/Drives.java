@@ -22,9 +22,9 @@ public class Drives extends GenericSubsystem {
 
 	private static final double CALCULATED_DISTANCE_PER_TICK = .031219576995;	// The Formula: (Gear Ratio * Circumference)/ticks
 	private static final double RIGHT_DISTANCE_PER_TICK = .03163;				// was .03068
-	private static final double LEFT_DISTANCE_PER_TICK = .03098;				// was .02993
-	private static final double RIGHT_REVERSE_DISTANCE_PER_TICK = .03380;
-	private static final double LEFT_REVERSE_DISTANCE_PER_TICK = .03264;
+	private static final double LEFT_REVERSE_DISTANCE_PER_TICK = .03098;				// was .02993
+	private static final double RIGHT_REVERSE_DISTANCE_PER_TICK = .03261;
+	private static final double LEFT_FORWARD_DISTANCE_PER_TICK = .03200;
 	private static final double STOP_MOTOR_POWER_SPEED = 0;						// Speed for the motors when they are stopped
 	private static final double MAX_SPEED = 175;        						// Maximum speed for the robot
 	private static final double HOLDING_DRIVE_SPEED = 30;						// Speed for driving while in hold state
@@ -38,7 +38,7 @@ public class Drives extends GenericSubsystem {
 	private static final double JOYSTICK_DEADBAND = .1; 						// Axis for the deadband
 	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
 	private static final double LEFT_FF = .00538;								// Feed forward for left PID
-	private static final double LIFT_TAPE_DISTANCE = 4;
+	private static final double LIFT_TAPE_GEAR_DISTANCE = 20;
 	
 	/** Right */
 	
@@ -160,9 +160,9 @@ public class Drives extends GenericSubsystem {
 		leftMotorBack = new CANTalon(IO.CAN_DRIVES_LEFT_BACK);
 		leftMotorBack.setInverted(true);
 		leftMotorBack.enableBrakeMode(true);
-		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B);
-		leftEncoderData = new EncoderData(leftEncoder, -LEFT_DISTANCE_PER_TICK);		
-		leftEncoderData.setReverseDistancePerPulse(LEFT_REVERSE_DISTANCE_PER_TICK);
+		leftEncoder = new Encoder(IO.DIO_LEFT_DRIVES_ENC_A,IO.DIO_LEFT_DRIVES_ENC_B, true);
+		leftEncoderData = new EncoderData(leftEncoder, LEFT_REVERSE_DISTANCE_PER_TICK);		
+		leftEncoderData.setReverseDistancePerPulse(LEFT_FORWARD_DISTANCE_PER_TICK);
 		leftPID = new PID(LEFT_KI, LEFT_KP, LEFT_FF);
 		leftPID.breakMode(true);
 		leftPID.setMaxMin(-0.95, 0.95);
@@ -236,6 +236,9 @@ public class Drives extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
+		
+		//LOG.logMessage("right speed = " + rightCurrentSpeed);
+		//LOG.logMessage("left speed = " + leftCurrentSpeed);
 		
 		if(!previousDriveState.equals(currentDriveState)){
 			if(currentDriveState.equals(DriveState.DISABLED)){
@@ -336,11 +339,11 @@ public class Drives extends GenericSubsystem {
 				leftPreviousDistance = 0;
 				rightPreviousDistance = 0;
 			}
-			if(dsc.getRawButton(0, DriverStationControls.JOY_TRIGGER)){
-				//LOG.logMessage("Turning");
-				//autoTurnToHeading(90, 20);
-				LOG.logMessage("right distance = " + rightCurrentDistance);
-				LOG.logMessage("left distance = " + leftCurrentDistance);
+			if(dsc.getButtonRising(DriverStationControls.LEFT_JOY_TRIGGER)){
+				LOG.logMessage("Turning");
+				autoTurnToHeading(90, 40);
+				//LOG.logMessage("right distance = " + rightCurrentDistance);
+				//LOG.logMessage("left distance = " + leftCurrentDistance);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -563,9 +566,14 @@ public class Drives extends GenericSubsystem {
 		driveDone = false;
 		initialHeading = gyro.getAngle();
 		wantedSpeed = speed;
-		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_DISTANCE;
+		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_GEAR_DISTANCE;
+		wantedAngle = SharedData.angleToLift;
+		LOG.logMessage("distance to lift from camera: " + SharedData.distanceToLift);
+		LOG.logMessage("distance to drive to lift: " + wantedDistance);
+		LOG.logMessage("angle to Lift: " + wantedAngle);
 		LOG.logMessage("moveToLift(" + speed + ") Ang " + initialHeading);
-		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
+		//currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
+		currentDriveState = DriveState.STANDBY;
 		return true;
 	}
 	/**
@@ -680,15 +688,32 @@ public class Drives extends GenericSubsystem {
 	}
 	
 	/**
+	 * Turns the robot angle degrees to the lift
+	 * @param speed the speed at which the robot should turn
+	 * @return true if the robot is ready to go, false otherwise
+	 */
+	public boolean autoTurnLift(double speed){
+		LOG.logMessage("AutoTurnLift (" + speed + ")");
+		if(!isAutoDone()){
+			return false;
+		}
+		turnDone = false;
+		wantedAngle = SharedData.angleToLift;
+		wantedSpeed = speed;
+		currentDriveState = DriveState.AUTO_TURN;
+		return true;
+	}
+	
+	/**
 	 * Helper method for auto turn
 	 */
 	private void turn(){
 		autoReady = false;
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
-		//LOG.logMessage("Current Angle: " + currentAngle);
-		//LOG.logMessage("angleOffset: " + angleOffset);
+		LOG.logMessage(20, 20, "Current Angle: " + currentAngle);
+		LOG.logMessage(21, 20, "angleOffset: " + angleOffset);
 		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
-		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5)<3){
+		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5) < 3){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			currentDriveState = DriveState.STANDBY;
@@ -701,7 +726,7 @@ public class Drives extends GenericSubsystem {
 		if(wantedSpeed > 12 + Math.abs(angleOffset)/2){
 			wantedSpeed = 12 + Math.abs(angleOffset)/2;
 		}
-		if(angleOffset>0){
+		if(angleOffset > 0){
 			rightWantedSpeed = -wantedSpeed;
 			leftWantedSpeed = wantedSpeed;
 		}else{
