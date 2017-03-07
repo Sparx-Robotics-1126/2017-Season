@@ -17,7 +17,8 @@ public class EncoderData {
     private double distPerTickReverse;
     private long lastTime;
     private long lastEncoderCount = 0;
-    private double speed;
+    private long lastSpeedCount = 0;
+    private double speed = 0;
     private long forwardCount = 0;
     private long reverseCount = 0;
     private long deltaCount = 0;
@@ -32,16 +33,16 @@ public class EncoderData {
     public EncoderData(Encoder controlled, double distPerTick){
         this.controlled = controlled;
         controlled.setDistancePerPulse(distPerTick);
-        this.distPerTickForward = distPerTick;
-        this.distPerTickReverse = distPerTick;
+        distPerTickForward = distPerTick;
+        distPerTickReverse = distPerTick;
         lastTime = Utility.getFPGATime();
         USE_COUNTER = false;
     }
     
     public EncoderData(Counter controlled, double distPerTick){
         this.counter = controlled;
-        this.distPerTickForward = distPerTick;
-        this.distPerTickReverse = distPerTick;
+        distPerTickForward = distPerTick;
+        distPerTickReverse = distPerTick;
         lastTime = Utility.getFPGATime();
         USE_COUNTER = true;
     }
@@ -58,21 +59,26 @@ public class EncoderData {
         long currentTime = Utility.getFPGATime();
         long encoderCount = USE_COUNTER ? counter.get() : controlled.get();
         long elapsedTime = currentTime - lastTime;
+        long tempCount;
+        
+        deltaCount = encoderCount - lastEncoderCount;
+        lastEncoderCount = encoderCount;
+        
+        if (deltaCount >= 0)
+        	forwardCount += deltaCount;
+        else
+        	reverseCount += deltaCount;
         
         if (elapsedTime < 20000)
             return;
         
-        deltaCount = encoderCount - lastEncoderCount;
+        tempCount = encoderCount - lastSpeedCount;
+        lastSpeedCount = encoderCount;
         lastTime = currentTime;
-        lastEncoderCount = encoderCount;
         
-        if (deltaCount > 0)
-        	forwardCount += deltaCount;
-        else if (deltaCount < 0)
-        	reverseCount += deltaCount;
-        
-        speed = getIncrementalDistance() /
-        		(elapsedTime / 1000000.0);
+        speed = ((tempCount > 0 ? distPerTickForward : 
+        	distPerTickReverse) * tempCount) /
+        	(elapsedTime / 1000000.0);
     }
     
     /**
@@ -89,8 +95,9 @@ public class EncoderData {
      * @return The distance driven since the last reset as scaled by the value from setDistancePerPulse().
      */
     public double getDistance() {
-        return USE_COUNTER ? counter.get() * distPerTickForward : 
-        	(forwardCount * distPerTickForward + reverseCount * distPerTickReverse);
+        return (USE_COUNTER ? counter.get() * distPerTickForward : 
+        	((forwardCount * distPerTickForward) + (
+        	reverseCount * distPerTickReverse)));
     }
 
     /**
@@ -99,7 +106,7 @@ public class EncoderData {
      */
     
     public double getIncrementalDistance() {
-    	return ((double) deltaCount * ((deltaCount > 0) ? 
+    	return (((double) deltaCount) * ((deltaCount > 0) ? 
         		distPerTickForward : distPerTickReverse));
     }
     
