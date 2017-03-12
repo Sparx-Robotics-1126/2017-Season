@@ -74,7 +74,7 @@ public class DriverStationControls {
 	public static final int XBOX_START = 8;
 	public static final int XBOX_L3 = 9;
 	public static final int XBOX_R3 = 10;
-
+	
 	// XBox Mapping
 	
 	public static final int OP_XBOX_LEFT_X = xboxControllerAxis + 0;
@@ -95,7 +95,11 @@ public class DriverStationControls {
 	public static final int OP_XBOX_START = xboxControllerButtons + XBOX_START;
 	public static final int OP_XBOX_L3 = xboxControllerButtons + XBOX_L3;
 	public static final int OP_XBOX_R3 = xboxControllerButtons + XBOX_R3;
-		
+	public static final int OP_XBOX_POV_UP = 0;
+	public static final int OP_XBOX_POV_RIGHT = 2;
+	public static final int OP_XBOX_POV_DOWN = 4;
+	public static final int OP_XBOX_POV_LEFT = 6;
+	
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;

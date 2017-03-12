@@ -60,6 +60,7 @@ public class AbsoluteEncoderData {
 	 * @return The current voltage of the enc
 	 */
 	public double getVoltage(){
+
 		return input.getVoltage();
 	}
 	

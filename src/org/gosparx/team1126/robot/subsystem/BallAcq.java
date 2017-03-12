@@ -6,6 +6,8 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
+import org.gosparx.team1126.robot.subsystem.Drives.DiagnosticState;
+import org.gosparx.team1126.robot.util.DriverStationControls;
 
 import com.ctre.CANTalon;
 
@@ -23,20 +25,24 @@ public class BallAcq extends GenericSubsystem{
 
 	private static final double RIGHT_MOTOR_STOP = 0;
 
-	private double wantedLeftSpeed;
+	private double wantedSpeed;
 
-	private double wantedRightSpeed;
-
-	private State currentAcqStatus;
+	private State currentAcqStatus = State.STANDBY;
 
 	public static BallAcq ballacq;
 
-	private CANTalon leftMotor;
+	private CANTalon acqMotor;
 
-	private CANTalon rightMotor;
+	private CANTalon horizontalBeltMotor;
 
 	private DigitalInput GearAcqSensor;
 
+	private BeltState currentBeltState = BeltState.STANDBY;
+
+	private long startBeltTime;
+
+	private double wantedBeltSpeed; 
+	
 	private BallAcq(){
 		super("BallAcq", Thread.NORM_PRIORITY);
 	}
@@ -50,29 +56,40 @@ public class BallAcq extends GenericSubsystem{
 		}
 		return ballacq;
 	}
-	
+
 	@Override
 	protected boolean init(){
-		wantedLeftSpeed = 0;
-		wantedRightSpeed = 0;
+		wantedSpeed = 0;
+		wantedBeltSpeed = 0;
 		currentAcqStatus = State.STANDBY;
-		leftMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
-		rightMotor = new CANTalon(IO.CAN_BALLACQ_RIGHT);
-		rightMotor.setInverted(true);
+		acqMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
+		horizontalBeltMotor = new CANTalon(IO.CAN_HOPPER_HORIZONTAL_BELT);
 		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_SENSOR);
-		
+		currentBeltState = BeltState.STANDBY;
 		return true;
 	}
-	
+
 	@Override 
 	protected void writeLog() {
-//		LOG.logMessage("Acqusition Status" + currentAcqStatus);
+		//		LOG.logMessage("Acqusition Status" + currentAcqStatus);
 	}
-	
+
+	/**
+	 * State of Hopper belts
+	 */
+	public enum BeltState{
+		FORWARD,
+		FORWARD_WAIT,
+		REVERSE,
+		REVERSE_WAIT,
+		STANDBY;
+	}
+
 	public enum State{
 		STANDBY,
 		FORWARD,
-		BACKWARD;
+		BACKWARD,
+		SHOOTING;
 
 		@Override
 		public String toString(){
@@ -99,49 +116,96 @@ public class BallAcq extends GenericSubsystem{
 	@Override
 	protected boolean execute() {
 		setAcqState();
+		
 		switch(currentAcqStatus){
 		case STANDBY:{
-			wantedLeftSpeed = LEFT_MOTOR_STOP;
-			wantedRightSpeed = RIGHT_MOTOR_STOP;
+			wantedSpeed = LEFT_MOTOR_STOP;
 			break;
 		}
 		case FORWARD:{
-			wantedLeftSpeed = LEFT_MOTOR_SPIN_FOWARD;
-			wantedRightSpeed = RIGHT_MOTOR_SPIN_FOWARD;
+			wantedSpeed = LEFT_MOTOR_SPIN_FOWARD;
 			break;
 		}
 		case BACKWARD:{
-			wantedLeftSpeed = LEFT_MOTOR_SPIN_BACKWARD;
-			wantedRightSpeed =  RIGHT_MOTOR_SPIN_BACKWARD;
+			wantedSpeed = LEFT_MOTOR_SPIN_BACKWARD;
+			break;
+		}
+		case SHOOTING:{
+			switch(currentBeltState){
+			case FORWARD:
+				startBeltTime = System.currentTimeMillis();
+				wantedSpeed = -1.0;
+				currentBeltState = BeltState.FORWARD_WAIT;
+				break;
+			case FORWARD_WAIT:
+				if(System.currentTimeMillis() >= startBeltTime + 1500)
+					currentBeltState = BeltState.REVERSE;
+				wantedSpeed = -1.0;
+				break;
+			case REVERSE:
+				startBeltTime = System.currentTimeMillis();
+				wantedSpeed = 1.0;
+				currentBeltState = BeltState.REVERSE_WAIT;
+				break;
+			case REVERSE_WAIT:
+				if(System.currentTimeMillis() >= startBeltTime + 200)
+					currentBeltState = BeltState.FORWARD;
+				wantedSpeed = 1.0;
+				break;
+			case STANDBY:
+				wantedSpeed = 0;
+			}
 			break;
 		}
 		default:
 			break;
 		}
 
-		rightMotor.set(wantedLeftSpeed);
-		leftMotor.set(wantedLeftSpeed);
+		acqMotor.set(wantedSpeed);
+		horizontalBeltMotor.set(wantedBeltSpeed);
 
 		return false;
 	}
-	
+
 	@Override
 	protected long sleepTime() {
 		return 20;
 	}
 
 	private void setAcqState(){
-		if(dsc.isAutonomous()){
+		if (dsc.isDisabled()){											// Robot Disabled
 			currentAcqStatus = State.STANDBY;
-		}
-		if(dsc.isOperatorControl()){
-				if(dsc.getPOVRising(0) || dsc.getPOVRising(2)){
-					currentAcqStatus = State.FORWARD;
-				} else if(dsc.getPOVRising(4)){
-					currentAcqStatus = State.STANDBY;
-				} else if(dsc.getPOVRising(6)){
-					currentAcqStatus = State.BACKWARD;
-				}
+			currentBeltState = BeltState.STANDBY;
+			wantedBeltSpeed = 0.0;			
+		}else if(dsc.isOperatorControl()){								// Operator Control
+			if(dsc.getPOVRising(IO.ACQ_ON)){							// Acquisition System ON
+				currentAcqStatus = State.FORWARD;
+				currentBeltState = BeltState.STANDBY;
+			}else if (dsc.getPOVRising(IO.ACQ_FEED_RIGHT)){				// Shooting Feed System LEFT BIN
+				currentAcqStatus = State.SHOOTING;
+				currentBeltState = BeltState.FORWARD;
+				wantedBeltSpeed = -1.0;
+			}else if(dsc.getPOVRising(IO.ACQ_OFF)){						// Acquisition and Shooting Feed System OFF
+				currentAcqStatus = State.STANDBY;
+				currentBeltState = BeltState.STANDBY;
+				wantedBeltSpeed = 0;
+			}else if(dsc.getPOVRising(IO.ACQ_FEED_LEFT)){				// Shooting Feed System RIGHT BIN
+				currentAcqStatus = State.SHOOTING;
+				currentBeltState = BeltState.REVERSE;
+				wantedBeltSpeed = 1.0;
 			}
+		}	
+	}
+
+	public void transport(boolean isShooting){
+		if(isShooting){
+			currentAcqStatus = State.SHOOTING;
+			currentBeltState = BeltState.FORWARD;
+			wantedBeltSpeed = 1.0;
+		}else{
+			currentAcqStatus = State.STANDBY;
+			currentBeltState = BeltState.STANDBY;
+			wantedBeltSpeed = 0.0;
 		}
 	}
+}

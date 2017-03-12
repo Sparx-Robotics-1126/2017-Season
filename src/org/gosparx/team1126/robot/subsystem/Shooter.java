@@ -11,13 +11,14 @@ import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import com.ctre.CANTalon;
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.AbsoluteEncoderData;
 import org.gosparx.team1126.robot.sensors.EncoderData;
 import org.gosparx.team1126.robot.subsystem.GenericSubsystem;
 import org.gosparx.team1126.robot.util.SharedData;
-import org.gosparx.team1126.robot.util.SharedData.Target;
 
 public class Shooter extends GenericSubsystem{
 
@@ -39,24 +40,19 @@ public class Shooter extends GenericSubsystem{
 	private double turretDegreeCurrent;
 	
 	/**
-	 * current turret speed
+	 * turret output
 	 */
-	private double turretSpeedCurrent;
+	private double turretOutput;
 		
-	/**
-	 * if the shooter subsystem(speed method) is ready 
-	 */
-	private boolean speedButton;
-	
-	/**
-	 * if the shooter subsystem(turret method) is ready
-	 */
-	private boolean turretButton;
-	
 	/**+
 	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
+	private boolean lastPressed = false;
+	/**
+	 * the local variable to see if the system should fire (when ready)
+	 */
+	private boolean fireNow;
 	
 	/**
 	 * the degree the turret is off by
@@ -76,27 +72,14 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * speed for the shooter(temporary)
 	 */
-	private int speed;
-	
+	private double speed;
+		
 	/**
-	 * the current time for logging messages every 1 second
-	 */
-	private long currentTime;
-	
-	/**
-	 * the max encoder speed read during currentTime
+	 * the min/max encoder speed read during currentTime
 	 */
 	private double max;
-	
-	/**
-	 * the minimum encoder speed during currentTime
-	 */
 	private double min; 
 	
-	/**
-	 * also used for logging messages with the currentTime
-	 */
-	private double time;
 	
 //*****************************************Objects***************************************\\
 	
@@ -140,6 +123,11 @@ public class Shooter extends GenericSubsystem{
 	private final double FLYWHEEL_MAX = 1;
 	
 	/**
+	 * Inital wheel speed
+	 */
+	private final double INITIAL_SPEED = 1450;
+
+	/**
 	 * the speed that slowly decreases the fly wheel speed
 	 */
 	private final double FLYWHEEL_DECAY = 0.25;
@@ -164,6 +152,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private final double ZERO_VOLTAGE = 2.5;
 	
+	private BallAcq ballAcq;	
 	
 //*****************************************Methods***************************************\\	
 	
@@ -193,28 +182,27 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected boolean init(){
+		ballAcq = BallAcq.getInstance();
 		encoder = new Encoder(IO.DIO_SHOOTER_ENC_A, IO.DIO_SHOOTER_ENC_B);
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
-		//turretSensor = new AbsoluteEncoderData(IO.CAN_SHOOTER_TURRET, DEGREE_PER_VOLT);
-		//turretSensor.setZero(ZERO_VOLTAGE);
+		turretSensor = new AbsoluteEncoderData(IO.ANALOG_SHOOTER_ABS_ENC, DEGREE_PER_VOLT);
+		turretSensor.setZero(ZERO_VOLTAGE);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
 	 	servo = new Servo(IO.PWM_BALLACQ_SERVO_AGITATOR);
+	 	limitSwitchLeft = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_LEFT);
+	 	limitSwitchRight = new DigitalInput(IO.DIO_SHOOTER_LIMITSWITCH_RIGHT);
 		currentEnum = DiagnosticsEnuuum.DONE;
 		shootingSpeedCurrent = 0;
-		turretSpeedCurrent = 0;
-		speedButton = false;
-		turretButton = false;
 		isPressed = false;
 		degreeOff = 0;
 		distance =  100;
 		ready = false;
-		speed = 1450;
-		currentTime = 0;
+		speed = INITIAL_SPEED;
 		max = 0;
 		min = 10000;
-		time = 0;
+		dsc.setAxisDeadband(IO.TURRET_JOY_Y, .1); //added for manual turret control
 		return true;
 	}
 
@@ -229,6 +217,10 @@ public class Shooter extends GenericSubsystem{
 		LiveWindow.addActuator(subsystemName, "FlyWheel", flyWheel);
 		LiveWindow.addActuator(subsystemName, "FeederWheel", feeder);
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
+		LiveWindow.addSensor(subsystemName, "Right Limit Switch", limitSwitchRight);
+		LiveWindow.addSensor(subsystemName, "Left Limit Switch", limitSwitchLeft);
+		SmartDashboard.putBoolean("Turret Limit Switch Left", limitSwitchLeft.get());
+		SmartDashboard.putBoolean("Turret Limit Switch Right", limitSwitchRight.get());
 	}
 
 	//done
@@ -240,14 +232,17 @@ public class Shooter extends GenericSubsystem{
 	protected boolean execute(){
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
-		//LOG.logMessage(36, 300,"Flywheel speed: " + shootingSpeedCurrent);
-		//LOG.logMessage(37, 300, "Wanted Flywheel speed: " + speed);
-	//	turretDegreeCurrent = turretSensor.getDegrees();
-		if (System.currentTimeMillis()/1000.0 - time >1.0){
-		//	LOG.logMessage("Max: " + max + " Min: " + min);
+		turretDegreeCurrent = turretSensor.getDegrees();
+
+		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
+
+		// printing min/max for testing wheel speed control
+/*		
+		if (System.currentTimeMillis() - time > 1000){
+			LOG.logMessage("Max: " + max + " Min: " + min);
 			max = 0;
 			min = 10000;
-			time = System.currentTimeMillis()/1000.0;
+			time = System.currentTimeMillis();
 		}
 			
 		if (shootingSpeedCurrent > max)
@@ -255,70 +250,76 @@ public class Shooter extends GenericSubsystem{
 		
 		if (shootingSpeedCurrent < min)
 			min = shootingSpeedCurrent;
-		//LOG.logMessage(1,25,"Flywheel speed: " + shootingSpeedCurrent);
+*/
+
+		// Get Shooting System Command - If Operator Control, then get the input from the joystick,
+		// otherwise Autonomous will automatically set/clear isPressed by calling the routine
+		// "shooterSystemState".  Otherwise make sure isPressed is false.
 		
-//		if(dsc.isOperatorControl())	
-//			isPressed = dsc.isPressed(IO.BUTTON_SHOOTING_SYSTEM_ON);
-//		if(isPressed){
-//			speedButton = true;
-//			turretButton = true;                       old way to turn on system using y button
-//		}else{
-//			speedButton = false;
-//			turretButton = false;
-//		}
-		
-//		if(dsc.getButtonRising(IO.BUTTON_SHOOTING_SYSTEM_ON)||isPressed){
-//			if(speedButton == true){
-//				speedButton = false;
-//				turretButton = false;				alternate way to turn on shooter using y button
-//				isPressed = false;
-//			}else{
-//				speedButton = true;
-//				turretButton = true;
-//				isPressed = false;
-//			}
-//		}
-		
-		if((dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON)&&(speedButton == false) && dsc.isOperatorControl())
-				||(!(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))&&(speedButton == true)&&dsc.isOperatorControl())){
-			if(speedButton == true){
-				//LOG.logMessage("off,speed");
-				speedButton = false;
-				turretButton = false;
-			}else{
-			//	LOG.logMessage("on,speed");
-				speedButton = true;
-				turretButton = true;
-			}
+		if (!dsc.isAutonomous()){
+			isPressed = false;
+			fireNow = false;
 		}
-//		}else if(isPressed){
-//			speedButton = true;
-//			turretButton = true;
-//		}else if(!isPressed){
-//			speedButton = false;
-//			turretButton = false;
-//		}
+		
+		if (dsc.isOperatorControl()){
+			isPressed = dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON);
+			fireNow = dsc.isPressed(IO.BUTTON_FIRE);
+		}
+
+		// Check to see if the system state has changed
+		
+		if (lastPressed != isPressed){
+			if (isPressed){
+				dsc.sharedData.targetType = SharedData.Target.BOILER;
+				speed = INITIAL_SPEED;
+			}
+				else
+				dsc.sharedData.targetType = SharedData.Target.NONE;
+
+			lastPressed = isPressed;
+		}
+		
+		// Manual control of the flywheel.  This will need to be changed to the analog dial on joystick 4 
+		
 		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
 			speed += 25;
-			//LOG.logMessage("up");
 		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-			//LOG.logMessage("Down");
 			speed -= 25;
 		}
-		if(dsc.getButtonRising(IO.AGITATOR_SERVO)){
-			servo.set(1);
-			//LOG.logMessage("Servo is pressed");
-		}	
-		if(fireCtrl()){
-			ready = true;
-			if(dsc.isPressed(IO.BUTTON_FIRE))
-				feeder.set(INTAKE_BALL_SPEED);
-			else
-				feeder.set(0);
-		}else{
-			ready = false;
-			feeder.set(0);
+
+		// fireCtrl checks to see if target and wheel is ready to fire.  Turret on Target, Wheel @ speed
+		
+		ready = turretCtrl();
+		ready &= speedCtrl();
+		
+		if(ready && fireNow)
+			feeder.set(INTAKE_BALL_SPEED);
+		else
+			feeder.set(0);		
+
+		if(dsc.getAxis(IO.TURRET_JOY_Y) < -0.25){
+			turretOutput = -.2;
+		}else if (dsc.getAxis(IO.TURRET_JOY_Y) > 0.25){
+			turretOutput = .2;
 		}
+		
+		// Turret Limit Protection
+			
+		LOG.logMessage(12,25,"Turret " + turretDegreeCurrent);
+		
+		if (limitSwitchRight.get() && turretOutput < 0){
+			LOG.logMessage("Limit Right");
+			turretOutput = 0;
+		}else if (limitSwitchLeft.get() && turretOutput > 0){
+			LOG.logMessage("Limit Left");;
+			turretOutput = 0;
+		}
+		
+		turret.set(turretOutput);
+		
+		//LOG.logMessage("turrent angle: " + turretSensor.getDegrees());
+		//LOG.logMessage("relative angle: " + turretSensor.relDegrees());
+		//LOG.logMessage("Voltage: " + turretSensor.getVoltage());
 		
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
@@ -346,7 +347,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-//		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
+		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
 //		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
 //		//LOG.logMessage("Turret Degree Off: " + degreeOff);
 //		LOG.logMessage("Distance Away: " + distance);
@@ -381,18 +382,19 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean speedCtrl(){
-		if(!speedButton){
+		if(!isPressed){
 			flyWheel.set(0);
-			//LOG.logMessage("off");
 			return false;
 		}
+		
 		shootingSpeed = distanceToSpeed();
+
 		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			flyWheel.set(FLYWHEEL_MAX);
-			//LOG.logMessage("on");
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
 			flyWheel.set(FLYWHEEL_DECAY + (shootingSpeed * 0.0001));
 		}
+		
 		if(Math.abs(shootingSpeedCurrent - shootingSpeed) > FlYWHEEL_DEADBAND)
 				return false;
 		return true;	 
@@ -405,54 +407,48 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
+		turretOutput = 0;									// Initialize Turret Output to 0
+		
 //		if(!turretButton){
-//			turret.set(0);
 //			return false;
 //		}
+
 //		degreeOff = turretSettings();
 //		LOG.logMessage("Degree: " + degreeOff);
-//		if(limitSwitchRight.get()){
-//			turret.set(-0.01);
-//		}else if(limitSwitchLeft.get()){
-//			turret.set(0.01);
+		
+//		if(turretDegreeCurrent < degreeOff - 1){
+//			turretOutput = -.20;
+//		}else if(turretDegreeCurrent > degreeOff + 1){
+//			turretOutput = .20;
 //		}else{
-//			if(turretDegreeCurrent < degreeOff-1){
-//				turret.set(-.10);
-//			}else if(turretDegreeCurrent > degreeOff+1){
-//				turret.set(.10);
-//			}else{
-//				turret.set(0);
-//				return true;
-//			}
+//			turretOutput = 0;
+//			return true;
 //		}
+
 		return true;
+		
 	}
-	
-	//done
-	/**
-	 * checks if the turret is locked on and the shooter is at speed
-	 * @return - if this system is ready
-	 */
-	private boolean fireCtrl(){
-		//if(dsc.sharedData.targetType == SharedData.Target.BOILER)
-			if(speedCtrl() && turretCtrl()){
-				return true;
-			}
-		return false;
-	}
-	
+		
 	//done
 	/**
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
 	public void shooterSystemState(int isOn){
-		if(isOn == 1)
+		if ((isOn == 1) && dsc.isAutonomous())
 			isPressed = true;
-		else if(isOn == 0)
-			isPressed = false;
 		else 
 			isPressed = false;
+	}
+	
+	public void shooterSystemFire(int fire) {
+		if ((fire == 1) && dsc.isAutonomous()){
+			fireNow = true;
+			ballAcq.transport(true);
+		} else {
+			fireNow = false;
+			ballAcq.transport(false);
+		}
 	}
 	
 	//done
@@ -464,6 +460,11 @@ public class Shooter extends GenericSubsystem{
 	public void visionUpdate(double degreeOff, double distance){
 		this.degreeOff = degreeOff;
 		this.distance = distance;
+	}
+	
+	public void feederOff()
+	{
+		feeder.set(0);
 	}
 	
 	//done
@@ -535,5 +536,14 @@ public class Shooter extends GenericSubsystem{
 			LOG.logMessage(name + " is going forward but the encoder is reading backwards");
 		else
 			LOG.logMessage(name + " is going forward but the encoder is reading 0");
+	}
+	
+	//couldn't figure out how to invert encoder so....
+	public boolean getPressed (DigitalInput limit){
+		if(limit.get()){
+			return false;
+		}else{
+			return true;
+		}
 	}
 }
