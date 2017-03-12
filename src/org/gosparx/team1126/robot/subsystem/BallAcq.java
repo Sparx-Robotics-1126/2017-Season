@@ -13,36 +13,29 @@ import com.ctre.CANTalon;
 
 public class BallAcq extends GenericSubsystem{
 
-	private static final double LEFT_MOTOR_SPIN_FOWARD = 1.0;
-
-	private static final double LEFT_MOTOR_SPIN_BACKWARD = -1.0;
-
-	private static final double LEFT_MOTOR_STOP = 0;
-
-	private static final double RIGHT_MOTOR_SPIN_FOWARD = 1.0;
-
-	private static final double RIGHT_MOTOR_SPIN_BACKWARD = -1.0;
-
-	private static final double RIGHT_MOTOR_STOP = 0;
-
-	private double wantedSpeed;
-
-	private State currentAcqStatus = State.STANDBY;
+	private static final double MOTOR_SPIN_FOWARD = 1.0;
+	private static final double MOTOR_SPIN_BACKWARD = -1.0;
+	private static final double MOTOR_STOP = 0;
+	private static final double BELT_RAMP = .1;
 
 	public static BallAcq ballacq;
 
 	private CANTalon acqMotor;
-
 	private CANTalon horizontalBeltMotor;
-
 	private DigitalInput GearAcqSensor;
 
-	private BeltState currentBeltState = BeltState.STANDBY;
+	private State currentAcqStatus;
+	private BeltState currentBeltState;	
+	private HorizontalBeltState currentHorizontalBeltState;
 
 	private long startBeltTime;
-
+	private double wantedSpeed;
 	private double wantedBeltSpeed; 
 	
+	
+	/**
+	 * Constructor
+	 */
 	private BallAcq(){
 		super("BallAcq", Thread.NORM_PRIORITY);
 	}
@@ -59,13 +52,14 @@ public class BallAcq extends GenericSubsystem{
 
 	@Override
 	protected boolean init(){
-		wantedSpeed = 0;
-		wantedBeltSpeed = 0;
-		currentAcqStatus = State.STANDBY;
 		acqMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
 		horizontalBeltMotor = new CANTalon(IO.CAN_HOPPER_HORIZONTAL_BELT);
 		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_SENSOR);
+
+		currentAcqStatus = State.STANDBY;
 		currentBeltState = BeltState.STANDBY;
+		currentHorizontalBeltState = HorizontalBeltState.STANDBY;
+		
 		return true;
 	}
 
@@ -75,13 +69,22 @@ public class BallAcq extends GenericSubsystem{
 	}
 
 	/**
-	 * State of Hopper belts
+	 * State of Hopper vertical belts
 	 */
 	public enum BeltState{
 		FORWARD,
 		FORWARD_WAIT,
 		REVERSE,
 		REVERSE_WAIT,
+		STANDBY;
+	}
+	
+	/**
+	 * State of the hopper horizontal belts 
+	 */
+	public enum HorizontalBeltState{
+		RIGHT,
+		LEFT,
 		STANDBY;
 	}
 
@@ -119,15 +122,15 @@ public class BallAcq extends GenericSubsystem{
 		
 		switch(currentAcqStatus){
 		case STANDBY:{
-			wantedSpeed = LEFT_MOTOR_STOP;
+			wantedSpeed = MOTOR_STOP;
 			break;
 		}
 		case FORWARD:{
-			wantedSpeed = LEFT_MOTOR_SPIN_FOWARD;
+			wantedSpeed = MOTOR_SPIN_FOWARD;
 			break;
 		}
 		case BACKWARD:{
-			wantedSpeed = LEFT_MOTOR_SPIN_BACKWARD;
+			wantedSpeed = MOTOR_SPIN_BACKWARD;
 			break;
 		}
 		case SHOOTING:{
@@ -154,9 +157,32 @@ public class BallAcq extends GenericSubsystem{
 				break;
 			case STANDBY:
 				wantedSpeed = 0;
+				break;
+			default:
+				break;
 			}
 			break;
 		}
+		default:
+			break;
+		}
+		
+		switch(currentHorizontalBeltState){
+		case STANDBY:
+			wantedBeltSpeed = 0;
+			break;
+		case RIGHT:
+			if(wantedBeltSpeed > -1)
+				wantedBeltSpeed -= BELT_RAMP;
+			else
+				wantedBeltSpeed = -1.0;
+			break;
+		case LEFT:
+			if(wantedBeltSpeed < 1)
+				wantedBeltSpeed += BELT_RAMP;
+			else
+				wantedBeltSpeed = 1.0;
+			break;
 		default:
 			break;
 		}
@@ -176,7 +202,7 @@ public class BallAcq extends GenericSubsystem{
 		if (dsc.isDisabled()){											// Robot Disabled
 			currentAcqStatus = State.STANDBY;
 			currentBeltState = BeltState.STANDBY;
-			wantedBeltSpeed = 0.0;			
+			currentHorizontalBeltState =  HorizontalBeltState.STANDBY;		
 		}else if(dsc.isOperatorControl()){								// Operator Control
 			if(dsc.getPOVRising(IO.ACQ_ON)){							// Acquisition System ON
 				currentAcqStatus = State.FORWARD;
@@ -184,15 +210,15 @@ public class BallAcq extends GenericSubsystem{
 			}else if (dsc.getPOVRising(IO.ACQ_FEED_RIGHT)){				// Shooting Feed System LEFT BIN
 				currentAcqStatus = State.SHOOTING;
 				currentBeltState = BeltState.FORWARD;
-				wantedBeltSpeed = -1.0;
+				currentHorizontalBeltState = HorizontalBeltState.RIGHT;
 			}else if(dsc.getPOVRising(IO.ACQ_OFF)){						// Acquisition and Shooting Feed System OFF
 				currentAcqStatus = State.STANDBY;
 				currentBeltState = BeltState.STANDBY;
-				wantedBeltSpeed = 0;
+				currentHorizontalBeltState = HorizontalBeltState.STANDBY;
 			}else if(dsc.getPOVRising(IO.ACQ_FEED_LEFT)){				// Shooting Feed System RIGHT BIN
 				currentAcqStatus = State.SHOOTING;
 				currentBeltState = BeltState.REVERSE;
-				wantedBeltSpeed = 1.0;
+				currentHorizontalBeltState = HorizontalBeltState.LEFT;
 			}
 		}	
 	}
@@ -201,11 +227,11 @@ public class BallAcq extends GenericSubsystem{
 		if(isShooting){
 			currentAcqStatus = State.SHOOTING;
 			currentBeltState = BeltState.FORWARD;
-			wantedBeltSpeed = 1.0;
+			currentHorizontalBeltState = HorizontalBeltState.LEFT;
 		}else{
 			currentAcqStatus = State.STANDBY;
 			currentBeltState = BeltState.STANDBY;
-			wantedBeltSpeed = 0.0;
+			currentHorizontalBeltState = HorizontalBeltState.STANDBY;
 		}
 	}
 }

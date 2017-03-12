@@ -22,7 +22,7 @@ public class IO {
 	public static final int DIO_LEFT_DRIVES_ENC_A                           = 12;
 	public static final int DIO_LEFT_DRIVES_ENC_B	                        = 13;
 	public static final int DIO_GEARACQ_SENSOR								= 14;
-	public static final int ANALOG_SHOOTER_ABS_ENC							= 5;
+	public static final int ANALOG_SHOOTER_ABS_ENC							= 7;
 	public static final int DIO_CLIMBING_LIMITSWITCH						= 16;
 	public static final int DIO_JETSON_RESET								= 17;
 	public static final int DIO_SHOOTER_LIMITSWITCH_RIGHT					= 20;

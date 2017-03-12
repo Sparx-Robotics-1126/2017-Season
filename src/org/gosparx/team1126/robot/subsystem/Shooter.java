@@ -48,7 +48,8 @@ public class Shooter extends GenericSubsystem{
 	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
-	private boolean lastPressed = false;
+    private boolean lastPressed;
+    
 	/**
 	 * the local variable to see if the system should fire (when ready)
 	 */
@@ -110,12 +111,12 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * used for the turret absolute encoder
 	 */
-	private final double DEGREE_PER_VOLT = 0.1;
+	private final double DEGREE_PER_VOLT = 9.828;
 	
 	/**
 	 * the value that the speed of the motor is  allowed to be off by.
 	 */
-	private final int SPEED_ALLOWED_OFF = 25;
+	private final int SPEED_ALLOWED_OFF = 15;
 	
 	/**
 	 * the max speed for the fly wheel
@@ -150,7 +151,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * turret center position in volts
 	 */
-	private final double ZERO_VOLTAGE = 2.5;
+	private final double ZERO_VOLTAGE = 2.4;
 	
 	private BallAcq ballAcq;	
 	
@@ -232,7 +233,7 @@ public class Shooter extends GenericSubsystem{
 	protected boolean execute(){
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
-		turretDegreeCurrent = turretSensor.getDegrees();
+		turretDegreeCurrent = turretSensor.relDegrees();
 
 		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
@@ -273,7 +274,7 @@ public class Shooter extends GenericSubsystem{
 				dsc.sharedData.targetType = SharedData.Target.BOILER;
 				speed = INITIAL_SPEED;
 			}
-				else
+			else
 				dsc.sharedData.targetType = SharedData.Target.NONE;
 
 			lastPressed = isPressed;
@@ -305,13 +306,13 @@ public class Shooter extends GenericSubsystem{
 		
 		// Turret Limit Protection
 			
-		LOG.logMessage(12,25,"Turret " + turretDegreeCurrent);
+		//LOG.logMessage(12,25,"Turret " + turretDegreeCurrent);
 		
 		if (limitSwitchRight.get() && turretOutput < 0){
-			LOG.logMessage("Limit Right");
+//			LOG.logMessage("Limit Right");
 			turretOutput = 0;
 		}else if (limitSwitchLeft.get() && turretOutput > 0){
-			LOG.logMessage("Limit Left");;
+//			LOG.logMessage("Limit Left");;
 			turretOutput = 0;
 		}
 		
@@ -347,11 +348,12 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected void writeLog(){
-		LOG.logMessage("Flywheel speed: " + shootingSpeedCurrent);
-//		//LOG.logMessage("Turret degree: " + turretDegreeCurrent);
-//		//LOG.logMessage("Turret Degree Off: " + degreeOff);
+		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
+		LOG.logMessage("Turret Voltage: " + turretSensor.getVoltage());
+		LOG.logMessage("Turret Angle: "+ turretDegreeCurrent);
+		//		LOG.logMessage("Turret Degree Off: " + degreeOff);
 //		LOG.logMessage("Distance Away: " + distance);
-//		LOG.logMessage("IsPressed: " + isPressed);
+//		LOG.logMessage("IsPressed: " + isPressed
 	}
 	
 	//framework done
@@ -365,17 +367,7 @@ public class Shooter extends GenericSubsystem{
 
 	}
 	
-	//done
-	/**
-	 * calculates the direction to turn
-	 * @return - the degree and direction(positive or negative)
-	 */
-	private double turretSettings(){
-		//degreeOff = dsc.sharedData.angleToTarget;
-		return degreeOff;
-	}
 	
-	//done 
 	/**
 	 * checks if the motors are ready and are at a correct speed9999
 	 * @param button - if the button is pressed 
@@ -408,25 +400,24 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private boolean turretCtrl(){
 		turretOutput = 0;									// Initialize Turret Output to 0
-		
-//		if(!turretButton){
-//			return false;
-//		}
 
-//		degreeOff = turretSettings();
-//		LOG.logMessage("Degree: " + degreeOff);
+		// Only control if system is ON and we have a boiler image less than 2 seconds old.
 		
-//		if(turretDegreeCurrent < degreeOff - 1){
-//			turretOutput = -.20;
-//		}else if(turretDegreeCurrent > degreeOff + 1){
-//			turretOutput = .20;
-//		}else{
-//			turretOutput = 0;
-//			return true;
-//		}
+		if(!isPressed || SharedData.getImageTime(SharedData.Target.BOILER) > 2.0){
+			return false;
+		}
 
-		return true;
+		degreeOff = SharedData.angleToBoiler;
 		
+		if(turretDegreeCurrent < degreeOff - .5){
+			turretOutput = -.50;
+		}else if(turretDegreeCurrent > degreeOff + 0.5){
+			turretOutput = .50;
+		}
+		
+		turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.1));
+		
+		return true;	
 	}
 		
 	//done
@@ -538,7 +529,7 @@ public class Shooter extends GenericSubsystem{
 			LOG.logMessage(name + " is going forward but the encoder is reading 0");
 	}
 	
-	//couldn't figure out how to invert encoder so....
+	//couldn't figure out how to invert limit switch so....
 	public boolean getPressed (DigitalInput limit){
 		if(limit.get()){
 			return false;

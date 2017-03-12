@@ -337,10 +337,7 @@ public class DriverStationControls {
 		
 		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
 			if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
-				if (POVData[POVNumber][0] > 0)
-				{
-					rising = true;
-				}
+				rising = true;
 				POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 			}
 		}
@@ -358,10 +355,7 @@ public class DriverStationControls {
 				
 		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
 			if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
-				if (POVData[POVNumber][1] > 0)
-				{
-					falling = true;
-				}
+				falling = true;
 				POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 			}
 		}
