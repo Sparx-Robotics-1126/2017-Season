@@ -384,7 +384,8 @@ public class Shooter extends GenericSubsystem{
 
 		// Only control if system is ON and we have a boiler image less than 2 seconds old.
 		
-		if(!isPressed || SharedData.getImageTime(SharedData.Target.BOILER) > 2.0){
+		if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed ||
+				SharedData.getImageTime(SharedData.Target.BOILER) > 2.0)){
 			return false;
 			
 		}
@@ -439,8 +440,7 @@ public class Shooter extends GenericSubsystem{
 		switch(currentEnum){
 		case DONE:
 			flyWheel.set(0);
-			feeder.set(0);
-			turret.set(0);
+			degreeOff = turretDegreeCurrent;
 			break;
 
 		case FLYWHEEL:
@@ -450,6 +450,8 @@ public class Shooter extends GenericSubsystem{
 			break;
 
 		case FLYWHEEL_WAIT:
+			degreeOff = 0.0;
+
 			if(System.currentTimeMillis() < currentTime + 1000)
 				break;
 
