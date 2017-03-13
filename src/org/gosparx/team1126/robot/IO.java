@@ -80,8 +80,8 @@ public class IO {
 	public static final int LEFT_JOY_Y									= DriverStationControls.LEFT_JOY_Y_AXIS;
 	public static final int TURRET_JOY_Y								= DriverStationControls.OP_XBOX_LEFT_X;
 	public static final int DIAGNOSTICS									= DriverStationControls.OP_XBOX_BACK;
-	public static final int FLYWHEEL_INCREASE						    = DriverStationControls.OP_XBOX_X;
-	public static final int FLYWHEEL_DECREASE 							= DriverStationControls.OP_XBOX_B;
+	public static final int FLYWHEEL_INCREASE						    = DriverStationControls.OP_XBOX_B;
+	public static final int FLYWHEEL_DECREASE 							= DriverStationControls.OP_XBOX_X;
 
 	// Acquisition & Shooting Belts
 	
