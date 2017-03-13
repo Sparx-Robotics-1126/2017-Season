@@ -25,23 +25,15 @@ public class Shooter extends GenericSubsystem{
 //*****************************************Variables*************************************\\
 	
 	/**
-	 * current shooting speed;
+	 * current shooting speed & wanted speed
 	 */
 	private double shootingSpeedCurrent;
-	
-	/**
-	 * the speed wanted before shooting
-	 */
 	private double shootingSpeed;
 	
 	/**
-	 * current turret degree - 2/3 rotation per 30 degrees
+	 * current turret degree - 2/3 rotation per 30 degrees & turret motor output
 	 */
 	private double turretDegreeCurrent;
-	
-	/**
-	 * turret output
-	 */
 	private double turretOutput;
 		
 	/**+
@@ -231,6 +223,9 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override  
 	protected boolean execute(){
+		boolean turretReady;
+		boolean shooterReady;
+		
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
@@ -290,8 +285,9 @@ public class Shooter extends GenericSubsystem{
 
 		// fireCtrl checks to see if target and wheel is ready to fire.  Turret on Target, Wheel @ speed
 		
-		ready = turretCtrl();
-		ready &= speedCtrl();
+		turretReady = turretCtrl();
+		shooterReady = speedCtrl();		
+		ready = turretReady & shooterReady;
 		
 		if(ready && fireNow)
 			feeder.set(INTAKE_BALL_SPEED);
@@ -305,8 +301,6 @@ public class Shooter extends GenericSubsystem{
 		}
 		
 		// Turret Limit Protection
-			
-		//LOG.logMessage(12,25,"Turret " + turretDegreeCurrent);
 		
 		if (limitSwitchRight.get() && turretOutput < 0){
 //			LOG.logMessage("Limit Right");
@@ -327,9 +321,9 @@ public class Shooter extends GenericSubsystem{
 		else
 			currentEnum = DiagnosticsEnuuum.FLYWHEEL;
 
-		dsc.sharedData.systemReady = ready;
-		dsc.sharedData.turretAngle = turretDegreeCurrent;
-		dsc.sharedData.shooterSpeed = shootingSpeedCurrent;		
+		SharedData.systemReady = ready;
+		SharedData.turretAngle = turretDegreeCurrent;
+		SharedData.shooterSpeed = shootingSpeedCurrent;		
 		return false;
 	}
 
@@ -413,11 +407,12 @@ public class Shooter extends GenericSubsystem{
 			turretOutput = -.50;
 		}else if(turretDegreeCurrent > degreeOff + 0.5){
 			turretOutput = .50;
-		}
+		} else
+			return true;
 		
 		turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.1));
 		
-		return true;	
+		return false;	
 	}
 		
 	//done
