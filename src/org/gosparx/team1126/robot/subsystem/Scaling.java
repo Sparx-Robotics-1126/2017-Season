@@ -6,8 +6,6 @@ import edu.wpi.first.wpilibj.DigitalInput;
 
 import org.gosparx.team1126.robot.IO;
 
-//hello Logan, are you having a nice day? Yes.
-
 public class Scaling extends GenericSubsystem {
 
 	private State currentScalingStatus;

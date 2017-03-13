@@ -44,11 +44,11 @@ public class Vision extends GenericSubsystem {
 		visionSystem = new VisionNetworkTable();
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
 		reset.set(false);														// Reset the Jetson board
-		led = new Relay(0, Relay.Direction.kForward);
-		led.set(Relay.Value.kOff);												// Turn off the LED
+		led = new Relay(0, Relay.Direction.kForward); 
+		led.set(Relay.Value.kOn);	//todo change to off											// Turn off the LED
 		startTime = System.currentTimeMillis();
 		target = SharedData.targetType;											// Get Initial state of target
-		return true;
+		return true;  
 	}
 
 	/**
@@ -56,6 +56,7 @@ public class Vision extends GenericSubsystem {
 	 */
 	@Override
 	protected boolean execute() {
+		
 		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
