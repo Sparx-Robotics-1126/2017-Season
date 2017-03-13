@@ -463,13 +463,14 @@ public class Shooter extends GenericSubsystem{
 			flyWheel.set(0);
 
 			// setup Turret
-			degreeOff = 5.0;
 			startingTurret = turretDegreeCurrent;
 			currentTime = System.currentTimeMillis();
 			currentEnum = DiagnosticsEnuuum.TURRET_WAIT1;
 			break;
 
 		case TURRET_WAIT1:
+			degreeOff = 5.0;
+
 			if(System.currentTimeMillis() < currentTime + 1000)
 				break;
 
@@ -480,12 +481,13 @@ public class Shooter extends GenericSubsystem{
 			else
 				LOG.logMessage("Turret or Absolute Encoder Error");
 			
-			degreeOff = -5.0;
 			currentTime = System.currentTimeMillis();
 			currentEnum = DiagnosticsEnuuum.TURRET_WAIT2;
 			break;
 
 		case TURRET_WAIT2:
+			degreeOff = -5.0;
+
 			if(System.currentTimeMillis() < currentTime + 1000)
 				break;
 
