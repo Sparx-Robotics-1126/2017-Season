@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Joystick;
 
+
 public class DriverStationControls {
 
 	// General Joystick Data
@@ -57,10 +58,10 @@ public class DriverStationControls {
 
 	public static final int XBOX_LEFT_X = 0;
 	public static final int XBOX_LEFT_Y = 1;
-	public static final int XBOX_L2 = 2;
-	public static final int XBOX_R2 = 3;
-	public static final int XBOX_RIGHT_X = 4;
-	public static final int XBOX_RIGHT_Y = 5;
+	public static final int XBOX_RIGHT_X = 2;
+	public static final int XBOX_RIGHT_Y = 3;
+	public static final int XBOX_L2 = 4;
+	public static final int XBOX_R2 = 5;
 	
 	public static final int XBOX_POV = 0;
 	public static final int XBOX_A = 1;
@@ -73,7 +74,7 @@ public class DriverStationControls {
 	public static final int XBOX_START = 8;
 	public static final int XBOX_L3 = 9;
 	public static final int XBOX_R3 = 10;
-
+	
 	// XBox Mapping
 	
 	public static final int OP_XBOX_LEFT_X = xboxControllerAxis + 0;
@@ -94,12 +95,16 @@ public class DriverStationControls {
 	public static final int OP_XBOX_START = xboxControllerButtons + XBOX_START;
 	public static final int OP_XBOX_L3 = xboxControllerButtons + XBOX_L3;
 	public static final int OP_XBOX_R3 = xboxControllerButtons + XBOX_R3;
-		
+	public static final int OP_XBOX_POV_UP = 0;
+	public static final int OP_XBOX_POV_RIGHT = 2;
+	public static final int OP_XBOX_POV_DOWN = 4;
+	public static final int OP_XBOX_POV_LEFT = 6;
+	
 	// Internal private variables (static - Global for all objects)
 	
 	private static DriverStation ds;
 	private static Joystick joysticks[] = new Joystick[3];
-	public static SharedData sharedData;
+	public SharedData sharedData;
 
 	// Joystick button lookup table (0, 1 = Standard Joystick, 2 = XBox Controller)
 	
@@ -332,10 +337,7 @@ public class DriverStationControls {
 		
 		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
 			if (POVData[POVNumber][0] < POVDataGlobal[POVNumber][0]){
-				if (POVData[POVNumber][0] > 0)
-				{
-					rising = true;
-				}
+				rising = true;
 				POVData[POVNumber][0] = POVDataGlobal[POVNumber][0];
 			}
 		}
@@ -353,10 +355,7 @@ public class DriverStationControls {
 				
 		if ((POVNumber >= 0) && (POVNumber < maxPOVs)){
 			if (POVData[POVNumber][1] < POVDataGlobal[POVNumber][1]){
-				if (POVData[POVNumber][1] > 0)
-				{
-					falling = true;
-				}
+				falling = true;
 				POVData[POVNumber][1] = POVDataGlobal[POVNumber][1];
 			}
 		}
@@ -594,7 +593,8 @@ public class DriverStationControls {
 	{
 		int i;															// FOR loop counter
 		boolean bValue;													// current button value
-
+		boolean POVValue;
+		
 		createObjects(false);											// Ensure all objects have been created.
 		
 		if (ds.isNewControlData())										// Has new data been received by the ds?
@@ -613,6 +613,17 @@ public class DriverStationControls {
 					buttonLastValues[i] = bValue;						// Store updated button value
 				}
 			}
+			for (i=0; i<maxPOVs; i++){
+				POVValue = getPOV(i);
+				if (POVValue != POVLastValues[i]){
+					if(POVValue)
+						POVDataGlobal[i][0] = System.currentTimeMillis();
+					else
+						POVDataGlobal[i][1] = System.currentTimeMillis();
+					POVLastValues[i] = POVValue;
+				}
+			}
 		}
 	}
 }
+
