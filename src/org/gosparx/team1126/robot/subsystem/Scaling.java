@@ -109,7 +109,7 @@ public class Scaling extends GenericSubsystem {
 	}
 
 	private void readControls(){
-		if(dsc.getRawAxis(dsc.OP_XBOX_R2) >= 0.5)
+		if(dsc.getRawAxis(IO.SCALING_RT) >= 0.5)
 			currentScalingStatus = State.ATTATCHING;
 		else
 			currentScalingStatus = State.STANDBY;
