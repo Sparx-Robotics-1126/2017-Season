@@ -205,39 +205,46 @@ public class Autonomous extends GenericSubsystem{
 			
 			switch(currCommand){
 				case DRIVES_FORWARD:
+					//1,<distance>,<speed>
 					drives.autoDriveDistance(currentAuto[currStep][1], currentAuto[currStep][2]);
 					currCommand = DRIVES_DONE;
 					break;
 					
 				case DRIVES_TURN:
+					//2,<angle>,<speed>
 					drives.autoTurnToHeading(currentAuto[currStep][1], currentAuto[currStep][2]);
 					currCommand = DRIVES_DONE;
 					break;
 						
 				case DRIVES_MOVE:
+					//3,<x coord>,<y coord>,<speed>
 					drives.autoDriveCoordinate(currentAuto[currStep][1], currentAuto[currStep][2], currentAuto[currStep][3]);
 					currCommand = DRIVES_DONE;
 					break;
 					
 				case DRIVES_LIFT:
+					//4,<speed>
 					dsc.sharedData.targetType = Target.LIFT;
-					Timer.delay(3);	//REMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVEREMOVE
+					Timer.delay(3);	//if delay is now implemented in drives remove this else keep
 					drives.moveToLift(currentAuto[currStep][1]);
 					currCommand = DRIVES_DONE;
 					break;
 					
 				case DRIVES_SETCOORDS:
+					//5,<x coord>,<y coord>
 					drives.setStartingCoordinate(currentAuto[currStep][1], currentAuto[currStep][2]);
 					incStep = true;
 					break;
 					
 				case DRIVES_STOP:
+					//6
 					if(drives.stopDrives()){
 						incStep = true;
 					}
 					break;
 				
 				case SHOOTER_TOGGLE:
+					//7,<1/0 (on/off)>
 					shooter.shooterSystemState(currentAuto[currStep][1]);
 					if(currentAuto[currStep][1] == 1){
 						dsc.sharedData.targetType = Target.BOILER;
@@ -246,17 +253,20 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case DRIVES_DONE:
+					//97
 					if(drives.isAutoDone()){
 						incStep = true;
 					}
 					break;
 				
 				case DELAY:
+					//8,<time in milliseconds>
 					waitTime = System.currentTimeMillis() + currentAuto[currStep][1];
 					currCommand = WAITING;
 					break;
 
 				case WAITING:
+					//98
 					if (System.currentTimeMillis() >= waitTime){
 						incStep = true;
 					}
@@ -269,6 +279,7 @@ public class Autonomous extends GenericSubsystem{
 					break;
 
 				case AUTOEND:
+					//99
 					abortCommands(); 
 					incStep = false;
 					dsc.sharedData.targetType = Target.NONE;
@@ -284,6 +295,29 @@ public class Autonomous extends GenericSubsystem{
 		}
 	}
 
+	/*
+	 * Example auto:
+
+0 - tells that auto file was read correctly, will be changed by reader if there is an issue in background
+5,0,0 - tells drives to set current coordinates to 0,0
+4,20 - tells drives to move forward at a speed of 20, waits in background for drives to go to standby
+6 - tells auto to stop drives (probably unneeded)
+99 - tells auto that it is done and to abort all running commands
+
+0 - tells that auto file was read correctly, will be changed by reader if there is an issue in background
+5,0,0 - tells drives to set current coordinates to 0,0
+3,0,144,60 - tells drives to drive to coords (0,144) with a speed of 60
+2,90,40 - tells drives to rotate to 90 degrees from initial heading with a speed of 40
+3,96,144,60 - tells drives to drive to coords (96,144) with a speed of 60
+2,180,40 - tells drives to rotate to 180 degrees from starting point (initial heading) with a speed of 40
+3,96,0,60 - tells drives to drive to coords (96,0) with a speed of 60
+2,270,40 - tells drives to rotate to 270 degrees from initial heading with a speed of 40
+3,0,0,60 - tells drives to drive to coords
+2,0,40 - tells drives to rotate to 0 degrees from initial heading with a speed of 40
+99 - tells auto that it is done and to abort all running commands
+
+	 */
+	
 	/*************************************************************************************************
 	// Aborts active commands in other subsystems
 	************************************************************************************************/
