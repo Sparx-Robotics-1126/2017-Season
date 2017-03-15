@@ -592,8 +592,8 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("distance to drive to lift: " + wantedDistance);
 		LOG.logMessage("angle to Lift: " + wantedAngle);
 		LOG.logMessage("moveToLift(" + speed + ") Ang " + initialHeading);
-		//currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
-		currentDriveState = DriveState.STANDBY;
+		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
+		//currentDriveState = DriveState.STANDBY;
 		return true;
 	}
 	/**

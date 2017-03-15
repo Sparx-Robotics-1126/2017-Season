@@ -234,4 +234,25 @@ public class BallAcq extends GenericSubsystem{
 			currentHorizontalBeltState = HorizontalBeltState.STANDBY;
 		}
 	}
+	
+	public void autoStuff(int i){
+		if(dsc.isAutonomous()){
+			switch(i){
+			case 1:
+				currentHorizontalBeltState = HorizontalBeltState.LEFT;
+				break;
+			case 2:
+				currentHorizontalBeltState = HorizontalBeltState.RIGHT;
+				break;
+			case 3:
+				currentHorizontalBeltState = HorizontalBeltState.STANDBY;
+				break;
+			default:
+				break;
+			}
+			
+		}
+	}
+	//5s left
+	//10s right
 }

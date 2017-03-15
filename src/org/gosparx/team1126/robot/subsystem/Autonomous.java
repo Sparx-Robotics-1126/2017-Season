@@ -30,6 +30,7 @@ public class Autonomous extends GenericSubsystem{
 	private CSVReader reader;
 	private Drives drives;
 	private Shooter shooter;
+	private BallAcq ballacq;
 	private boolean firstRun = true;
 	private boolean runAuto;
 	
@@ -44,8 +45,9 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_SETCOORDS = 5;
 	private static final int DRIVES_STOP = 6;					// Stop the Drives
 	private static final int SHOOTER_TOGGLE = 7;
-	private static final int DELAY = 8;							// Wait (seconds)
-	private static final int SETCRITSTEP = 9;					// Set Critical Timeout Step
+	private static final int BALLACQ_TOGGLE = 8;
+	private static final int DELAY = 9;							// Wait (seconds)
+	private static final int SETCRITSTEP = 10;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
@@ -59,6 +61,7 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_LIFT,
 			DRIVES_SETCOORDS,
 			DRIVES_STOP,
+			BALLACQ_TOGGLE,
 			SHOOTER_TOGGLE,
 			DRIVES_DONE,
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
@@ -74,6 +77,7 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_Lift",
 			"Drives_SetCoords",
 			"Shooter_Toggle",
+			"Ballacq_Toggle",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
 			"Set Critical Step",
@@ -126,6 +130,7 @@ public class Autonomous extends GenericSubsystem{
 
 		drives = Drives.getInstance();
 		shooter = Shooter.getInstance();
+		ballacq = BallAcq.getInstance();
 		reader = new CSVReader();
 		
 		chooser = new SendableChooser<int[][]>();
@@ -242,9 +247,14 @@ public class Autonomous extends GenericSubsystem{
 						incStep = true;
 					}
 					break;
+					
+				case BALLACQ_TOGGLE:
+					//7,<0/1/2 (off/left/right)>
+					ballacq.autoStuff(currentAuto[currStep][1]);
+					break;
 				
 				case SHOOTER_TOGGLE:
-					//7,<1/0 (on/off)>
+					//8,<1/0 (on/off)>
 					shooter.shooterSystemState(currentAuto[currStep][1]);
 					if(currentAuto[currStep][1] == 1){
 						dsc.sharedData.targetType = Target.BOILER;

@@ -36,7 +36,7 @@ public class Shooter extends GenericSubsystem{
 	private double turretDegreeCurrent;
 	private double turretOutput;
 		
-	/**+
+	/**
 	 * the local variable to see if the button is being pressed
 	 */
 	private boolean isPressed;
@@ -104,7 +104,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * Initial wheel speed
 	 */
-	private final double INITIAL_SPEED = 1450;
+	private final double INITIAL_SPEED = 1350;
 
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -282,7 +282,7 @@ public class Shooter extends GenericSubsystem{
 		if( (ready && fireWhenReady) || fireOverride)
 			feeder.set(INTAKE_BALL_SPEED);
 		else
-			feeder.set(0);		
+			feeder.set(1);		//TODO change back to zero
 
 		// Manual control of turret.  Note: this will be override the turret control while
 		// the axis is moved, however, as soon as the joystick is released, the system will

@@ -24,7 +24,6 @@ public class VisionNetworkTable implements ITableListener{
 	
 	public VisionNetworkTable() //Constructor
 	{
-		NetworkTable.setClientMode();
 		currentMode = SharedData.Target.BOILER;
 		lastMode = currentMode;
 		NetworkTable.setIPAddress(IP); //Sets Ip address

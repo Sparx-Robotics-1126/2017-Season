@@ -45,7 +45,7 @@ public class Vision extends GenericSubsystem {
 		reset = new DigitalOutput(IO.DIO_JETSON_RESET);
 		reset.set(false);														// Reset the Jetson board
 		led = new Relay(0, Relay.Direction.kForward); 
-		led.set(Relay.Value.kOn);	//todo change to off											// Turn off the LED
+		led.set(Relay.Value.kOff);	//todo change to off											// Turn off the LED
 		startTime = System.currentTimeMillis();
 		target = SharedData.targetType;											// Get Initial state of target
 		return true;  
@@ -63,7 +63,11 @@ public class Vision extends GenericSubsystem {
 		if (dsc.isDisabled())
 			SharedData.targetType = SharedData.Target.NONE;
 
+		
+		
 		else if (dsc.isOperatorControl()){										// When in operator control, 
+			SharedData.targetType = SharedData.Target.LIFT;
+			LOG.logMessage("LED is trying to be on");
 			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
 				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
 			else if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
@@ -77,7 +81,7 @@ public class Vision extends GenericSubsystem {
 					Relay.Value.kOff : Relay.Value.kOn);
 			visionSystem.serverUpdate();										// Target change can occur from the		
 			target = SharedData.targetType;										//  code above, or Autonomous
-
+			
 			if (target != SharedData.Target.BOILER)
 				dsc.sharedData.clearImageData(SharedData.Target.BOILER);
 
