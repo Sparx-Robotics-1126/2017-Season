@@ -42,6 +42,8 @@ public class Shooter extends GenericSubsystem{
 	private boolean isPressed;
     private boolean lastPressed;
     
+    private boolean manualControl;
+    
 	/**
 	 * the local variable to see if the system should fire
 	 */
@@ -178,6 +180,7 @@ public class Shooter extends GenericSubsystem{
 		isPressed = false;
 		degreeOff = 0;
 		ready = false;
+		manualControl = false;
 		speed = INITIAL_SPEED;
 		max = 0;
 		min = 10000;
@@ -210,6 +213,7 @@ public class Shooter extends GenericSubsystem{
 		boolean turretReady;
 		boolean shooterReady;
 		boolean fireOverride = false;
+		boolean currentManualControl;
 		
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
@@ -247,7 +251,13 @@ public class Shooter extends GenericSubsystem{
 			if (dsc.isOperatorControl()){
 				isPressed = dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON);
 				fireWhenReady = dsc.isPressed(IO.BUTTON_FIRE);
+				currentManualControl = dsc.getPOV(0,0);
 				fireOverride = dsc.isPressed(IO.FIRE_OVERRIDE);
+
+				if ((currentManualControl == true) && (manualControl == false))
+					speed = INITIAL_SPEED;
+
+				manualControl = currentManualControl;
 			} else {
 				isPressed = false;
 				fireWhenReady = false;				
@@ -259,7 +269,9 @@ public class Shooter extends GenericSubsystem{
 		if (lastPressed != isPressed){
 			if (isPressed){
 				SharedData.targetType = SharedData.Target.BOILER;
-				speed = INITIAL_SPEED;
+
+				if (manualControl == false)
+					speed = INITIAL_SPEED;
 			}
 			else
 				SharedData.targetType = SharedData.Target.NONE;
@@ -369,7 +381,7 @@ public class Shooter extends GenericSubsystem{
 			flyWheel.set(0);
 			return false;
 		}
-		if(visionOff){
+		if(visionOff || manualControl){
 		shootingSpeed = speed;
 		} else {
 		shootingSpeed = distanceToSpeed();
@@ -391,7 +403,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		if(visionOff){
+		if(visionOff || manualControl){
 			return true;
 		}else{
 			turretOutput = 0;									// Initialize Turret Output to 0
