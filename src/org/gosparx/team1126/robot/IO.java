@@ -29,6 +29,7 @@ public class IO {
 	public static final int DIO_SHOOTER_LIMITSWITCH_LEFT				= 21;
 	public static final int DIO_SHOOTER_ENC_A                           = 22;
 	public static final int DIO_SHOOTER_ENC_B							= 23;
+	public static final int DIO_SHOOTER_SHROUD							= 18;
 	
 	/**********************************CAN********************************************/
 	

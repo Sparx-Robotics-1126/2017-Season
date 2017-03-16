@@ -77,6 +77,7 @@ public class Shooter extends GenericSubsystem{
 	private Encoder encoder;
 	private EncoderData encoderData;
 	private AbsoluteEncoderData turretSensor;
+	private Servo shroud;
 	private CANTalon flyWheel;
 	private CANTalon feeder;
 	private CANTalon turret;
@@ -104,7 +105,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * Initial wheel speed
 	 */
-	private final double INITIAL_SPEED = 1350;
+	private final double INITIAL_SPEED = 1450;
 
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -164,6 +165,7 @@ public class Shooter extends GenericSubsystem{
 		encoderData = new EncoderData(encoder, DIST_PER_TICK); 
 		turretSensor = new AbsoluteEncoderData(IO.ANALOG_SHOOTER_ABS_ENC, DEGREE_PER_VOLT);
 		turretSensor.setZero(ZERO_VOLTAGE);
+		shroud = new Servo(IO.DIO_SHOOTER_SHROUD);
 		flyWheel = new CANTalon(IO.CAN_SHOOTER_FLYWHEEL);
 		feeder = new CANTalon(IO.CAN_SHOOTER_INTAKE_FEEDER);
 		turret = new CANTalon(IO.CAN_SHOOTER_TURRET);
@@ -417,10 +419,10 @@ public class Shooter extends GenericSubsystem{
 	public void shooterSystemFire(int fire) {
 		if ((fire == 1) && dsc.isAutonomous()){
 			fireWhenReady = true;
-			ballAcq.transport(true);
+	//		ballAcq.transport(true);
 		} else {
 			fireWhenReady = false;
-			ballAcq.transport(false);
+	//		ballAcq.transport(false);
 		}
 	}
 	
@@ -501,6 +503,18 @@ public class Shooter extends GenericSubsystem{
 				LOG.logMessage("Turret or Absolute Encoder Error");
 
 			currentEnum = DiagnosticsEnuuum.DONE;
+		}
+	}
+	public void shooterShroud(int i){
+		//!!! what is the resting power?
+		if(i == 1){
+			shroud.set(1);
+		}
+		else if(i == 2){
+			shroud.set(0);
+		}
+		else{
+			shroud.set(0.5); //get real resting power?
 		}
 	}
 }

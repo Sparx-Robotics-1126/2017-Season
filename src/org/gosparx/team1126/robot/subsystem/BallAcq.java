@@ -235,24 +235,62 @@ public class BallAcq extends GenericSubsystem{
 		}
 	}
 	
-	public void autoStuff(int i){
+	public void autoChanger(int selector, int subSelector){
 		if(dsc.isAutonomous()){
-			switch(i){
+			switch(selector){
 			case 1:
-				currentHorizontalBeltState = HorizontalBeltState.LEFT;
+				switch(subSelector){
+				case 1:
+					currentAcqStatus = State.STANDBY;
+					break;
+				case 2:
+					currentAcqStatus = State.FORWARD;
+					break;
+				case 3:
+					currentAcqStatus = State.BACKWARD;
+					break;
+				case 4:
+					currentAcqStatus = State.SHOOTING;
+					break;
+				default:
+					break;
+				}
 				break;
 			case 2:
-				currentHorizontalBeltState = HorizontalBeltState.RIGHT;
-				break;
+				switch(subSelector){
+				case 1:
+					currentBeltState = BeltState.STANDBY;
+					break;
+				case 2:
+					currentBeltState = BeltState.FORWARD;
+					break;
+				case 3:
+					currentBeltState = BeltState.REVERSE;
+					break;
+				default:
+					break;
+				}
+			break;
 			case 3:
-				currentHorizontalBeltState = HorizontalBeltState.STANDBY;
-				break;
+				switch(subSelector){
+				case 1:
+					currentHorizontalBeltState = HorizontalBeltState.STANDBY;
+					break;
+				case 2:
+					currentHorizontalBeltState = HorizontalBeltState.LEFT;
+					break;
+				case 3:
+					currentHorizontalBeltState = HorizontalBeltState.RIGHT;
+					break;
+				default:
+					break;
+				}
+			break;
 			default:
 				break;
 			}
-			
 		}
 	}
+}
 	//5s left
 	//10s right
-}

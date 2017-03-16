@@ -46,8 +46,10 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_STOP = 6;					// Stop the Drives
 	private static final int SHOOTER_TOGGLE = 7;
 	private static final int BALLACQ_TOGGLE = 8;
-	private static final int DELAY = 9;							// Wait (seconds)
-	private static final int SETCRITSTEP = 10;					// Set Critical Timeout Step
+	private static final int SHOOTER_SERVO = 9;
+	private static final int SHOOTER_SETUP = 10;
+	private static final int DELAY = 95;						// Wait (seconds)
+	private static final int SETCRITSTEP = 96;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
@@ -61,8 +63,10 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_LIFT,
 			DRIVES_SETCOORDS,
 			DRIVES_STOP,
-			BALLACQ_TOGGLE,
 			SHOOTER_TOGGLE,
+			BALLACQ_TOGGLE,
+			SHOOTER_SERVO,
+			SHOOTER_SETUP,
 			DRIVES_DONE,
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
 			DELAY,												// Time (msec)
@@ -78,6 +82,8 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_SetCoords",
 			"Shooter_Toggle",
 			"Ballacq_Toggle",
+			"Shooter_Servo",
+			"Shooter_Setup",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
 			"Set Critical Step",
@@ -216,8 +222,15 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case DRIVES_TURN:
-					//2,<angle>,<speed>
-					drives.autoTurnToHeading(currentAuto[currStep][1], currentAuto[currStep][2]);
+					//2,<angle>,<speed>,<mode (1 == absolute, 2 == relative)>
+					if(currentAuto[currStep][3] == 1){
+						drives.autoTurnToHeading(currentAuto[currStep][1], currentAuto[currStep][2]);
+					} else if(currentAuto[currStep][3] == 2){
+						drives.autoTurnToAngle(currentAuto[currStep][1], currentAuto[currStep][2]);
+					} else {
+						LOG.logMessage("DRIVES_TURN: invalid/missing parameter, defaulting to absolute - are you using an outdated auto?");
+						drives.autoTurnToHeading(currentAuto[currStep][1], currentAuto[currStep][2]);
+					}
 					currCommand = DRIVES_DONE;
 					break;
 						
@@ -250,18 +263,26 @@ public class Autonomous extends GenericSubsystem{
 					
 				case BALLACQ_TOGGLE:
 					//7,<0/1/2 (off/left/right)>
-					ballacq.autoStuff(currentAuto[currStep][1]);
+					ballacq.autoChanger(currentAuto[currStep][1],currentAuto[currStep][2]);
+					incStep = true;
 					break;
 				
 				case SHOOTER_TOGGLE:
 					//8,<1/0 (on/off)>
 					shooter.shooterSystemState(currentAuto[currStep][1]);
-					if(currentAuto[currStep][1] == 1){
-						dsc.sharedData.targetType = Target.BOILER;
-					}
+	//				if(currentAuto[currStep][1] == 1){ appears to be old and no longer needed, check with nate?
+		//				dsc.sharedData.targetType = Target.BOILER;
+			//		}
 					incStep = true;
 					break;
-					
+				case SHOOTER_SERVO:
+					shooter.shooterShroud(currentAuto[currStep][1]);
+					incStep = true;
+					break;
+				case SHOOTER_SETUP:
+					shooter.shooterSystemFire(currentAuto[currStep][1]);
+					incStep = true;
+					break;
 				case DRIVES_DONE:
 					//97
 					if(drives.isAutoDone()){
@@ -327,12 +348,29 @@ public class Autonomous extends GenericSubsystem{
 99 - tells auto that it is done and to abort all running commands
 
 	 */
+	/* auto for shooting !check the logic on this movement
+0
+5,0,0 - change for actual coords? (where is the gyro on the robot?)
+1,-52,40 - moves backwards 52" at a speed of 40
+2,-90,40,1 - turns 90* CCW using absolute (2,-90,40,2 for relative)
+1,-60,40 - moves backwards 60" at a speed of 40
+2,-45,40,1 - turns 45* CW using absolute (2,45,40,2 for relative)
+8,1 - gets shooter ready with vision and everything
+9,1 - starts servo movement
+95,250 - wait 250 ms for servo movement?
+9,0 - ends servo movement
+10,1 - tells shooter to start shooting when ready!
+	 */
+
 	
 	/*************************************************************************************************
 	// Aborts active commands in other subsystems
 	************************************************************************************************/
 	void abortCommands(){
 		drives.abortAuto();
+		shooter.shooterSystemFire(0);
+		shooter.shooterSystemState(0);
+		//get aborts from other subsystems, maybe a direct command?
 	}
 	
 	/*************************************************************************************************
@@ -372,5 +410,6 @@ public class Autonomous extends GenericSubsystem{
 	
 	public void setRunAuto(boolean auto){
 		runAuto = auto;
+		abortCommands();
 	}
 }

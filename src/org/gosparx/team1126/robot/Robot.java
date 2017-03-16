@@ -59,7 +59,6 @@ public class Robot extends SampleRobot{
 	 */
 	public void operatorControl() {
 		Autonomous.getInstance().setRunAuto(false);
-		//Drives.getInstance().abortAuto();
 	}
 
 	/**
