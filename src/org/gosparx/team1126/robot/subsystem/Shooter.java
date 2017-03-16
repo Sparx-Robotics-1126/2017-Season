@@ -381,11 +381,13 @@ public class Shooter extends GenericSubsystem{
 			flyWheel.set(0);
 			return false;
 		}
+		
 		if(visionOff || manualControl){
 		shootingSpeed = speed;
 		} else {
 		shootingSpeed = distanceToSpeed();
 		}
+		
 		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
 			flyWheel.set(FLYWHEEL_MAX);
 		}else if(shootingSpeedCurrent + SPEED_ALLOWED_OFF > shootingSpeed){
