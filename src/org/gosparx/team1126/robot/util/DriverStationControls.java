@@ -319,12 +319,27 @@ public class DriverStationControls {
 		return false;
 	}
 	
+	public boolean getPOV(int joystickNumber, int POVNumber){
+		if ((joystickNumber < 0) || (joystickNumber > 2) ||
+				(POVNumber < 0) || (POVNumber >= maxPOVs))
+			return false;
+		
+		return (joysticks[joystickNumber].getPOV() == povs[POVNumber][1]);
+	}
+	
 	//-----------------------------------------------------------------------------------------------------------
 	// Return the current value of the specified POV
 	//-----------------------------------------------------------------------------------------------------------
 		
 	public int getRawPOV(){
 		return joysticks[2].getPOV();
+	}
+	
+	public int getRawPOV(int joystickNumber){
+		if ((joystickNumber < 0) || (joystickNumber > 2))
+			return -1;
+		
+		return joysticks[joystickNumber].getPOV();
 	}
 		//-----------------------------------------------------------------------------------------------------------
 	// Return if the POV is pressed (rising edge) since the last time this method was called by the
