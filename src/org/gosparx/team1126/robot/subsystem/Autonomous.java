@@ -44,10 +44,10 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_LIFT = 4;
 	private static final int DRIVES_SETCOORDS = 5;
 	private static final int DRIVES_STOP = 6;					// Stop the Drives
-	private static final int SHOOTER_TOGGLE = 7;
-	private static final int BALLACQ_TOGGLE = 8;
-	private static final int SHOOTER_SERVO = 9;
-	private static final int SHOOTER_SETUP = 10;
+	private static final int BALLACQ_TOGGLE = 7;
+	private static final int SHOOTER_TOGGLE = 8;
+	private static final int SHOOTER_SETUP = 9;
+	private static final int SHOOTER_SERVO = 10;
 	private static final int DELAY = 95;						// Wait (seconds)
 	private static final int SETCRITSTEP = 96;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
@@ -63,8 +63,8 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_LIFT,
 			DRIVES_SETCOORDS,
 			DRIVES_STOP,
-			SHOOTER_TOGGLE,
 			BALLACQ_TOGGLE,
+			SHOOTER_TOGGLE,
 			SHOOTER_SERVO,
 			SHOOTER_SETUP,
 			DRIVES_DONE,
@@ -80,8 +80,8 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_Move",
 			"Drives_Lift",
 			"Drives_SetCoords",
-			"Shooter_Toggle",
 			"Ballacq_Toggle",
+			"Shooter_Toggle",
 			"Shooter_Servo",
 			"Shooter_Setup",
 			"Drives_Stop",
@@ -262,38 +262,40 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case BALLACQ_TOGGLE:
-					//7,<0/1/2 (off/left/right)>
+					//7,<0/1/2 (off/left/right)>,<thingy>
 					ballacq.autoChanger(currentAuto[currStep][1],currentAuto[currStep][2]);
 					incStep = true;
 					break;
-				
+					
 				case SHOOTER_TOGGLE:
-					//8,<1/0 (on/off)>
-					shooter.shooterSystemState(currentAuto[currStep][1]);
-	//				if(currentAuto[currStep][1] == 1){ appears to be old and no longer needed, check with nate?
-		//				dsc.sharedData.targetType = Target.BOILER;
-			//		}
+					//8,<1/0 (on/off)>,<speed>
+					shooter.shooterSystemState(currentAuto[currStep][1],currentAuto[currStep][2]);
 					incStep = true;
 					break;
-				case SHOOTER_SERVO:
-					shooter.shooterShroud(currentAuto[currStep][1]);
-					incStep = true;
-					break;
+					
 				case SHOOTER_SETUP:
+					//9,<0/1 (off/on)>
 					shooter.shooterSystemFire(currentAuto[currStep][1]);
 					incStep = true;
 					break;
+				
+				case SHOOTER_SERVO:
+					//10,<0/1/2 (off/forward/backward)>
+					shooter.shooterShroud(currentAuto[currStep][1]);
+					incStep = true;
+					break;
+					
+				case DELAY:
+					//95,<time in milliseconds>
+					waitTime = System.currentTimeMillis() + currentAuto[currStep][1];
+					currCommand = WAITING;
+					break;
+					
 				case DRIVES_DONE:
 					//97
 					if(drives.isAutoDone()){
 						incStep = true;
 					}
-					break;
-				
-				case DELAY:
-					//8,<time in milliseconds>
-					waitTime = System.currentTimeMillis() + currentAuto[currStep][1];
-					currCommand = WAITING;
 					break;
 
 				case WAITING:
@@ -304,6 +306,7 @@ public class Autonomous extends GenericSubsystem{
 					break;
 				
 				case SETCRITSTEP:
+					//96
 					critStep = currentAuto[currStep][1];
 					critTime = autoStartTime + currentAuto[currStep][2];
 					incStep = true;
@@ -361,6 +364,12 @@ public class Autonomous extends GenericSubsystem{
 9,0 - ends servo movement
 10,1 - tells shooter to start shooting when ready!
 	 */
+	/* auto for driving forward
+0
+5,0,0
+1,86,40
+99
+	 */
 
 	
 	/*************************************************************************************************
@@ -410,6 +419,7 @@ public class Autonomous extends GenericSubsystem{
 	
 	public void setRunAuto(boolean auto){
 		runAuto = auto;
-		abortCommands();
+		if(!runAuto)
+			abortCommands();
 	}
 }

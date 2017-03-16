@@ -414,20 +414,22 @@ public class Shooter extends GenericSubsystem{
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
-	public void shooterSystemState(int isOn){
-		if ((isOn == 1) && dsc.isAutonomous())
+	public void shooterSystemState(int isOn, int speeds){
+		if ((isOn == 1) && dsc.isAutonomous()){
+			speed = speeds;
 			isPressed = true;
-		else 
+		} else {
 			isPressed = false;
+		}
 	}
 	
 	public void shooterSystemFire(int fire) {
 		if ((fire == 1) && dsc.isAutonomous()){
 			fireWhenReady = true;
-	//		ballAcq.transport(true);
+			ballAcq.transport(true);
 		} else {
 			fireWhenReady = false;
-	//		ballAcq.transport(false);
+			ballAcq.transport(false);
 		}
 	}
 	
