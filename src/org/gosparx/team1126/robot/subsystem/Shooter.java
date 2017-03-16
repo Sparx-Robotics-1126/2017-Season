@@ -114,7 +114,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the speed that allows the balls to go into the fly wheel 
 	 */
-	private final double INTAKE_BALL_SPEED = 0.35; //KEEP THIS VALUE 0.35
+	private final double INTAKE_BALL_SPEED = 1; //KEEP THIS VALUE 0.35
 	
 	/**
 	 * the difference in fly wheel speeds allowed
@@ -194,8 +194,6 @@ public class Shooter extends GenericSubsystem{
 		LiveWindow.addActuator(subsystemName, "Encoder", encoder);
 		LiveWindow.addSensor(subsystemName, "Right Limit Switch", limitSwitchRight);
 		LiveWindow.addSensor(subsystemName, "Left Limit Switch", limitSwitchLeft);
-		SmartDashboard.putBoolean("Turret Limit Switch Left", limitSwitchLeft.get());
-		SmartDashboard.putBoolean("Turret Limit Switch Right", limitSwitchRight.get());
 	}
 
 //-----------------------------------------------------------------------------------------
@@ -282,7 +280,7 @@ public class Shooter extends GenericSubsystem{
 		if( (ready && fireWhenReady) || fireOverride)
 			feeder.set(INTAKE_BALL_SPEED);
 		else
-			feeder.set(1);		//TODO change back to zero
+			feeder.set(0);		//TODO change back to zero
 
 		// Manual control of turret.  Note: this will be override the turret control while
 		// the axis is moved, however, as soon as the joystick is released, the system will
@@ -312,6 +310,13 @@ public class Shooter extends GenericSubsystem{
 		SharedData.systemReady = ready;
 		SharedData.turretAngle = turretDegreeCurrent;
 		SharedData.shooterSpeed = shootingSpeedCurrent;		
+		SmartDashboard.putBoolean("Turret Limit Switch Left", limitSwitchLeft.get());
+		SmartDashboard.putBoolean("Turret Limit Switch Right", limitSwitchRight.get());
+		SmartDashboard.putNumber("Turret Angle", turretDegreeCurrent);
+		SmartDashboard.putNumber("Shooter Speed", speed);
+		SmartDashboard.putBoolean("Flywheel On", isPressed);
+		SmartDashboard.putBoolean("Feedwheel On", fireWhenReady);
+		SmartDashboard.putBoolean("Fire Feeder Override", fireOverride);
 		return false;
 	}
 

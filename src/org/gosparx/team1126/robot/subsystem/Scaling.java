@@ -3,6 +3,7 @@ package org.gosparx.team1126.robot.subsystem;
 import com.ctre.CANTalon;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.gosparx.team1126.robot.IO;
 
@@ -73,17 +74,18 @@ public class Scaling extends GenericSubsystem {
 		switch(currentScalingStatus){
 		case STANDBY:{
 			ScalingMotor.set(MOTOR_STOP);
-			
+			isStarted = false;
 			break;
 		}
 		case ATTATCHING:{
 			ScalingMotor.set(MOTOR_ATTATCH);
 			currentScalingStatus = State.SCALING;
-			
+			isStarted = true;
 			break;
 		}
 		case SCALING:	
 			ScalingMotor.set(MOTOR_SPIN);
+			isStarted = true;
 			if(ScalingSensor.get()){
 				LOG.logMessage("Rope Has Been Climbed");
 				currentScalingStatus = State.STANDBY;
@@ -92,6 +94,7 @@ public class Scaling extends GenericSubsystem {
 		default:
 			break;
 			}
+		SmartDashboard.putBoolean("Climbing?", isStarted);
 		return false;		
 	}
 	

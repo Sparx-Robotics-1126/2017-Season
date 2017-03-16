@@ -3,6 +3,7 @@ package org.gosparx.team1126.robot.subsystem;
 import edu.wpi.first.wpilibj.DigitalInput; 
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import org.gosparx.team1126.robot.IO;
 import org.gosparx.team1126.robot.sensors.EncoderData;
@@ -31,8 +32,8 @@ public class BallAcq extends GenericSubsystem{
 	private long startBeltTime;
 	private double wantedSpeed;
 	private double wantedBeltSpeed; 
-	
-	
+	private boolean acqIsAcquiring;
+	private String horBeltDir;
 	/**
 	 * Constructor
 	 */
@@ -55,10 +56,11 @@ public class BallAcq extends GenericSubsystem{
 		acqMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
 		horizontalBeltMotor = new CANTalon(IO.CAN_HOPPER_HORIZONTAL_BELT);
 		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_SENSOR);
-
+		acqIsAcquiring = false;
 		currentAcqStatus = State.STANDBY;
 		currentBeltState = BeltState.STANDBY;
 		currentHorizontalBeltState = HorizontalBeltState.STANDBY;
+		horBeltDir = "Off";
 		
 		return true;
 	}
@@ -123,17 +125,21 @@ public class BallAcq extends GenericSubsystem{
 		switch(currentAcqStatus){
 		case STANDBY:{
 			wantedSpeed = MOTOR_STOP;
+			acqIsAcquiring= false;
 			break;
 		}
 		case FORWARD:{
 			wantedSpeed = MOTOR_SPIN_FOWARD;
+			acqIsAcquiring = true;
 			break;
 		}
 		case BACKWARD:{
 			wantedSpeed = MOTOR_SPIN_BACKWARD;
+			acqIsAcquiring = false;
 			break;
 		}
 		case SHOOTING:{
+			acqIsAcquiring = false;
 			switch(currentBeltState){
 			case FORWARD:
 				startBeltTime = System.currentTimeMillis();
@@ -170,14 +176,17 @@ public class BallAcq extends GenericSubsystem{
 		switch(currentHorizontalBeltState){
 		case STANDBY:
 			wantedBeltSpeed = 0;
+			horBeltDir = "Off";
 			break;
 		case RIGHT:
+			horBeltDir = "Empty Left Bin";
 			if(wantedBeltSpeed > -1)
 				wantedBeltSpeed -= BELT_RAMP;
 			else
 				wantedBeltSpeed = -1.0;
 			break;
 		case LEFT:
+			horBeltDir = "Empty Right Bin";
 			if(wantedBeltSpeed < 1)
 				wantedBeltSpeed += BELT_RAMP;
 			else
@@ -189,7 +198,8 @@ public class BallAcq extends GenericSubsystem{
 
 		acqMotor.set(wantedSpeed);
 		horizontalBeltMotor.set(wantedBeltSpeed);
-
+		SmartDashboard.putBoolean("Acquiring?", acqIsAcquiring);
+		SmartDashboard.putString("Horizontal Belt Direction: ", horBeltDir);
 		return false;
 	}
 
