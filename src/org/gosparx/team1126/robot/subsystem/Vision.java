@@ -61,13 +61,11 @@ public class Vision extends GenericSubsystem {
 			reset.set(true);
 		
 		if (dsc.isDisabled())
-			SharedData.targetType = SharedData.Target.NONE;
-
-		
+			SharedData.targetType = SharedData.Target.NONE;	
 		
 		else if (dsc.isOperatorControl()){										// When in operator control, 
-			SharedData.targetType = SharedData.Target.LIFT;
-			LOG.logMessage("LED is trying to be on");
+//			SharedData.targetType = SharedData.Target.LIFT;
+//			LOG.logMessage("LED is trying to be on");
 			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
 				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
 			else if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
