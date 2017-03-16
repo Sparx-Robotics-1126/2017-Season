@@ -134,6 +134,8 @@ public class Shooter extends GenericSubsystem{
 	
 	private BallAcq ballAcq;	
 	
+	private boolean visionOff;
+	
 //*****************************************Methods***************************************\\	
 	/**
 	 * Constructs a shooter object
@@ -387,26 +389,30 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		turretOutput = 0;									// Initialize Turret Output to 0
-
-		// Only control if system is ON and we have a boiler image less than 2 seconds old.
-		
-		if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed ||
-				SharedData.getImageTime(SharedData.Target.BOILER) > 2.0)){
-			return false;
-			
-		}
-		
-		if(turretDegreeCurrent < degreeOff - .5){
-			turretOutput = -.50;
-		}else if(turretDegreeCurrent > degreeOff + 0.5){
-			turretOutput = .50;
-		} else
+		if(visionOff){
 			return true;
-		
-		turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.1));
-		
-		return false;	
+		}else{
+			turretOutput = 0;									// Initialize Turret Output to 0
+	
+			// Only control if system is ON and we have a boiler image less than 2 seconds old.
+			
+			if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed ||
+					SharedData.getImageTime(SharedData.Target.BOILER) > 2.0)){
+				return false;
+				
+			}
+			
+			if(turretDegreeCurrent < degreeOff - .5){
+				turretOutput = -.50;
+			}else if(turretDegreeCurrent > degreeOff + 0.5){
+				turretOutput = .50;
+			} else
+				return true;
+			
+			turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.1));
+			
+			return false;
+		}
 	}
 		
 //-----------------------------------------------------------------------------------------
@@ -414,24 +420,30 @@ public class Shooter extends GenericSubsystem{
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
-	public void shooterSystemState(int isOn, int speeds){
+	public void shooterSystemState(int isOn, int speeds, int vision){
 		if ((isOn == 1) && dsc.isAutonomous()){
 			speed = speeds;
 			isPressed = true;
-		} else {
+		}else{
 			isPressed = false;
 		}
+		if(vision == 1){
+			visionOff = true;
+		}else
+			visionOff = false;
 	}
 	
 	public void shooterSystemFire(int fire) {
 		if ((fire == 1) && dsc.isAutonomous()){
 			fireWhenReady = true;
 			ballAcq.transport(true);
-		} else {
+		}else{
 			fireWhenReady = false;
 			ballAcq.transport(false);
 		}
 	}
+	
+	
 	
 //-----------------------------------------------------------------------------------------
 	/**

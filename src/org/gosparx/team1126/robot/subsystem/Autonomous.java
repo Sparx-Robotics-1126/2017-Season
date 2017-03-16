@@ -269,7 +269,7 @@ public class Autonomous extends GenericSubsystem{
 					
 				case SHOOTER_TOGGLE:
 					//8,<1/0 (on/off)>,<speed>
-					shooter.shooterSystemState(currentAuto[currStep][1],currentAuto[currStep][2]);
+					shooter.shooterSystemState(currentAuto[currStep][1],currentAuto[currStep][2],currentAuto[currStep][3]);
 					incStep = true;
 					break;
 					
@@ -378,7 +378,7 @@ public class Autonomous extends GenericSubsystem{
 	void abortCommands(){
 		drives.abortAuto();
 		shooter.shooterSystemFire(0);
-		shooter.shooterSystemState(0);
+		shooter.shooterSystemState(0,1450,1);
 		//get aborts from other subsystems, maybe a direct command?
 	}
 	
