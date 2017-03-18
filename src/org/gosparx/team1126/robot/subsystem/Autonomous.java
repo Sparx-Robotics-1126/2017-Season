@@ -34,6 +34,8 @@ public class Autonomous extends GenericSubsystem{
 	private boolean firstRun = true;
 	private boolean runAuto;
 	private boolean autoRun;
+	private long backgroundWaitTime = 0;
+	private int moveToStep = 0;
 	
 	// All genericSubsystems that the Autonomous system needs to interface with will need to be defined.	
 
@@ -49,12 +51,13 @@ public class Autonomous extends GenericSubsystem{
 	private static final int SHOOTER_TOGGLE = 8;
 	private static final int SHOOTER_SETUP = 9;
 	private static final int SHOOTER_SERVO = 10;
+	private static final int BACKGROUND_DELAY = 94;
 	private static final int DELAY = 95;						// Wait (seconds)
 	private static final int SETCRITSTEP = 96;					// Set Critical Timeout Step
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
-	private static final int READ_DONE = 100;
+	private static final int HOLD = 100;
 
 	// Lookup table to identify the index in the commandName array
 	
@@ -70,11 +73,12 @@ public class Autonomous extends GenericSubsystem{
 			SHOOTER_SERVO,
 			SHOOTER_SETUP,
 			DRIVES_DONE,
+			BACKGROUND_DELAY,
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
 			DELAY,												// Time (msec)
 			WAITING,
 			AUTOEND,
-			READ_DONE
+			HOLD
 	};
 	
 	private static final String[] commandName = {
@@ -89,11 +93,12 @@ public class Autonomous extends GenericSubsystem{
 			"Shooter_Setup",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
+			"Background Delay",
 			"Set Critical Step",
 			"Delay",
 			"Waiting - DO NOT USE",
 			"End",
-			"Reading_File_Finished"
+			"Hold"
 	};
 	
 	/*************************************************************************************************
@@ -202,6 +207,19 @@ public class Autonomous extends GenericSubsystem{
 				LOG.logMessage("Crit Step Triggered: " + critStep);
 			}
 		
+			if(backgroundWaitTime != 0){
+				if(backgroundWaitTime < System.currentTimeMillis()){
+					backgroundWaitTime = 0;
+					if(moveToStep != 0){
+						currStep = moveToStep;
+						incStep = true;
+					} else {
+						LOG.logMessage("This should never happen :( disabling auto");
+						currCommand = AUTOEND;
+					}
+				}
+			}
+			
 			if (incStep == true){										// Previous command done?
 				currStep++;												// Increment to next step
 				currCommand = currentAuto[currStep][0];					// Get the "next step" command #
@@ -268,14 +286,14 @@ public class Autonomous extends GenericSubsystem{
 					break;
 					
 				case BALLACQ_TOGGLE:
-					//7,<0/1/2 (off/left/right)>,<thingy>
+					//7,<case>,<subcase>
 					ballacq.autoChanger(currentAuto[currStep][1],currentAuto[currStep][2]);
 					incStep = true;
 					break;
 					
 				case SHOOTER_TOGGLE:
 					//8,<1/0 (on/off)>,<speed>
-					shooter.shooterSystemState(currentAuto[currStep][1],currentAuto[currStep][2],currentAuto[currStep][3]);
+					shooter.shooterSystemState(currentAuto[currStep][1],currentAuto[currStep][2],currentAuto[currStep][3],currentAuto[currStep][4]);
 					incStep = true;
 					break;
 					
@@ -285,10 +303,22 @@ public class Autonomous extends GenericSubsystem{
 					incStep = true;
 					break;
 				
-				case SHOOTER_SERVO:
+/*				case SHOOTER_SERVO:
 					//10,<0/1/2 (off/forward/backward)>
 					shooter.shooterShroud(currentAuto[currStep][1]);
 					incStep = true;
+					break;*/
+					
+				case BACKGROUND_DELAY:
+					//94,<time in milliseconds to wait>,<position in currentAuto to move to.>
+					if(backgroundWaitTime == 0){
+						backgroundWaitTime = System.currentTimeMillis() + currentAuto[currStep][1];
+						moveToStep = currentAuto[currStep][2];
+						incStep = true;
+					} else {
+						LOG.logMessage("Background timer currently is only set to work with a single timer; ending auto for safety.");
+						currCommand = AUTOEND;
+					}
 					break;
 					
 				case DELAY:
@@ -325,7 +355,7 @@ public class Autonomous extends GenericSubsystem{
 					dsc.sharedData.targetType = Target.NONE;
 					break;
 				
-				case READ_DONE:
+				case HOLD:
 					incStep = false;
 					break;
 					
@@ -379,6 +409,9 @@ public class Autonomous extends GenericSubsystem{
 5,0,0
 1,86,40
 99
+
+download autos as 3/17/17, 23:36!!11!!!1!
+https://app.box.com/s/u2n8zuhnhg8cp5bgbq44w7ywbasyffeb
 	 */
 
 	
@@ -388,7 +421,7 @@ public class Autonomous extends GenericSubsystem{
 	void abortCommands(){
 		drives.abortAuto();
 		shooter.shooterSystemFire(0);
-		shooter.shooterSystemState(0,1450,1);
+		shooter.shooterSystemState(0,1450,1,0);
 		//get aborts from other subsystems, maybe a direct command?
 	}
 	
