@@ -142,7 +142,7 @@ public class Autonomous extends GenericSubsystem{
 			{8, 1, 1575, 1, 60},
 			{11, 5},
 			{3, 0, -119, 36},
-			{2, 45, 40},
+			{2, 45, 40, 2},
 			{9, 1},
 			{100}
 	};
@@ -154,7 +154,7 @@ public class Autonomous extends GenericSubsystem{
 			{8, 1, 1575, 1, 60},
 			{11, -5},
 			{3, 0, -119, 36},
-			{2, -45, 40},
+			{2, -45, 40, 2},
 			{9, 1},
 			{100}
 	};
