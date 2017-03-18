@@ -14,7 +14,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * A class for handling the autonomous functions of the robot
 ****************************************************************************************************/
 public class Autonomous extends GenericSubsystem{
-
+		
 	private static Autonomous auto;								// Support for singleton
 	private SendableChooser<int[][]> chooser;					// Selector for AutoMode
 	private int[][] currentAuto;								// Current autonomous mode data
@@ -106,7 +106,20 @@ public class Autonomous extends GenericSubsystem{
 	************************************************************************************************/
 	// Examples from 2016
 	// Red = 80, blue -80
-	private final int[][] LOW_BAR_GOAL = {
+	private final int[][] TEN_BALL_RED = {
+			{0},
+			{94, 10000, 7},
+			{5, 0, 0},
+			{8, 1, 1425, 1, 0},
+			{95, 500},
+			{9, 1},
+			{100},
+			{2, 80, 30, 2},			// Red 80, Blue -80
+			{1, -96, 40},
+			{99}
+	};
+
+	private final int[][] TEN_BALL_BLUE = {
 			{0},
 			{94, 10000, 7},
 			{5, 0, 0},
@@ -117,11 +130,6 @@ public class Autonomous extends GenericSubsystem{
 			{2, -80, 30, 2},			// Red 80, Blue -80
 			{1, -96, 40},
 			{99}
-	};
-
-	private final int[][] REACH_DEF = {
-			{DRIVES_FORWARD, 50},
-			{AUTOEND}
 	};
 
 	private final int[][] EMPTY = {
@@ -158,8 +166,8 @@ public class Autonomous extends GenericSubsystem{
 		
 		chooser = new SendableChooser<int[][]>();
 		chooser.addDefault("Do Nothing", EMPTY);
-		chooser.addObject("Reach Defense", LOW_BAR_GOAL);
-		chooser.addObject("Low Bar - Score", REACH_DEF);
+		chooser.addObject("10 Ball Red", TEN_BALL_RED);
+		chooser.addObject("10 Ball Blue", TEN_BALL_BLUE);
 
 		SmartDashboard.putData("Auto Chooser", chooser);
 		autoRun = false;
@@ -191,8 +199,32 @@ public class Autonomous extends GenericSubsystem{
 			firstRun = false;
 			lastRead = System.currentTimeMillis();
 //			LOG.logMessage("Auto imported");
-			currentAuto = LOW_BAR_GOAL;//reader.readIntCSV("/home/lvuser/Auto");
-//			LOG.logMessage(Arrays.deepToString(currentAuto));
+
+			
+			
+			
+			
+			
+			
+			
+			
+			
+//***Set Auto HERE***//
+			// Choices TEN_BALL_RED, TEN_BALL_BLUE
+			
+			currentAuto = TEN_BALL_RED;  //reader.readIntCSV("/home/lvuser/Auto");
+
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			//			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){
 		} else {
