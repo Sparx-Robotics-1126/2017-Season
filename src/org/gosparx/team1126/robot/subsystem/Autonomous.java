@@ -105,10 +105,18 @@ public class Autonomous extends GenericSubsystem{
 	 * Start Preset Arrays
 	************************************************************************************************/
 	// Examples from 2016
-	
+	// Red = 80, blue -80
 	private final int[][] LOW_BAR_GOAL = {
-			{DRIVES_FORWARD, 94},
-			{AUTOEND}
+			{0},
+			{94, 10000, 7},
+			{5, 0, 0},
+			{8, 1, 1425, 1, 0},
+			{95, 500},
+			{9, 1},
+			{100},
+			{2, -80, 30, 2},			// Red 80, Blue -80
+			{1, -96, 40},
+			{99}
 	};
 
 	private final int[][] REACH_DEF = {
@@ -166,7 +174,7 @@ public class Autonomous extends GenericSubsystem{
 		if(dsc.isEnabled() && dsc.isAutonomous() && runAuto){
 			runAuto();
 		}else if (dsc.isDisabled() && dsc.isAutonomous()){
-			getCurrentAuto();//(int[][]) chooser.getSelected();
+			getCurrentAuto(); //(int[][]) chooser.getSelected();
 			currStep = 0;
 			autoStartTime = System.currentTimeMillis();
 			incStep = true;
@@ -183,7 +191,7 @@ public class Autonomous extends GenericSubsystem{
 			firstRun = false;
 			lastRead = System.currentTimeMillis();
 //			LOG.logMessage("Auto imported");
-			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
+			currentAuto = LOW_BAR_GOAL;//reader.readIntCSV("/home/lvuser/Auto");
 //			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){
@@ -211,7 +219,7 @@ public class Autonomous extends GenericSubsystem{
 				if(backgroundWaitTime < System.currentTimeMillis()){
 					backgroundWaitTime = 0;
 					if(moveToStep != 0){
-						currStep = moveToStep;
+						currStep = moveToStep - 1;
 						incStep = true;
 					} else {
 						LOG.logMessage("This should never happen :( disabling auto");
