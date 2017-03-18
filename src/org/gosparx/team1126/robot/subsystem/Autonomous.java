@@ -227,32 +227,11 @@ public class Autonomous extends GenericSubsystem{
 			firstRun = false;
 			lastRead = System.currentTimeMillis();
 //			LOG.logMessage("Auto imported");
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
 //***Set Auto HERE***//
 			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
 			currentAuto = TEN_BALL_RED;  //reader.readIntCSV("/home/lvuser/Auto");
-
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			
-			//			LOG.logMessage(Arrays.deepToString(currentAuto));
+			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){
 		} else {
@@ -371,11 +350,11 @@ public class Autonomous extends GenericSubsystem{
 					incStep = true;
 					break;
 				
-/*				case SHOOTER_SERVO:
-					//10,<0/1/2 (off/forward/backward)>
-					shooter.shooterShroud(currentAuto[currStep][1]);
+				case SHOOTER_TURRET:
+					//11,<turret angle>
+					shooter.shooterSetTurret(currentAuto[currStep][1]);
 					incStep = true;
-					break;*/
+					break;
 					
 				case BACKGROUND_DELAY:
 					//94,<time in milliseconds to wait>,<position in currentAuto to move to.>

@@ -264,6 +264,7 @@ public class Shooter extends GenericSubsystem{
 					shroudOutput = 0;
 					speed = INITIAL_SPEED;
 					operatorControl = true;
+					degreeOff = 0;
 				}
 			} else {
 				isPressed = false;
@@ -479,7 +480,9 @@ public class Shooter extends GenericSubsystem{
 		}
 	}
 	
-	
+	public void shooterSetTurret(int turretAngle){
+		degreeOff = turretAngle;
+	}
 	
 //-----------------------------------------------------------------------------------------
 	/**
