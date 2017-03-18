@@ -1,5 +1,4 @@
 package org.gosparx.team1126.robot.subsystem;
-
 /**
  * 
  * @Author - nphto
@@ -29,7 +28,8 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double shootingSpeedCurrent;
 	private double shootingSpeed;
-	
+	private double shroudOutput;
+
 	/**
 	 * current turret degree - 2/3 rotation per 30 degrees & turret motor output
 	 */
@@ -43,7 +43,7 @@ public class Shooter extends GenericSubsystem{
     private boolean lastPressed;
     
     private boolean manualControl;
-    
+    private boolean operatorControl;
 	/**
 	 * the local variable to see if the system should fire
 	 */
@@ -108,7 +108,7 @@ public class Shooter extends GenericSubsystem{
 	 * Initial wheel speed
 	 */
 	private final double INITIAL_SPEED = 1425;
-
+// 40 ball @ .6 shroud, 1575 speed
 	/**
 	 * the speed that slowly decreases the fly wheel speed
 	 */
@@ -137,14 +137,6 @@ public class Shooter extends GenericSubsystem{
 	private BallAcq ballAcq;	
 	
 	private boolean visionOff;
-	
-	private IntakeEnum currentIntakeEnum;
-	
-	private double wantedIntakeSpeed;
-	
-	private double intakeTime;
-	
-	private boolean intakeRun;
 //*****************************************Methods***************************************\\	
 	/**
 	 * Constructs a shooter object
@@ -188,15 +180,12 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		ready = false;
 		manualControl = false;
+		operatorControl = false;
 		speed = INITIAL_SPEED;
+		shroudOutput = 0;
 		max = 0;
 		min = 10000;
 		dsc.setAxisDeadband(IO.TURRET_JOY_Y, .1); //added for manual turret control
-		currentIntakeEnum = IntakeEnum.STANDBY;
-		wantedIntakeSpeed = 0;
-		intakeTime = 0;
-		intakeRun = false;
-		shroud.set(0.0);
 		return true;
 	}
 
@@ -218,7 +207,7 @@ public class Shooter extends GenericSubsystem{
 //-----------------------------------------------------------------------------------------
 	/**
 	 * makes the robot shoot and turn its turret and stuff
-	 * @return - does not mean anything //turretDegreeCurrent = turretSensor.relDegrees();
+	 * @return - does not mean anything
 	 */
 	@Override  
 	protected boolean execute(){
@@ -226,8 +215,7 @@ public class Shooter extends GenericSubsystem{
 		boolean shooterReady;
 		boolean fireOverride = false;
 		boolean currentManualControl;
-		
-		
+
 //		shroud.set(dsc.getAxis(IO.SHROUD_TEST_AXIS));
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
@@ -271,10 +259,16 @@ public class Shooter extends GenericSubsystem{
 				if ((currentManualControl == true) && (manualControl == false))
 					speed = INITIAL_SPEED;
 
-				manualControl = currentManualControl;
+				if (operatorControl == false) {
+					manualControl = currentManualControl;
+					shroudOutput = 0;
+					speed = INITIAL_SPEED;
+					operatorControl = true;
+				}
 			} else {
 				isPressed = false;
-				fireWhenReady = false;				
+				fireWhenReady = false;
+				operatorControl = false;
 			}
 		}
 		
@@ -309,36 +303,10 @@ public class Shooter extends GenericSubsystem{
 		
 		if( (ready && fireWhenReady) || fireOverride){
 			feeder.set(INTAKE_BALL_SPEED);
-//			if(!intakeRun){
-//			currentIntakeEnum = IntakeEnum.BACKWARDS;
-//			intakeRun = true;
-//			}
 		}else{
-			feeder.set(0);		//TODO change back to zero
-//			currentIntakeEnum = IntakeEnum.STANDBY;
-//			intakeRun = false;
+			feeder.set(0);
 		}
 		
-//		switch(currentIntakeEnum){
-//		case BACKWARDS:
-//			intakeTime = System.currentTimeMillis();
-//			wantedIntakeSpeed = -1;
-//			currentIntakeEnum = IntakeEnum.BACKWARDS_WAIT;
-//			break;
-//		case BACKWARDS_WAIT:
-//			if(intakeTime + 150 < System.currentTimeMillis()){
-//				currentIntakeEnum = IntakeEnum.FORWARD;
-//			}
-//			wantedIntakeSpeed = -1;
-//			break;
-//		case FORWARD:
-//			wantedIntakeSpeed = 1;
-//			break;
-//		case STANDBY:
-//			wantedIntakeSpeed = 0;
-//			break;
-//		}
-
 		// Manual control of turret.  Note: this will be override the turret control while
 		// the axis is moved, however, as soon as the joystick is released, the system will
 		// immediately go back to automatic control.  This makes this manual control fairly
@@ -359,9 +327,11 @@ public class Shooter extends GenericSubsystem{
 			turretOutput = 0;
 		
 		turret.set(turretOutput);
+		shroud.set(shroudOutput);;
+		
 		//feeder.set(wantedIntakeSpeed);
 		
-		//LOG.logMessage("turrent angle: " + turretSensor.getDegrees());
+		//LOG.logMessage("turret angle: " + turretSensor.getDegrees());
 		//LOG.logMessage("relative angle: " + turretSensor.relDegrees());
 		//LOG.logMessage("Voltage: " + turretSensor.getVoltage());
 		
@@ -407,11 +377,18 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
+//		1425 @ boiler, 1600 @ 6'6" (center of boiler)
 // 		speed = dsc.sharedData.distanceToTarget * someFormula
 		return speed;
 
 	}
-		
+
+	private double distanceToShroud(){
+//		0 @ boiler, 60% @ 6'6" (center of boiler)
+//		return (dsc.sharedData.distanceToTarget * someFormula
+		return shroudOutput;
+	}
+	
 //-----------------------------------------------------------------------------------------
 	/**
 	 * checks if the motors are ready and are at a correct speed9999
@@ -425,9 +402,10 @@ public class Shooter extends GenericSubsystem{
 		}
 		
 		if(visionOff || manualControl){
-		shootingSpeed = speed;
+			shootingSpeed = speed;
 		} else {
-		shootingSpeed = distanceToSpeed();
+			shootingSpeed = distanceToSpeed();
+			shroudOutput = distanceToShroud();
 		}
 		
 		if(shootingSpeedCurrent < shootingSpeed - SPEED_ALLOWED_OFF){
@@ -457,7 +435,6 @@ public class Shooter extends GenericSubsystem{
 			if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed ||
 					SharedData.getImageTime(SharedData.Target.BOILER) > 2.0)){
 				return false;
-				
 			}
 			
 			if(turretDegreeCurrent < degreeOff - .5){
@@ -478,9 +455,10 @@ public class Shooter extends GenericSubsystem{
 	 * Sets the shooting system on for auto
 	 * @param isOn - auto sends 1 to shoot
 	 */
-	public void shooterSystemState(int isOn, int speeds, int vision){
+	public void shooterSystemState(int isOn, int speeds, int vision, int shroudPos){
 		if ((isOn == 1) && dsc.isAutonomous()){
 			speed = speeds;
+			shroud.set(((double) shroudPos) /100.0);
 			isPressed = true;
 		}else{
 			isPressed = false;
@@ -581,24 +559,5 @@ public class Shooter extends GenericSubsystem{
 
 			currentEnum = DiagnosticsEnuuum.DONE;
 		}
-	}
-	public void shooterShroud(int i){
-		//!!! what is the resting power?
-		if(i == 1){
-			shroud.set(0.25);
-		}
-		else if(i == 2){
-			shroud.set(0.5);
-		}
-		else{
-			shroud.set(0.0); //get real resting power?
-		}
-	}
-	
-	private enum IntakeEnum{
-		BACKWARDS,
-		BACKWARDS_WAIT,
-		FORWARD,
-		STANDBY;
 	}
 }
