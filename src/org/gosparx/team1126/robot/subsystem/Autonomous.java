@@ -51,6 +51,7 @@ public class Autonomous extends GenericSubsystem{
 	private static final int SHOOTER_TOGGLE = 8;
 	private static final int SHOOTER_SETUP = 9;
 	private static final int SHOOTER_SERVO = 10;
+	private static final int SHOOTER_TURRET = 11;
 	private static final int BACKGROUND_DELAY = 94;
 	private static final int DELAY = 95;						// Wait (seconds)
 	private static final int SETCRITSTEP = 96;					// Set Critical Timeout Step
@@ -71,6 +72,7 @@ public class Autonomous extends GenericSubsystem{
 			BALLACQ_TOGGLE,
 			SHOOTER_TOGGLE,
 			SHOOTER_SERVO,
+			SHOOTER_TURRET,
 			SHOOTER_SETUP,
 			DRIVES_DONE,
 			BACKGROUND_DELAY,
@@ -90,6 +92,7 @@ public class Autonomous extends GenericSubsystem{
 			"Ballacq_Toggle",
 			"Shooter_Toggle",
 			"Shooter_Servo",
+			"Shooter Turret",
 			"Shooter_Setup",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
@@ -132,6 +135,31 @@ public class Autonomous extends GenericSubsystem{
 			{99}
 	};
 
+	private final int[][] FOURTY_BALL_RED = {
+			{0},
+			{5, 0, 0},
+			{95, 500},
+			{8, 1, 1575, 1, 60},
+			{11, 5},
+			{3, 0, -119, 36},
+			{2, 45, 40},
+			{9, 1},
+			{100}
+	};
+	
+	private final int[][] FOURTY_BALL_BLUE = {
+			{0},
+			{5, 0, 0},
+			{95, 500},
+			{8, 1, 1575, 1, 60},
+			{11, -5},
+			{3, 0, -119, 36},
+			{2, -45, 40},
+			{9, 1},
+			{100}
+	};
+
+	
 	private final int[][] EMPTY = {
 			{AUTOEND}
 	};
@@ -210,7 +238,7 @@ public class Autonomous extends GenericSubsystem{
 			
 			
 //***Set Auto HERE***//
-			// Choices TEN_BALL_RED, TEN_BALL_BLUE
+			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
 			currentAuto = TEN_BALL_RED;  //reader.readIntCSV("/home/lvuser/Auto");
 
