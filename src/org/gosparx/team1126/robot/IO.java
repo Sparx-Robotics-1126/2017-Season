@@ -12,13 +12,14 @@ public class IO {
 
 	/**************************************PWM*****************************************/
 	
-	public static final int PWM_BALLACQ_SERVO_AGITATOR					= 14;
-	public static final int PWM_BALLACQ_SERVO_FUELGATE  				= 15;
+//	public static final int PWM_BALLACQ_SERVO_AGITATOR					= 14;
+//	public static final int PWM_BALLACQ_SERVO_FUELGATE  				= 15;
+	public static final int PWM_SHOOTER_SHROUD							= 9;
 	
 	/************************************DIO*******************************************/
 	
-	public static final int DIO_RIGHT_DRIVES_ENC_A                      = 0;
-	public static final int DIO_RIGHT_DRIVES_ENC_B                      = 1;
+	public static final int DIO_RIGHT_DRIVES_ENC_A                      = 10;
+	public static final int DIO_RIGHT_DRIVES_ENC_B                      = 11;
 	public static final int DIO_LEFT_DRIVES_ENC_A                       = 12;
 	public static final int DIO_LEFT_DRIVES_ENC_B	                    = 13;
 	public static final int DIO_GEARACQ_SENSOR							= 14;
@@ -29,7 +30,6 @@ public class IO {
 	public static final int DIO_SHOOTER_LIMITSWITCH_LEFT				= 21;
 	public static final int DIO_SHOOTER_ENC_A                           = 22;
 	public static final int DIO_SHOOTER_ENC_B							= 23;
-	public static final int DIO_SHOOTER_SHROUD							= 18;
 	
 	/**********************************CAN********************************************/
 	
@@ -75,6 +75,7 @@ public class IO {
 	public static final int BUTTON_FIRE									= DriverStationControls.OP_XBOX_A;
 	public static final int FIRE_OVERRIDE								= DriverStationControls.OP_XBOX_Y;
 	public static final int SCALING_RT									= DriverStationControls.OP_XBOX_R2;
+	public static final int SHROUD_TEST_AXIS							= DriverStationControls.OP_XBOX_RIGHT_X;
 	public static final int RIGHT_JOY_X									= DriverStationControls.RIGHT_JOY_X_AXIS;
 	public static final int RIGHT_JOY_Y									= DriverStationControls.RIGHT_JOY_Y_AXIS;
 	public static final int LEFT_JOY_X									= DriverStationControls.LEFT_JOY_X_AXIS;

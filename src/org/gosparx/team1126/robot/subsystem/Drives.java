@@ -563,6 +563,7 @@ public class Drives extends GenericSubsystem {
 		}
 		LOG.logMessage("AutoDriveCoord (X,Y) start: (" + currentX + "," + currentY + ")");
 		driveDone = false;
+		autoReady = false;
 		initialHeading = Math.toDegrees(Math.atan2(x-currentX, y-currentY));
 		endY = y;
 		endX = x;
@@ -584,6 +585,7 @@ public class Drives extends GenericSubsystem {
 		}
 		LOG.logMessage("MoveToLift (X,Y) start: (" + currentX + "," + currentY + ")");
 		driveDone = false;
+		autoReady = false;
 		initialHeading = gyro.getAngle();
 		wantedSpeed = speed;
 		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_GEAR_DISTANCE;
@@ -684,6 +686,7 @@ public class Drives extends GenericSubsystem {
 		if(!isAutoDone()){
 			return false;
 		}
+		autoReady = false;
 		turnDone = false;
 		wantedAngle = angle;
 		wantedSpeed = speed;
@@ -704,6 +707,7 @@ public class Drives extends GenericSubsystem {
 			return false;
 		}
 		turnDone = false;
+		autoReady = false;
 		wantedAngle = currentAngle + angle;
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_TURN;

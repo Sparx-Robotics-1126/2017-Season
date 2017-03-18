@@ -33,6 +33,7 @@ public class Autonomous extends GenericSubsystem{
 	private BallAcq ballacq;
 	private boolean firstRun = true;
 	private boolean runAuto;
+	private boolean autoRun;
 	
 	// All genericSubsystems that the Autonomous system needs to interface with will need to be defined.	
 
@@ -53,6 +54,7 @@ public class Autonomous extends GenericSubsystem{
 	private static final int DRIVES_DONE = 97;					// DO NOT USE - Wait For Drives Command is Done
 	private static final int WAITING = 98;						// DO NOT USE - Used by Wait command
 	public static final int AUTOEND = 99;						// End Autonomous Mode
+	private static final int READ_DONE = 100;
 
 	// Lookup table to identify the index in the commandName array
 	
@@ -71,7 +73,8 @@ public class Autonomous extends GenericSubsystem{
 			SETCRITSTEP,										// Crit Step #, Time (msec) 
 			DELAY,												// Time (msec)
 			WAITING,
-			AUTOEND
+			AUTOEND,
+			READ_DONE
 	};
 	
 	private static final String[] commandName = {
@@ -89,7 +92,8 @@ public class Autonomous extends GenericSubsystem{
 			"Set Critical Step",
 			"Delay",
 			"Waiting - DO NOT USE",
-			"End"
+			"End",
+			"Reading_File_Finished"
 	};
 	
 	/*************************************************************************************************
@@ -145,6 +149,7 @@ public class Autonomous extends GenericSubsystem{
 		chooser.addObject("Low Bar - Score", REACH_DEF);
 
 		SmartDashboard.putData("Auto Chooser", chooser);
+		autoRun = false;
 		return true;
 	}
 
@@ -188,6 +193,7 @@ public class Autonomous extends GenericSubsystem{
 	************************************************************************************************/
 	private void runAuto(){
 		if(dsc.isEnabled() && dsc.isAutonomous()){
+			autoRun = true;
 			if ((System.currentTimeMillis() >= critTime) && 			// Check for Critical Time
 					(currStep < critStep) && (critTime > 0)){
 				incStep = true;											// Inform system we are changing steps
@@ -319,6 +325,10 @@ public class Autonomous extends GenericSubsystem{
 					dsc.sharedData.targetType = Target.NONE;
 					break;
 				
+				case READ_DONE:
+					incStep = false;
+					break;
+					
 				default:
 					incStep = false;
 					currCommand = AUTOEND;
@@ -419,7 +429,9 @@ public class Autonomous extends GenericSubsystem{
 	
 	public void setRunAuto(boolean auto){
 		runAuto = auto;
-		if(!runAuto)
+		if(!runAuto && autoRun){
 			abortCommands();
+			autoRun = false;
+		}
 	}
 }
