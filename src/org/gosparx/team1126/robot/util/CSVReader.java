@@ -20,17 +20,26 @@ public class CSVReader {
 
 		String delimiter = ","; //Holds the delimiter (ooh fancy word, it means boundaries and stuff), just in case we want to switch off commas.
 		
+		String read = "";
+		
 		try{ 
 		
 		BufferedReader heightReader = new BufferedReader(new FileReader(CSVFile)); //Used to read the CSV file
-		while (heightReader.readLine() != null) height++;					
+		while (heightReader.readLine() != null)
+			while ((read = heightReader.readLine()) != null) {
+				if(read != "" && read != null && !read.isEmpty()){	
+				height++;
+				}
+			}
 		//Gets the height of the CSV.
 		heightReader.close();												 //Closes the BufferedReader
 																			 //, releasing used resources.
 		currentAuto = new int[height][];									 //Adds the columns to the returned info.
 		BufferedReader reader2 = new BufferedReader(new FileReader(CSVFile));//Used to read the CSV file (could mark the location at the start and go back to the beginning but it has been known to have downsides if the file is too big (although that should never happen in this case).
 		for(int i = 0; i < height; i++){
-			String line = reader2.readLine();							     //Reads the line and puts it into a string
+			String line = reader2.readLine();	
+			//Reads the line and puts it into a string
+			if(line != "" && line != null && !line.isEmpty()){
 			String[] splitLine = line.split(delimiter);
 			ArrayList<String> lineList = new ArrayList<String>();
 			for(String value : splitLine){
@@ -39,6 +48,9 @@ public class CSVReader {
 			currentAuto[i] = new int[lineList.size()];
 			for(int x = 0; x < lineList.size(); x++){
 				currentAuto[i][x] = Integer.parseInt(lineList.get(x));
+			}
+			} else {
+				i--;
 			}
 		}
 		reader2.close();
