@@ -71,7 +71,7 @@ public class Autonomous extends GenericSubsystem{
 			DRIVES_STOP,
 			BALLACQ_TOGGLE,
 			SHOOTER_TOGGLE,
-			SHOOTER_SERVO,
+//			SHOOTER_SERVO,
 			SHOOTER_TURRET,
 			SHOOTER_SETUP,
 			DRIVES_DONE,
@@ -91,7 +91,7 @@ public class Autonomous extends GenericSubsystem{
 			"Drives_SetCoords",
 			"Ballacq_Toggle",
 			"Shooter_Toggle",
-			"Shooter_Servo",
+//			"Shooter_Servo",
 			"Shooter Turret",
 			"Shooter_Setup",
 			"Drives_Stop",
@@ -230,7 +230,8 @@ public class Autonomous extends GenericSubsystem{
 //***Set Auto HERE***//
 			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
-			currentAuto = TEN_BALL_RED;  //reader.readIntCSV("/home/lvuser/Auto");
+			//currentAuto = TEN_BALL_RED;  
+			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
 			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){

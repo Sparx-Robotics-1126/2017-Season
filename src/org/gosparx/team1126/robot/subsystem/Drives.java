@@ -269,8 +269,8 @@ public class Drives extends GenericSubsystem {
 			LOG.logMessage("Recreating NavX");
 		}
 		
-		if (!gyro.isConnected())
-			LOG.logMessage("NavX not connected!");
+//		if (!gyro.isConnected())
+//			LOG.logMessage("NavX not connected!");
 
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
@@ -565,8 +565,18 @@ public class Drives extends GenericSubsystem {
 		driveDone = false;
 		autoReady = false;
 		initialHeading = Math.toDegrees(Math.atan2(x-currentX, y-currentY));
+		
+		if (speed < 0) {
+			initialHeading += 180;
+			
+			if (initialHeading >= 360)
+				initialHeading -= 360;
+		}
+		
 		endY = y;
 		endX = x;
+		
+		
 		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ") Ang " + initialHeading);
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;

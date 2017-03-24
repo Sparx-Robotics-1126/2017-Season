@@ -31,6 +31,7 @@ public class CSVReader {
 				height++;
 				}
 			}
+		height++;
 		//Gets the height of the CSV.
 		heightReader.close();												 //Closes the BufferedReader
 																			 //, releasing used resources.

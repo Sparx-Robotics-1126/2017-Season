@@ -9,24 +9,22 @@ public class VisionNetworkTable implements ITableListener{
 	/*########################################################################*/	
 	private static NetworkTable client;
 
-	private String IP = "10.11.26.60"; //Jetsons boards IP
-	//private int port = 1735; //Jenson's board port (might not need)
-	private String serverKey = "mode"; //For sending mode
-	private static String clientLift = "peg"; //For reciving angle and distance for lift
-	private static String clientHighGoal = "highGoal"; ////For reciving angle and distance for HighGoal 
-	private SharedData.Target currentMode; //BOILER or LIFT //0 is off, 1 is Highgoal, 2 is lift
-	private SharedData.Target lastMode;
-	double[] arrTargetData;
-	private double xOffset=0.0;
-	private double yOffset=0.0;
-	private double dy;
-	private double dx;
+	private static final String serverKey = "mode"; //For sending mode
+	private static final  String clientLift = "peg"; //For reciving angle and distance for lift
+	private static final String clientHighGoal = "highGoal"; ////For reciving angle and distance for HighGoal 
+	
+	private double liftAngle = -180.0;
+	private double liftDistance = -1.0;
+	private double boilerAngle = -180.0;
+	private double boilerDistance = -1.0;
+	
+	private static final double xOffsetBoiler = 13.75;
+	private static final double yOffsetBoiler = 13.5;
+	private static final double xOffsetPeg = 13.75;
+	private static final double yOffsetPeg = 12.5;
 	
 	public VisionNetworkTable() //Constructor
 	{
-		currentMode = SharedData.Target.BOILER;
-		lastMode = currentMode;
-		NetworkTable.setIPAddress(IP); //Sets Ip address
 		client = NetworkTable.getTable("targetData"); //Gets client table 
 
 		//Adds the listener to see if value changed
@@ -36,13 +34,9 @@ public class VisionNetworkTable implements ITableListener{
 	/*#####################################################################################*/	
 	public void serverUpdate() //For sending mode
 	{
-		try{	 
-			if(!lastMode.equals(SharedData.targetType))
-			{
-				currentMode = SharedData.targetType;
-				client.putValue(serverKey, new Boolean(currentMode == SharedData.Target.LIFT)); //Puts the mode in table
-				lastMode=currentMode;
-			}
+		try
+		{
+				client.putValue(serverKey, new Boolean(SharedData.targetType == SharedData.Target.LIFT)); //Puts the mode in table
 		}
 		catch(Exception e)
 		{
@@ -54,46 +48,62 @@ public class VisionNetworkTable implements ITableListener{
 	@Override //For listener 
 	public void valueChanged(ITable itable, String Values_Key, Object val, boolean bln)
 	{
-		//System.out.println("Change detected: "+val.getClass()+" at "+Values_Key+"\n Itable"+itable);
-		if(SharedData.targetType!=SharedData.Target.NONE){
 			try //Catch exection e
-			{ 
-				if(Values_Key.equals(clientLift) || Values_Key.equals(clientHighGoal)) 
+			{
+				if(Values_Key.equals(clientLift))
 				{
-					arrTargetData = (double[]) val; 
-					if(arrTargetData[0] !=-180){
-						dy=arrTargetData[1];
-						dx=dy*Math.tan(Math.toRadians(arrTargetData[0]));
-						dx+=xOffset;
-						dy+=yOffset;
-						SharedData.setTarget(currentMode, dy, Math.toDegrees(Math.atan(dx/dy)));
-//						System.out.println("Angle and distance: "+arrTargetData[0]+", "+arrTargetData[1]+"\n");	
-						
-					}
-					try{	 //Pauses
-						Thread.sleep(5); 
-						System.out.println("Sleeping");
-					}	
-					catch(InterruptedException e)
+					double[] doubleArray = (double[])val;
+					
+					double inputAngle = doubleArray[0];
+					double inputDistance = doubleArray[1];
+					
+					if (inputAngle != -180.0 && inputDistance != -1.0)
 					{
-						System.out.println("\n"+"InterruptedException exception during sleep"+"\n");
-						System.out.println(e.getMessage()+"\n");
+						double dy = inputDistance;
+						double dx = dy * Math.tan(Math.toRadians(inputAngle));
+						dx += xOffsetPeg;
+						dy += yOffsetPeg;
+						
+						liftDistance = dy;
+						liftAngle = Math.toDegrees(Math.atan(dx/dy));					
+						
+						SharedData.setTarget(SharedData.Target.LIFT, liftDistance, liftAngle);
+						
+						//System.out.format("%f, %f\n", liftDistance.doubleValue(), liftAngle.doubleValue());
 					}
-
+				}
+				else if (Values_Key.equals(clientHighGoal))
+				{
+					double[] doubleArray = (double[])val;
+					
+					double inputAngle = doubleArray[0];
+					double inputDistance = doubleArray[1];
+					
+					if (inputAngle != -180.0 && inputDistance != -1.0)
+					{
+						double dy = inputDistance;
+						double dx = dy * Math.tan(Math.toRadians(inputAngle));
+						dx += xOffsetBoiler;
+						dy += yOffsetBoiler;
+						
+						boilerDistance = dy;
+						boilerAngle = Math.toDegrees(Math.atan(dx/dy));
+						
+						SharedData.setTarget(SharedData.Target.BOILER, boilerDistance, boilerAngle);
+						
+						//System.out.format("%f, %f\n", boilerDistance.doubleValue(), boilerAngle.doubleValue());
+					}
 				}
 				else
 				{
 					System.out.println("Invalid key taken (from Jetson board)");
 				} 
 			}
-
 			catch (Exception e)
 			{
-				System.out.println("Jetson error, value changed: "+Values_Key+" "+bln+" "+val);
+				System.out.println("Jetson error, value changed: "+ Values_Key + " " + bln + " " + val);
 				System.out.println(e.getMessage());
-				// Print an error.
 			}
-		}	
 	}
-	/*#####################################################################################*/	
+	/*#####################################################################################*/
 }

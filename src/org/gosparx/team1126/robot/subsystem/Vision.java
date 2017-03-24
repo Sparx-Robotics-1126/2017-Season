@@ -47,7 +47,7 @@ public class Vision extends GenericSubsystem {
 		led = new Relay(0, Relay.Direction.kForward); 
 		led.set(Relay.Value.kOff);	//todo change to off											// Turn off the LED
 		startTime = System.currentTimeMillis();
-		target = SharedData.targetType;											// Get Initial state of target
+		target = SharedData.Target.NONE;											// Get Initial state of target
 		return true;  
 	}
 
@@ -55,36 +55,47 @@ public class Vision extends GenericSubsystem {
 	 * Continues as long as it returns false
 	 */
 	@Override
-	protected boolean execute() {
+	protected boolean execute()
+	{	
+		//LOG.logMessage("YOUR ANGLE IS angle: " + SharedData.angleToBoiler);
 		
 		if (System.currentTimeMillis() - startTime > 5000)						// Boot the Jetson board
 			reset.set(true);
 		
-		if (dsc.isDisabled())
-			SharedData.targetType = SharedData.Target.NONE;	
-		
-		else if (dsc.isOperatorControl()){										// When in operator control, 
-//			SharedData.targetType = SharedData.Target.LIFT;
-//			LOG.logMessage("LED is trying to be on");
-			if (dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON))						//  check to see which target
-				SharedData.targetType = SharedData.Target.BOILER;				//  the camera should look for
-			else if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
-				SharedData.targetType = SharedData.Target.LIFT;
-			else
-				SharedData.targetType = SharedData.Target.NONE;
+		if (dsc.isOperatorControl())										// When in operator control, 
+		{
+			if (SharedData.targetType != SharedData.Target.BOILER)
+			{
+				if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
+				{
+					LOG.logMessage("YES LIFT");
+					SharedData.targetType = SharedData.Target.LIFT;
+				}
+				else
+				{
+					LOG.logMessage("NO LIFT");
+					SharedData.targetType = SharedData.Target.NONE;
+				}
+			}
 		}
 		
-		if (SharedData.targetType != target){									// Check for a change in target
+		if (SharedData.targetType != target)									// Check for a change in target
+		{
 			led.set((target == SharedData.Target.NONE) ? 						// Update LED status
 					Relay.Value.kOff : Relay.Value.kOn);
+
 			visionSystem.serverUpdate();										// Target change can occur from the		
 			target = SharedData.targetType;										//  code above, or Autonomous
 			
 			if (target != SharedData.Target.BOILER)
+			{
 				dsc.sharedData.clearImageData(SharedData.Target.BOILER);
+			}
 
 			if (target != SharedData.Target.LIFT)
+			{
 				dsc.sharedData.clearImageData(SharedData.Target.LIFT);
+			}
 		}
 		
 		return false;
