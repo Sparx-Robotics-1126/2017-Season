@@ -71,11 +71,11 @@ public class IO {
 	// Shooter
 	
 	public static final int FLIP_SHOOTING_SYSTEM_ON						= DriverStationControls.LEFT_JOY_MIDDLE;
-	public static final int FLIP_TARGET_LIFT							= DriverStationControls.RIGHT_JOY_MIDDLE;
+	public static final int FLIP_BOILER_SHOT							= DriverStationControls.RIGHT_JOY_MIDDLE;
 	public static final int BUTTON_FIRE									= DriverStationControls.OP_XBOX_A;
 	public static final int FIRE_OVERRIDE								= DriverStationControls.OP_XBOX_Y;
 	public static final int SCALING_RT									= DriverStationControls.OP_XBOX_R2;
-	public static final int SHROUD_TEST_AXIS							= DriverStationControls.OP_XBOX_RIGHT_X;
+	public static final int SHROUD_TEST_AXIS							= DriverStationControls.RIGHT_JOY_Z_AXIS;
 	public static final int RIGHT_JOY_X									= DriverStationControls.RIGHT_JOY_X_AXIS;
 	public static final int RIGHT_JOY_Y									= DriverStationControls.RIGHT_JOY_Y_AXIS;
 	public static final int LEFT_JOY_X									= DriverStationControls.LEFT_JOY_X_AXIS;

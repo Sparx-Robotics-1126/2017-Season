@@ -153,7 +153,7 @@ public class BallAcq extends GenericSubsystem{
 				currentBeltState = BeltState.REVERSE_WAIT;
 				break;
 			case REVERSE_WAIT:
-				if(System.currentTimeMillis() >= startBeltTime + 200)
+				if(System.currentTimeMillis() >= startBeltTime + 400)
 					currentBeltState = BeltState.FORWARD;
 				wantedSpeed = 1.0;
 				break;

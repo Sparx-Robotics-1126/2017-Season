@@ -141,8 +141,8 @@ public class Autonomous extends GenericSubsystem{
 			{95, 500},
 			{8, 1, 1575, 1, 60},
 			{11, 5},
-			{3, 0, -119, 36},
-			{2, 45, 40, 2},
+			{3, 0, -125, 36},
+			{2, -45, 40, 2},
 			{9, 1},
 			{100}
 	};
@@ -153,8 +153,10 @@ public class Autonomous extends GenericSubsystem{
 			{95, 500},
 			{8, 1, 1575, 1, 60},
 			{11, -5},
-			{3, 0, -119, 36},
-			{2, -45, 40, 2},
+			{1, -128, 48},
+			{2, 70, 40, 2},
+			{1, 22, 48},
+			{2, -20, 30, 2},
 			{9, 1},
 			{100}
 	};
@@ -230,8 +232,8 @@ public class Autonomous extends GenericSubsystem{
 //***Set Auto HERE***//
 			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
-			//currentAuto = TEN_BALL_RED;  
-			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
+			currentAuto = FOURTY_BALL_BLUE;  
+//			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
 			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){
@@ -289,7 +291,7 @@ public class Autonomous extends GenericSubsystem{
 			switch(currCommand){
 				case DRIVES_FORWARD:
 					//1,<distance>,<speed>
-					drives.autoDriveDistance(currentAuto[currStep][1], currentAuto[currStep][2]);
+					drives.autoDrivePoint(currentAuto[currStep][1], currentAuto[currStep][2]);
 					currCommand = DRIVES_DONE;
 					break;
 					

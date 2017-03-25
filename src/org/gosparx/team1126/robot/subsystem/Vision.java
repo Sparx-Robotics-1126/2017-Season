@@ -64,24 +64,16 @@ public class Vision extends GenericSubsystem {
 		
 		if (dsc.isOperatorControl())										// When in operator control, 
 		{
-			if (SharedData.targetType != SharedData.Target.BOILER)
-			{
-				if (dsc.isPressed(IO.FLIP_TARGET_LIFT))
-				{
-					LOG.logMessage("YES LIFT");
-					SharedData.targetType = SharedData.Target.LIFT;
-				}
-				else
-				{
-					LOG.logMessage("NO LIFT");
-					SharedData.targetType = SharedData.Target.NONE;
-				}
+			if(dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON) && !dsc.isPressed(IO.FLIP_BOILER_SHOT)){
+				SharedData.targetType = SharedData.Target.BOILER;
+			}else{
+				SharedData.targetType = SharedData.Target.NONE;
 			}
 		}
 		
 		if (SharedData.targetType != target)									// Check for a change in target
 		{
-			led.set((target == SharedData.Target.NONE) ? 						// Update LED status
+			led.set((SharedData.targetType == SharedData.Target.NONE) ? 						// Update LED status
 					Relay.Value.kOff : Relay.Value.kOn);
 
 			visionSystem.serverUpdate();										// Target change can occur from the		

@@ -43,7 +43,7 @@ public class Shooter extends GenericSubsystem{
     private boolean lastPressed;
     
     private boolean manualControl;
-    private boolean operatorControl;
+
 	/**
 	 * the local variable to see if the system should fire
 	 */
@@ -107,7 +107,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * Initial wheel speed
 	 */
-	private final double INITIAL_SPEED = 1425;
+	private final double INITIAL_SPEED = 1400;   //used to be 1425
 // 40 ball @ .6 shroud, 1575 speed
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -132,7 +132,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * turret center position in volts
 	 */
-	private final double ZERO_VOLTAGE = 2.4;
+	private final double ZERO_VOLTAGE = 2.12;
 	
 	private BallAcq ballAcq;	
 	
@@ -180,7 +180,6 @@ public class Shooter extends GenericSubsystem{
 		degreeOff = 0;
 		ready = false;
 		manualControl = false;
-		operatorControl = false;
 		speed = INITIAL_SPEED;
 		shroudOutput = 0;
 		max = 0;
@@ -216,11 +215,11 @@ public class Shooter extends GenericSubsystem{
 		boolean fireOverride = false;
 		boolean currentManualControl;
 
-//		shroud.set(dsc.getAxis(IO.SHROUD_TEST_AXIS));
+		//LOG.logMessage(36, 30, "Shroud setting: " + ((1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0));
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
-		degreeOff = SharedData.angleToBoiler;		
+	
 		
 		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
@@ -251,26 +250,29 @@ public class Shooter extends GenericSubsystem{
 		
 		if (!dsc.isAutonomous()){
 			if (dsc.isOperatorControl()){
+				visionOff = false;
 				isPressed = dsc.isPressed(IO.FLIP_SHOOTING_SYSTEM_ON);
 				fireWhenReady = dsc.isPressed(IO.BUTTON_FIRE);
-				currentManualControl = dsc.getPOV(0,0);
+				currentManualControl = dsc.isPressed(IO.FLIP_BOILER_SHOT);
 				fireOverride = dsc.isPressed(IO.FIRE_OVERRIDE);
 
-				if ((currentManualControl == true) && (manualControl == false))
+				if ((currentManualControl == true) && (manualControl == false)){
 					speed = INITIAL_SPEED;
-
-				if (operatorControl == false) {
-					manualControl = currentManualControl;
 					shroudOutput = 0;
-					speed = INITIAL_SPEED;
-					operatorControl = true;
 					degreeOff = 0;
+				}					
+				manualControl = currentManualControl;
+				if(manualControl == false){
+					degreeOff = -SharedData.angleToBoiler;	
+				}else{
+					shroudOutput = (1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0;
 				}
 			} else {
 				isPressed = false;
 				fireWhenReady = false;
-				operatorControl = false;
+				manualControl = false;
 			}
+			degreeOff = -SharedData.angleToBoiler;	
 		}
 		
 		// Check to see if the system state has changed
@@ -366,7 +368,7 @@ public class Shooter extends GenericSubsystem{
 	protected void writeLog(){
 		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
 		LOG.logMessage("Turret Voltage: " + turretSensor.getVoltage());
-		LOG.logMessage("Turret Angle: "+ turretDegreeCurrent);
+		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
 		//		LOG.logMessage("Turret Degree Off: " + degreeOff);
 //		LOG.logMessage("Distance Away: " + distance);
 //		LOG.logMessage("IsPressed: " + isPressed
@@ -426,15 +428,14 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		if(visionOff || manualControl){
+		if(visionOff){
 			return true;
 		}else{
 			turretOutput = 0;									// Initialize Turret Output to 0
 	
 			// Only control if system is ON and we have a boiler image less than 2 seconds old.
 			
-			if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed ||
-					SharedData.getImageTime(SharedData.Target.BOILER) > 2.0)){
+			if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed)){
 				return false;
 			}
 			
@@ -445,7 +446,7 @@ public class Shooter extends GenericSubsystem{
 			} else
 				return true;
 			
-			turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.1));
+			turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.25));
 			
 			return false;
 		}

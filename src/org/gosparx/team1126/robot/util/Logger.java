@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj.Timer;
  */
 public class Logger{
 
-	public static final int maxUniqueMessages = 25;
+	public static final int maxUniqueMessages = 50;
 	private int counters[] = new int[maxUniqueMessages];
 	
 	/**
