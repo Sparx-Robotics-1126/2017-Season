@@ -29,7 +29,7 @@ public class SharedData {
 
 	public static double distanceToBoiler, distanceToLift;
 	public static double angleToBoiler, angleToLift;
-	private static double targetXBoiler, targetYBoiler; 			// (X, Y) at image time
+	public static double targetXBoiler, targetYBoiler; 			// (X, Y) at image time
 	private static double targetXLift, targetYLift;
 	private static long liftImageTime = 0, boilerImageTime = 0;		// Time of Image
 
@@ -42,14 +42,14 @@ public class SharedData {
 	public static void setTarget (Target type, double distance, double angle){
 		if(type == Target.BOILER){
 			distanceToBoiler = distance;
-			angleToBoiler = angle;
+			angleToBoiler = -angle;
 			targetXBoiler = x + Math.sin(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
 			targetYBoiler = y + Math.cos(Math.toRadians(heading + angleToBoiler)) * distanceToBoiler;
 			boilerImageTime = System.currentTimeMillis();
 		}
 		else if (type == Target.LIFT)
 		{
-			angleToLift = angle;
+			angleToLift = -angle;
 			liftImageTime = System.currentTimeMillis();
 			distanceToLift = distance;
 			targetXLift = x + Math.sin(Math.toRadians(heading + angleToLift)) * distanceToLift;
@@ -62,9 +62,9 @@ public class SharedData {
 	
 	public static double getCorrectedTargetAngle(Target type){
 		if (type == Target.BOILER)
-			return(Math.IEEEremainder((Math.atan2(targetXBoiler - x, targetYBoiler - y) - heading), 360.0));
+			return(Math.IEEEremainder(heading - (Math.toDegrees(Math.atan2(targetXBoiler - x, targetYBoiler - y))), 360.0));
 		else if (type == Target.LIFT)
-			return(Math.IEEEremainder((Math.atan2(targetXLift - x, targetYLift - y) - heading), 360.0));		
+			return(Math.IEEEremainder(heading - Math.toDegrees(Math.atan2(targetXLift - x, targetYLift - y)), 360.0));		
 		else
 		  return INVALIDTARGETTYPE;
 	}

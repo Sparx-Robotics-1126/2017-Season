@@ -123,7 +123,7 @@ public abstract class GenericSubsystem extends Thread {
 			if(!dsc.isTest()){
 				sysTime = System.currentTimeMillis();
 				
-				if (sysTime - lastTime > sleepTime() * 5)
+				if (sysTime - lastTime > sleepTime() * 2)
 					LOG.logMessage("Excessive Sleep Time (Target: " + sleepTime() + "): " + (sysTime - lastTime));
 				
 				lastTime = sysTime;

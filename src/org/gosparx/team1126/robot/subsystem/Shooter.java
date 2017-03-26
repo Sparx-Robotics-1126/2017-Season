@@ -64,12 +64,6 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double speed;
 		
-	/**
-	 * the min/max encoder speed read during currentTime
-	 */
-	private double max;
-	private double min; 
-
 	private long currentTime;									// For Diagnostics
 	private double startingTurret;								// For Diagnostics
 	
@@ -182,9 +176,8 @@ public class Shooter extends GenericSubsystem{
 		manualControl = false;
 		speed = INITIAL_SPEED;
 		shroudOutput = 0;
-		max = 0;
-		min = 10000;
 		dsc.setAxisDeadband(IO.TURRET_JOY_Y, .1); //added for manual turret control
+		
 		return true;
 	}
 
@@ -222,22 +215,6 @@ public class Shooter extends GenericSubsystem{
 			
 		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
-		// printing min/max for testing wheel speed control
-/*		
-		if (System.currentTimeMillis() - time > 1000){
-			LOG.logMessage("Max: " + max + " Min: " + min);
-			max = 0;
-			min = 10000;
-			time = System.currentTimeMillis();
-		}
-			
-		if (shootingSpeedCurrent > max)
-			max = shootingSpeedCurrent;
-		
-		if (shootingSpeedCurrent < min)
-			min = shootingSpeedCurrent;
-*/
-
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
 		else
@@ -272,8 +249,11 @@ public class Shooter extends GenericSubsystem{
 				fireWhenReady = false;
 				manualControl = false;
 			}
-			degreeOff = - SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
-//			degreeOff = -SharedData.angleToBoiler;	
+			degreeOff = SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
+
+//			LOG.logMessage(35,50,"Deg/Corr :" + degreeOff + "/" + (SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER)));
+//			LOG.logMessage(36,50,"Boiler (X,Y):"+ SharedData.targetXBoiler+","+SharedData.targetYBoiler);
+//			LOG.logMessage(37,50,"Heading:" + SharedData.heading + " (" + SharedData.x + "," + SharedData.y+")");
 		}
 		
 		// Check to see if the system state has changed
@@ -305,7 +285,7 @@ public class Shooter extends GenericSubsystem{
 		shooterReady = speedCtrl();		
 		ready = turretReady & shooterReady;
 		
-		if( (ready && fireWhenReady) || fireOverride){
+		if((ready && fireWhenReady) || fireOverride){
 			feeder.set(INTAKE_BALL_SPEED);
 		}else{
 			feeder.set(0);
@@ -358,7 +338,7 @@ public class Shooter extends GenericSubsystem{
 	 */
 	@Override
 	protected long sleepTime(){
-		return 10;
+		return 15;
 	}
 
 //-----------------------------------------------------------------------------------------
@@ -369,8 +349,7 @@ public class Shooter extends GenericSubsystem{
 	protected void writeLog(){
 		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
 		LOG.logMessage("Turret Voltage: " + turretSensor.getVoltage());
-		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
-		//		LOG.logMessage("Turret Degree Off: " + degreeOff);
+//		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
 //		LOG.logMessage("Distance Away: " + distance);
 //		LOG.logMessage("IsPressed: " + isPressed
 	}
@@ -383,6 +362,7 @@ public class Shooter extends GenericSubsystem{
 	private double distanceToSpeed(){
 //		1425 @ boiler, 1600 @ 6'6" (center of boiler)
 // 		speed = dsc.sharedData.distanceToTarget * someFormula
+		speed = 1460;
 		return speed;
 
 	}
@@ -390,6 +370,7 @@ public class Shooter extends GenericSubsystem{
 	private double distanceToShroud(){
 //		0 @ boiler, 60% @ 6'6" (center of boiler)
 //		return (dsc.sharedData.distanceToTarget * someFormula
+		shroudOutput = .55;
 		return shroudOutput;
 	}
 	

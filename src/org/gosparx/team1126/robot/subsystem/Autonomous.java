@@ -1,6 +1,5 @@
 package org.gosparx.team1126.robot.subsystem;
 
-import java.awt.List;
 import java.util.Arrays;
 
 import org.gosparx.team1126.robot.util.CSVReader;
@@ -14,7 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * A class for handling the autonomous functions of the robot
 ****************************************************************************************************/
 public class Autonomous extends GenericSubsystem{
-		
+
 	private static Autonomous auto;								// Support for singleton
 	private SendableChooser<int[][]> chooser;					// Selector for AutoMode
 	private int[][] currentAuto;								// Current autonomous mode data
@@ -50,7 +49,7 @@ public class Autonomous extends GenericSubsystem{
 	private static final int BALLACQ_TOGGLE = 7;
 	private static final int SHOOTER_TOGGLE = 8;
 	private static final int SHOOTER_SETUP = 9;
-	private static final int SHOOTER_SERVO = 10;
+//	private static final int SHOOTER_SERVO = 10;
 	private static final int SHOOTER_TURRET = 11;
 	private static final int BACKGROUND_DELAY = 94;
 	private static final int DELAY = 95;						// Wait (seconds)
@@ -139,7 +138,7 @@ public class Autonomous extends GenericSubsystem{
 			{0},
 			{5, 0, 0},
 			{95, 500},
-			{8, 1, 1575, 1, 60},
+			{8, 1, 1575, 0, 60},
 			{11, 5},
 			{3, 0, -125, 36},
 			{2, -45, 40, 2},
@@ -150,18 +149,31 @@ public class Autonomous extends GenericSubsystem{
 	private final int[][] FOURTY_BALL_BLUE = {
 			{0},
 			{5, 0, 0},
-			{95, 500},
-			{8, 1, 1575, 1, 60},
+			{8, 1, 1575, 0, 60},
 			{11, -5},
-			{1, -128, 48},
-			{2, 70, 40, 2},
-			{1, 22, 48},
-			{2, -20, 30, 2},
+			{1, -128, 66},
+			{2, 70, 48, 2},
+			{1, 29, 60},
+			{2, -20, 48, 2},
+			{7, 4, 2},
 			{9, 1},
 			{100}
 	};
 
-	
+//	private final int[][] FOURTY_BALL_BLUE = {
+//			{0},
+//			{5, 0, 0},
+//			{8, 1, 1575, 0, 72},
+//			{11, -5},
+//			{1, -96, 60},
+//			{2, 40, 48, 2},
+//			{1, 24, 60},
+//			{2, -20, 48, 2},
+//			{7, 4, 2},
+//			{9, 1},
+//			{100}
+//	};
+
 	private final int[][] EMPTY = {
 			{AUTOEND}
 	};

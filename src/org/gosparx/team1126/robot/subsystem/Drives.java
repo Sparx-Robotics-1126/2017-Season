@@ -79,7 +79,7 @@ public class Drives extends GenericSubsystem {
 	
 	private static Drives drives;												// An instance of drives
 	private DriveState currentDriveState;										// The current state
-	private DriveState previousDriveState;										// The previous state
+//	private DriveState previousDriveState;										// The previous state
 	private AHRS gyro; 															// NAVX gyro
 	private double currentX;													// Starting x value of the robot
 	private double currentY;													// Starting Y value of the robot
@@ -109,6 +109,8 @@ public class Drives extends GenericSubsystem {
 	private double offsetCorrection;											// Correction for the offset to the end point
 	private double distanceToPoint;												// Distance to the end point	
 	private boolean autoReady;													// Whether auto is ready (for use of calling auto functions in teleop)
+	private boolean navReady;
+	
 	/**
 	 * Constructors a drives object with normal priority
 	 */
@@ -183,7 +185,7 @@ public class Drives extends GenericSubsystem {
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
-		previousDriveState = DriveState.STANDBY;
+//		previousDriveState = DriveState.STANDBY;
 		currentDiagnosticState = DiagnosticState.DONE;
 		try{
 			gyro = new AHRS(SerialPort.Port.kUSB);
@@ -217,6 +219,7 @@ public class Drives extends GenericSubsystem {
 		calculatedDistance = 0;
 		distanceToPoint = 0;
 		autoReady = true;
+		navReady = false;
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
@@ -260,7 +263,11 @@ public class Drives extends GenericSubsystem {
 		
 		if (!gyro.isConnected())
 			LOG.logMessage(49, 5, "NavX not connected!");
-
+		else if (navReady == false){
+			navReady = true;
+			gyro.zeroYaw();
+		}
+			
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
@@ -285,7 +292,6 @@ public class Drives extends GenericSubsystem {
 			leftEncoder.reset();
 			leftEncoderData.reset();
 			gyro.zeroYaw();
-			LOG.logMessage("Zeroing Gyro");
 			currentX = 0;
 			currentY = 0;
 			previousX = 0;
@@ -293,6 +299,7 @@ public class Drives extends GenericSubsystem {
 			previousAngle = 0;
 			leftPreviousDistance = 0;
 			rightPreviousDistance = 0;
+			LOG.logMessage("Zeroing gyro, encoders & field position.");
 		}
 		
 		switch(currentDriveState){
@@ -340,7 +347,7 @@ public class Drives extends GenericSubsystem {
 			if(dsc.getButtonRising(DriverStationControls.LEFT_JOY_TRIGGER)){
 //				LOG.logMessage("Turning");
 //				autoTurnToHeading(90, 40);
-				autoDrivePoint(-144, 24);
+//				autoDrivePoint(-144, 24);
 			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
@@ -365,7 +372,12 @@ public class Drives extends GenericSubsystem {
 //			}
 			
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);					
+			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);
+//			if(dsc.isPressed(DriverStationControls.LEFT_JOY_TRIGGER)){
+//				rightWantedSpeed = .3 * MAX_SPEED;
+//				leftWantedSpeed = -.3 * MAX_SPEED;
+//			}
+			
 			break;
 			
 		case DISABLED:
@@ -436,7 +448,7 @@ public class Drives extends GenericSubsystem {
 		SharedData.leftSpeed = leftCurrentSpeed;
 		SharedData.rightSpeed = rightCurrentSpeed;
 		SharedData.avgSpeed = averageSpeed;
-		previousDriveState = currentDriveState;
+//		previousDriveState = currentDriveState;
 		rightPreviousDistance = rightCurrentDistance;
 		leftPreviousDistance = leftCurrentDistance;
 		previousX = currentX;
