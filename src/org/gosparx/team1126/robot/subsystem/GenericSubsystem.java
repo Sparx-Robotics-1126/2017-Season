@@ -108,6 +108,7 @@ public abstract class GenericSubsystem extends Thread {
 	public void run(){
 		boolean retVal = false;
 		double lastLogged = 0;
+		long sysTime;
 		
 		if(LOG != null)
 			LOG.logMessage("***Starting: " + getName());
@@ -120,6 +121,13 @@ public abstract class GenericSubsystem extends Thread {
 		
 		do{
 			if(!dsc.isTest()){
+				sysTime = System.currentTimeMillis();
+				
+				if (sysTime - lastTime > sleepTime() * 5)
+					LOG.logMessage("Excessive Sleep Time (Target: " + sleepTime() + "): " + (sysTime - lastTime));
+				
+				lastTime = sysTime;
+				
 				dsc.update();
 				try{
 					retVal = execute();
@@ -136,8 +144,18 @@ public abstract class GenericSubsystem extends Thread {
 					lastLogged = Timer.getFPGATimestamp();
 				}
 				
+				sysTime = System.currentTimeMillis() - sysTime;
+				
+				if (sysTime > sleepTime())
+					LOG.logMessage("Excessive execution time: " + sysTime);
+				
+				if (sysTime * 2 > sleepTime())
+					sysTime = sleepTime() / 2;
+				else if (sysTime < 0)						// Should never happen, but...
+					sysTime = 0;
+				
 				try {
-					Thread.sleep(sleepTime());
+					Thread.sleep(sleepTime() - sysTime);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
