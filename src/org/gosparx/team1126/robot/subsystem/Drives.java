@@ -9,7 +9,6 @@ import org.gosparx.team1126.robot.util.SharedData;
 import com.ctre.CANTalon;
 import com.kauailabs.navx.frc.AHRS;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
@@ -48,7 +47,7 @@ public class Drives extends GenericSubsystem {
 	
 	/** Right */
 	
-	private CANTalon rightMotorTop;												// Right CANTalon 1
+//	private CANTalon rightMotorTop;												// Right CANTalon 1
 	private CANTalon rightMotorFront;											// Right CANTalon 2
 	private CANTalon rightMotorBack;											// Right CANTalon 3
 	private Encoder rightEncoder; 												// Right Encoder
@@ -59,10 +58,11 @@ public class Drives extends GenericSubsystem {
 	private double rightPreviousDistance;										// Previous right distance			
 	private double rightCurrentDistance;										// Current right distance	
 	private double rightSetPower;												// Power for the right motor
+	private boolean rightBrakeMode;												// Current Brake Mode Right Side
 
 	/** Left */
 	
-	private CANTalon leftMotorTop;												// Left CANTalon 1
+//	private CANTalon leftMotorTop;												// Left CANTalon 1
 	private CANTalon leftMotorFront;											// Left CANTalon 2
 	private CANTalon leftMotorBack;												// Left CANTalon 3
 	private Encoder leftEncoder;												// Left Encoder
@@ -73,6 +73,7 @@ public class Drives extends GenericSubsystem {
 	private double leftPreviousDistance;										// Previous left distance
 	private double leftCurrentDistance;											// Current left distance
 	private double leftSetPower;							    				// Power for the left motor
+	private boolean leftBrakeMode;												// Current Brake Mode Left Side
 	
 	/** Other */
 	
@@ -133,7 +134,6 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean init(){
 		//Right
-		System.out.println("initttttttttttttttttttttttttttttttttttttt");
 		//rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
 		//rightMotorTop.setInverted(false);
 		//rightMotorTop.enableBrakeMode(true);
@@ -155,6 +155,7 @@ public class Drives extends GenericSubsystem {
 		rightPreviousDistance = 0;
 		rightCurrentDistance = 0;
 		rightSetPower = 0;
+		rightBrakeMode = true;
 
 		//Left
 		//leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
@@ -178,6 +179,7 @@ public class Drives extends GenericSubsystem {
 		leftPreviousDistance = 0;
 		leftCurrentDistance = 0;
 		leftSetPower = 0;
+		leftBrakeMode = true;
 
 		//Other
 		currentDriveState = DriveState.STANDBY;
@@ -248,25 +250,8 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean execute() {
 		
-//		LOG.logMessage("right speed = " + rightCurrentSpeed);
-//		LOG.logMessage("left speed = " + leftCurrentSpeed);
-		if(!previousDriveState.equals(currentDriveState)){
-			if(currentDriveState.equals(DriveState.DISABLED)){
-				//rightMotorTop.enableBrakeMode(false);
-				rightMotorFront.enableBrakeMode(false);
-				rightMotorBack.enableBrakeMode(false);
-				//leftMotorTop.enableBrakeMode(false);
-				leftMotorFront.enableBrakeMode(false);
-				leftMotorBack.enableBrakeMode(false);
-			}else if(previousDriveState.equals(DriveState.DISABLED)){
-				//rightMotorTop.enableBrakeMode(true);
-				rightMotorFront.enableBrakeMode(true);
-				rightMotorBack.enableBrakeMode(true);
-				//leftMotorTop.enableBrakeMode(true);
-				leftMotorFront.enableBrakeMode(true);
-				leftMotorBack.enableBrakeMode(true);
-			}
-		}		
+		boolean lBrakeMode = false;
+		boolean rBrakeMode = false;
 		
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
@@ -274,7 +259,7 @@ public class Drives extends GenericSubsystem {
 		}
 		
 		if (!gyro.isConnected())
-			LOG.logMessage("NavX not connected!");
+			LOG.logMessage(49, 5, "NavX not connected!");
 
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
@@ -284,17 +269,13 @@ public class Drives extends GenericSubsystem {
 		currentAngle = gyro.getAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
 		leftCurrentDistance = leftEncoderData.getDistance();
+		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
+		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
+		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
 //		LOG.logMessage(18,5,"right distance = " + rightCurrentDistance);
 //		LOG.logMessage(19,5,"left distance = " + leftCurrentDistance);
 //		LOG.logMessage("right ticks " + rightEncoder.getRaw());
 //		LOG.logMessage("left ticks " + leftEncoder.getRaw());
-		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
-		currentX += Math.sin(Math.toRadians(currentAngle)) * averageDistance;
-		currentY += Math.cos(Math.toRadians(currentAngle)) * averageDistance;
-
-		if(dsc.isEnabled()){
-			//LOG.logMessage(18, 50, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
-		}
 
 		// Allow for zeroing gyro/encoders from the the joystick as long as we are not in autonomous
 		
@@ -398,14 +379,21 @@ public class Drives extends GenericSubsystem {
 		}
 	
 		if(!isDiagnostic){
-			
-//			if(dsc.isOperatorControl()){        //TODO: comment this back in
-//				rightSetPower = rightWantedSpeed/MAX_SPEED;
-//				leftSetPower = leftWantedSpeed/MAX_SPEED;
-//			}else{
+			if(dsc.isOperatorControl()){
+				rightSetPower = rightWantedSpeed/MAX_SPEED;
+				leftSetPower = leftWantedSpeed/MAX_SPEED;
+				lBrakeMode = true;
+				rBrakeMode = true;
+			}else{
 				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
-//			}
+				
+				if ((leftWantedSpeed == 0.0) && (leftSetPower == 0.0))
+					lBrakeMode = true;
+				
+				if ((rightWantedSpeed == 0.0) && (rightSetPower == 0.0))
+					rBrakeMode = true;
+			}
 		
 			if(rightSetPower < 0){												// to account for deadband, where less than
 				rightSetPower -= .05;											// .05 doens't give speed
@@ -426,6 +414,22 @@ public class Drives extends GenericSubsystem {
 			leftMotorBack.set(leftSetPower);
 		}
 
+		// Enable brake mode when...  In tele-op, or PID control with output & setpoint at zero (0)
+		
+		if(rBrakeMode != rightBrakeMode){
+			//rightMotorTop.enableBrakeMode(rBrakeMode);
+			rightMotorFront.enableBrakeMode(rBrakeMode);
+			rightMotorBack.enableBrakeMode(rBrakeMode);
+			rightBrakeMode = rBrakeMode;
+		}
+		
+		if(lBrakeMode != leftBrakeMode){
+			//leftMotorTop.enableBrakeMode(lBrakeMode);
+			leftMotorFront.enableBrakeMode(lBrakeMode);
+			leftMotorBack.enableBrakeMode(lBrakeMode);
+			leftBrakeMode = lBrakeMode;
+		}		
+		
 		SharedData.x = currentX;
 		SharedData.y = currentY;
 		SharedData.heading = currentAngle;
