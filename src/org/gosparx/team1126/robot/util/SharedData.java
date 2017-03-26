@@ -37,6 +37,7 @@ public class SharedData {
 	
 	// Camera routine to set the location of the found target.  Data passed is the target
 	// type, distance and angle to the target from a fixed reference point on the robot
+	// Note: may need to change "+ angleToBoiler" to "- angleToBoiler"
 	
 	public static void setTarget (Target type, double distance, double angle){
 		if(type == Target.BOILER){

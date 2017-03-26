@@ -219,8 +219,7 @@ public class Shooter extends GenericSubsystem{
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
-	
-		
+			
 		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
 		// printing min/max for testing wheel speed control
@@ -262,6 +261,7 @@ public class Shooter extends GenericSubsystem{
 					degreeOff = 0;
 				}					
 				manualControl = currentManualControl;
+
 				if(manualControl == false){
 					degreeOff = -SharedData.angleToBoiler;	
 				}else{
@@ -272,7 +272,8 @@ public class Shooter extends GenericSubsystem{
 				fireWhenReady = false;
 				manualControl = false;
 			}
-			degreeOff = -SharedData.angleToBoiler;	
+			degreeOff = - SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
+//			degreeOff = -SharedData.angleToBoiler;	
 		}
 		
 		// Check to see if the system state has changed

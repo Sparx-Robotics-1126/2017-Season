@@ -669,7 +669,7 @@ public class Drives extends GenericSubsystem {
 		}
 		offsetCorrection = Math.sin(angleToEnd) * distanceToPoint;
 //		LOG.logMessage(25,15,"Offset correction: " + offsetCorrection/2);
-			//LOG.logMessage("wanted distance: " + wantedDistance);
+//		LOG.logMessage("wanted distance: " + wantedDistance);
 		straightCorrection = Math.IEEEremainder(gyro.getAngle() - initialHeading, 360);
 //		LOG.logMessage(26,15,"Straight correction: " + straightCorrection/4);
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
@@ -767,7 +767,14 @@ public class Drives extends GenericSubsystem {
 		angleOffset = Math.IEEEremainder(wantedAngle - currentAngle, 360);
 //		LOG.logMessage(20, 20, "Current Angle: " + currentAngle);
 //		LOG.logMessage(21, 20, "angleOffset: " + angleOffset);
-		double averageTurningSpeed = (Math.abs(rightCurrentSpeed)+ Math.abs(leftCurrentSpeed))/2;
+		
+		// Calculate the average turning speed by subtracting one side from the other and
+		// taking the absolute value.  Since spinning rotates the wheels in opposite directions,
+		// this will eliminate the problem where if we start a turn already moving forward we
+		// do not take into account forward motion.
+		
+		double averageTurningSpeed = (Math.abs(rightCurrentSpeed - leftCurrentSpeed))/2;
+		
 		if(Math.abs(angleOffset)-((averageTurningSpeed-9)*.5) < 3){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
