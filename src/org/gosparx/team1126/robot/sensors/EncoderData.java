@@ -49,7 +49,7 @@ public class EncoderData {
     
     /**
      * Method to accurately calculate speeds based on an encoder.  This routine
-     * should be run with a minimum of 20 milliseconds between executions
+     * should be run with a minimum of 18 milliseconds between executions
      * to allow for enough time to get an accurate speed calculation.  This routine
      * would probably benefit from being run as a task within a timer object every
      * 5 milliseconds or so utilizing data from the past 20 milliseconds (or making
@@ -69,7 +69,7 @@ public class EncoderData {
         else
         	reverseCount += deltaCount;
         
-        if (elapsedTime < 17500)
+        if (elapsedTime < 18000)
             return;
         
         tempCount = encoderCount - lastSpeedCount;
