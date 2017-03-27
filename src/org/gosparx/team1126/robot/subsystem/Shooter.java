@@ -176,7 +176,7 @@ public class Shooter extends GenericSubsystem{
 		manualControl = false;
 		speed = INITIAL_SPEED;
 		shroudOutput = 0;
-		dsc.setAxisDeadband(IO.TURRET_JOY_Y, .1); //added for manual turret control
+		dsc.setAxisDeadband(IO.TURRET_JOY_X, .1); //added for manual turret control
 		
 		return true;
 	}
@@ -298,9 +298,9 @@ public class Shooter extends GenericSubsystem{
 		// system override where automatic control is disabled and this manual control is
 		// enabled (e.g., flip switch)
 		
-		if(dsc.getAxis(IO.TURRET_JOY_Y) < -0.25){
+		if(dsc.getAxis(IO.TURRET_JOY_X) < -0.25){
 			turretOutput = -.2;
-		}else if (dsc.getAxis(IO.TURRET_JOY_Y) > 0.25){
+		}else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25){
 			turretOutput = .2;
 		}
 		
