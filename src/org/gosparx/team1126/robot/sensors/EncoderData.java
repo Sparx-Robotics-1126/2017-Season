@@ -69,7 +69,7 @@ public class EncoderData {
         else
         	reverseCount += deltaCount;
         
-        if (elapsedTime < 20000)
+        if (elapsedTime < 17500)
             return;
         
         tempCount = encoderCount - lastSpeedCount;
