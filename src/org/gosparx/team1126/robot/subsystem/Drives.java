@@ -23,7 +23,7 @@ public class Drives extends GenericSubsystem {
 
 	private static final double CALCULATED_DISTANCE_PER_TICK = .031219576995;	// The Formula: (Gear Ratio * Circumference)/ticks
 //	private static final double RIGHT_DISTANCE_PER_TICK = .03163;				// was .03068
-//	private static final double LEFT_REVERSE_DISTANCE_PER_TICK = .03098;				// was .02993
+//	private static final double LEFT_REVERSE_DISTANCE_PER_TICK = .03098;		// was .02993
 //	private static final double RIGHT_REVERSE_DISTANCE_PER_TICK = .03261;
 //	private static final double LEFT_FORWARD_DISTANCE_PER_TICK = .03200;
 	private static final double RIGHT_DISTANCE_PER_TICK = .032;				
@@ -43,7 +43,7 @@ public class Drives extends GenericSubsystem {
 	private static final double JOYSTICK_DEADBAND = .1; 						// Axis for the deadband
 	private static final double RIGHT_FF = .00538;								// Feed forward for right PID
 	private static final double LEFT_FF = .00538;								// Feed forward for left PID
-	private static final double LIFT_TAPE_GEAR_DISTANCE = 20;
+	private static final double LIFT_TAPE_GEAR_DISTANCE = 20;					// Distance from end of peg to tap
 	
 	/** Right */
 	
@@ -109,7 +109,8 @@ public class Drives extends GenericSubsystem {
 	private double offsetCorrection;											// Correction for the offset to the end point
 	private double distanceToPoint;												// Distance to the end point	
 	private boolean autoReady;													// Whether auto is ready (for use of calling auto functions in teleop)
-	private boolean navReady;
+	private boolean navReady;													// Whether the navX is ready
+	private double gyroZero;													// The zero position of the gyro...to eliminates the time the gyro takes to boot up
 	
 	/**
 	 * Constructors a drives object with normal priority
@@ -136,9 +137,9 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean init(){
 		//Right
-		//rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
-		//rightMotorTop.setInverted(false);
-		//rightMotorTop.enableBrakeMode(true);
+//		rightMotorTop = new CANTalon(IO.CAN_DRIVES_RIGHT_TOP);
+//		rightMotorTop.setInverted(false);
+//		rightMotorTop.enableBrakeMode(true);
 		rightMotorFront = new CANTalon(IO.CAN_DRIVES_RIGHT_FRONT);
 		rightMotorFront.setInverted(false);
 		rightMotorFront.enableBrakeMode(true);
@@ -160,9 +161,9 @@ public class Drives extends GenericSubsystem {
 		rightBrakeMode = true;
 
 		//Left
-		//leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
-		//leftMotorTop.setInverted(true);
-		//leftMotorTop.enableBrakeMode(true);
+//		leftMotorTop = new CANTalon(IO.CAN_DRIVES_LEFT_TOP);
+//		leftMotorTop.setInverted(true);
+//		leftMotorTop.enableBrakeMode(true);
 		leftMotorFront = new CANTalon(IO.CAN_DRIVES_LEFT_FRONT);
 		leftMotorFront.setInverted(true);
 		leftMotorFront.enableBrakeMode(true);
@@ -220,6 +221,7 @@ public class Drives extends GenericSubsystem {
 		distanceToPoint = 0;
 		autoReady = true;
 		navReady = false;
+		gyroZero = 0;
 		dsc.setAxisDeadband(IO.RIGHT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.LEFT_JOY_Y, JOYSTICK_DEADBAND);
 		dsc.setAxisDeadband(IO.RIGHT_JOY_X, JOYSTICK_DEADBAND);
@@ -236,10 +238,10 @@ public class Drives extends GenericSubsystem {
 	protected void liveWindow() {
 		String motorName = "Drives Motors";
 		String sensorName = "Drives Sensors";
-		//LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
+//		LiveWindow.addActuator(motorName, "Right Motor 1", rightMotorTop);
 		LiveWindow.addActuator(motorName, "Right Motor 2", rightMotorFront);
 		LiveWindow.addActuator(motorName, "Right Motor 3", rightMotorBack);
-		//LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
+//		LiveWindow.addActuator(motorName, "Left Motor 1", leftMotorTop);
 		LiveWindow.addActuator(motorName, "Left Motor 2", leftMotorFront);
 		LiveWindow.addActuator(motorName, "Left Motor 3", leftMotorBack);
 		LiveWindow.addSensor(sensorName, "Right Encoder", rightEncoder);
@@ -275,7 +277,7 @@ public class Drives extends GenericSubsystem {
 		rightCurrentSpeed = rightEncoderData.getSpeed();
 		leftCurrentSpeed = leftEncoderData.getSpeed();
 		averageSpeed = (rightCurrentSpeed + leftCurrentSpeed) / 2;
-		currentAngle = gyro.getAngle() % 360;
+		currentAngle = getAdjustedAngle() % 360;
 		rightCurrentDistance = rightEncoderData.getDistance();
 		leftCurrentDistance = leftEncoderData.getDistance();
 		averageDistance = ((rightCurrentDistance - rightPreviousDistance) + (leftCurrentDistance - leftPreviousDistance))/2;
@@ -288,21 +290,22 @@ public class Drives extends GenericSubsystem {
 
 		// Allow for zeroing gyro/encoders from the the joystick as long as we are not in autonomous
 		
-		if(!dsc.isAutonomous() && dsc.getButtonRising(DriverStationControls.LEFT_JOY_RIGHT)){
-			rightEncoder.reset();
-			rightEncoderData.reset();
-			leftEncoder.reset();
-			leftEncoderData.reset();
-			gyro.zeroYaw();
-			currentX = 0;
-			currentY = 0;
-			previousX = 0;
-			previousY = 0;
-			previousAngle = 0;
-			leftPreviousDistance = 0;
-			rightPreviousDistance = 0;
-			LOG.logMessage("Zeroing gyro, encoders & field position.");
-		}
+//		if(!dsc.isAutonomous() && dsc.getButtonRising(DriverStationControls.LEFT_JOY_RIGHT)){
+//			rightEncoder.reset();
+//			rightEncoderData.reset();
+//			leftEncoder.reset();
+//			leftEncoderData.reset();
+//			gyro.zeroYaw();
+//			gyroZero = 0;
+//			currentX = 0;
+//			currentY = 0;
+//			previousX = 0;
+//			previousY = 0;
+//			previousAngle = 0;
+//			leftPreviousDistance = 0;
+//			rightPreviousDistance = 0;
+//			LOG.logMessage("Zeroing gyro, encoders & field position.");
+//		}
 		
 		switch(currentDriveState){
 			
@@ -346,22 +349,22 @@ public class Drives extends GenericSubsystem {
 			break;
 			
 		case TELEOP:
-			if(dsc.getButtonRising(DriverStationControls.LEFT_JOY_TRIGGER)){
+//			if(dsc.getButtonRising(DriverStationControls.LEFT_JOY_TRIGGER)){
 //				LOG.logMessage("Turning");
 //				autoTurnToHeading(90, 40);
 //				autoDrivePoint(-144, 24);
-			}
+//			}
 			if(dsc.getButtonRising(IO.INVERT_DRIVES_BUTTON)){
 				isInverse = !isInverse;
 			}
-			if(dsc.getButtonRising(IO.ABORT_AUTO_DRIVES)){
-				//abortAuto();
-				autoDrivePoint(144, 24);
-			}
-			if(dsc.getButtonRising(IO.HOLD_DRIVES)){
-				//holdDrives();
-				LOG.logMessage("Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
-			}
+//			if(dsc.getButtonRising(IO.ABORT_AUTO_DRIVES)){
+//				abortAuto();
+//				autoDrivePoint(144, 24);
+//			}
+//			if(dsc.getButtonRising(IO.HOLD_DRIVES)){
+//				holdDrives();
+//				LOG.logMessage("Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+//			}
 			if(dsc.getRawButton(2, DriverStationControls.XBOX_BACK)){
 				isDiagnostic = true;
 				diagnostics();
@@ -376,7 +379,7 @@ public class Drives extends GenericSubsystem {
 			lBrakeMode = true;
 			rBrakeMode = true;
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
-			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);
+//			setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);
 			
 			break;
 			
@@ -416,10 +419,10 @@ public class Drives extends GenericSubsystem {
 				leftSetPower += .05;
 			}
 			
-			//rightMotorTop.set(rightSetPower);
+//			rightMotorTop.set(rightSetPower);
 			rightMotorFront.set(rightSetPower);
 			rightMotorBack.set(rightSetPower);
-			//leftMotorTop.set(leftSetPower);
+//			leftMotorTop.set(leftSetPower);
 			leftMotorFront.set(leftSetPower);
 			leftMotorBack.set(leftSetPower);
 		}
@@ -427,14 +430,14 @@ public class Drives extends GenericSubsystem {
 		// Enable brake mode when...  In tele-op, or PID control with output & setpoint at zero (0)
 		
 		if(rBrakeMode != rightBrakeMode){
-			//rightMotorTop.enableBrakeMode(rBrakeMode);
+//			rightMotorTop.enableBrakeMode(rBrakeMode);
 			rightMotorFront.enableBrakeMode(rBrakeMode);
 			rightMotorBack.enableBrakeMode(rBrakeMode);
 			rightBrakeMode = rBrakeMode;
 		}
 		
 		if(lBrakeMode != leftBrakeMode){
-			//leftMotorTop.enableBrakeMode(lBrakeMode);
+//			leftMotorTop.enableBrakeMode(lBrakeMode);
 			leftMotorFront.enableBrakeMode(lBrakeMode);
 			leftMotorBack.enableBrakeMode(lBrakeMode);
 			leftBrakeMode = lBrakeMode;
@@ -471,14 +474,14 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected void writeLog() {
 		if(dsc.isEnabled()){
-			//LOG.logMessage(0, 2, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + gyro.getAngle());
-			//LOG.logMessage(1, 2, "(Right, Left) Current Speeds: (" + rightCurrentSpeed + ", " + leftCurrentSpeed + ")");
-			//LOG.logMessage(2, 2, "(Right, Left) Wanted Speeds : (" + rightWantedSpeed + ", " + leftWantedSpeed + ")");
-			//LOG.logMessage(3, 2, "(Right, Left) Set Powers : (" + rightSetPower + ", " + leftSetPower + ")");
-			//LOG.logMessage(4, 2, "Current Angle: " + currentAngle);
-			//LOG.logMessage(5, 2, "Wanted Angle: " + wantedAngle);
-			//LOG.logMessage(6, 2, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
-			//LOG.logMessage(7, 2, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
+//			LOG.logMessage(0, 2, "(X, Y) position: ( " + currentX + ", " + currentY + ") " + getAdjustedAngle());
+//			LOG.logMessage(1, 2, "(Right, Left) Current Speeds: (" + rightCurrentSpeed + ", " + leftCurrentSpeed + ")");
+//			LOG.logMessage(2, 2, "(Right, Left) Wanted Speeds : (" + rightWantedSpeed + ", " + leftWantedSpeed + ")");
+//			LOG.logMessage(3, 2, "(Right, Left) Set Powers : (" + rightSetPower + ", " + leftSetPower + ")");
+//			LOG.logMessage(4, 2, "Current Angle: " + currentAngle);
+//			LOG.logMessage(5, 2, "Wanted Angle: " + wantedAngle);
+//			LOG.logMessage(6, 2, "Previous Distances (Right,Left): (" + rightPreviousDistance + "," + leftCurrentDistance + ")");
+//			LOG.logMessage(7, 2, "Current Distances (Right, Left): (" + rightCurrentDistance + "," + leftCurrentDistance + ")");
 		}
 
 	}
@@ -497,8 +500,8 @@ public class Drives extends GenericSubsystem {
 			rightWantedSpeed = (left * MAX_SPEED);
 			leftWantedSpeed = (right * MAX_SPEED);
 		}
-		//LOG.logMessage("right: " + rightWantedSpeed);
-		//LOG.logMessage("left: " + leftWantedSpeed);
+//		LOG.logMessage("right: " + rightWantedSpeed);
+//		LOG.logMessage("left: " + leftWantedSpeed);
 	}
 
 	/**
@@ -533,7 +536,7 @@ public class Drives extends GenericSubsystem {
 		}
 		driveDone = false;
 		wantedDistance = distance;
-		initialHeading = gyro.getAngle();
+		initialHeading = getAdjustedAngle();
 		if(distance < 0){
 			wantedSpeed = -speed;
 		}else{
@@ -559,7 +562,7 @@ public class Drives extends GenericSubsystem {
 		}
 		driveDone = false;
 		wantedDistance = distance;
-		initialHeading = gyro.getAngle();
+		initialHeading = getAdjustedAngle();
 		endY = currentY + distance*Math.cos(Math.toRadians(initialHeading));
 		endX = currentX + distance*Math.sin(Math.toRadians(initialHeading));
 		if(distance < 0){
@@ -618,7 +621,7 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("MoveToLift (X,Y) start: (" + currentX + "," + currentY + ")");
 		driveDone = false;
 		autoReady = false;
-		initialHeading = gyro.getAngle();
+		initialHeading = getAdjustedAngle();
 		wantedSpeed = speed;
 		wantedDistance = SharedData.distanceToLift - LIFT_TAPE_GEAR_DISTANCE;
 		wantedAngle = SharedData.angleToLift;
@@ -635,26 +638,26 @@ public class Drives extends GenericSubsystem {
 	private void driveDistance(){
 		autoReady = false;
 		calculatedDistance = wantedDistance;
-		//LOG.logMessage("wanted distance: " + wantedDistance);
-		straightCorrection = gyro.getAngle() - initialHeading;
+//		LOG.logMessage("wanted distance: " + wantedDistance);
+		straightCorrection = getAdjustedAngle() - initialHeading;
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
 			calculatedDistance -= ((Math.abs(averageSpeed) - 12) * .25 +.5);
 		}
 		distanceToGo = calculatedDistance - averageDistance;
-		//LOG.logMessage("Distance to go: " + distanceToGo);
+//		LOG.logMessage("Distance to go: " + distanceToGo);
 		if(wantedSpeed > distanceToGo + 40){
 			wantedSpeed = distanceToGo + 40;
 		}
-		//LOG.logMessage("wanted Speed: " + wantedSpeed);
+//		LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = straightCorrection/4 + wantedSpeed;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4;
 		if(averageDistance >= Math.abs(calculatedDistance - .5)){
 			rightWantedSpeed = 0;
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
-			//LOG.logMessage("Distance Traveled: " + averageDistance);
-			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+//			LOG.logMessage("Distance Traveled: " + averageDistance);
+//			LOG.logMessage("Gryo Adjusted Angle: " + getAdjustedAngle());
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("DriveDistance (X,Y) end: (" + currentX + "," + currentY + ")");
 			driveDone = true;
@@ -669,19 +672,19 @@ public class Drives extends GenericSubsystem {
 	private void drivePoint(){
 		autoReady = false;
 		double xChange = endX - currentX;
-			//LOG.logMessage("change in x: " + xChange);
+//		LOG.logMessage("change in x: " + xChange);
 		double yChange = endY - currentY;
 		distanceToPoint = Math.sqrt((xChange * xChange) + (yChange * yChange));
-			//LOG.logMessage("Distance to point: " + distanceToPoint);
+//		LOG.logMessage("Distance to point: " + distanceToPoint);
 		angleToEnd = Math.IEEEremainder(Math.atan2(xChange, yChange) - Math.toRadians(currentAngle), Math.PI * 2.0);
-			//LOG.logMessage("Angle offset to end: " + angleToEnd);		
+//		LOG.logMessage("Angle offset to end: " + angleToEnd);		
 		if(wantedSpeed < 0){
 			angleToEnd = Math.IEEEremainder(angleToEnd + Math.PI, Math.PI * 2.0);
 		}
 		offsetCorrection = Math.sin(angleToEnd) * distanceToPoint;
 //		LOG.logMessage(25,15,"Offset correction: " + offsetCorrection/2);
 //		LOG.logMessage("wanted distance: " + wantedDistance);
-		straightCorrection = Math.IEEEremainder(gyro.getAngle() - initialHeading, 360);
+		straightCorrection = Math.IEEEremainder(getAdjustedAngle() - initialHeading, 360);
 //		LOG.logMessage(26,15,"Straight correction: " + straightCorrection/4);
 		averageDistance = (Math.abs(rightEncoderData.getDistance()) + Math.abs(leftEncoderData.getDistance()))/2;
 		if(Math.abs(averageSpeed) > 16){
@@ -690,7 +693,7 @@ public class Drives extends GenericSubsystem {
 		if(Math.abs(wantedSpeed) > distanceToPoint + 40){
 			wantedSpeed = (distanceToPoint + 40) * (wantedSpeed < 0 ? -1.0 : 1.0);
 		}
-		//LOG.logMessage("wanted Speed: " + wantedSpeed);
+//		LOG.logMessage("wanted Speed: " + wantedSpeed);
 		rightWantedSpeed = wantedSpeed + straightCorrection/4 - offsetCorrection/2;
 		leftWantedSpeed = wantedSpeed - straightCorrection/4 + offsetCorrection/2;
 
@@ -699,8 +702,8 @@ public class Drives extends GenericSubsystem {
 			leftWantedSpeed = 0;
 			straightCorrection = 0;
 			offsetCorrection = 0;
-			//LOG.logMessage("Distance Traveled: " + averageDistance);
-			//LOG.logMessage("Gryo Angle: " + gyro.getAngle());
+//			LOG.logMessage("Distance Traveled: " + averageDistance);
+//			LOG.logMessage("Gyro Angle: " + getAdjustedAngle());
 			currentDriveState = DriveState.STANDBY;
 			LOG.logMessage("wanted Speed: " + wantedSpeed);
 			LOG.logMessage("DrivePoint (X,Y) end: (" + currentX + "," + currentY + ")");
@@ -821,10 +824,10 @@ public class Drives extends GenericSubsystem {
 	 * Aborts the auto drives
 	 */
 	public void abort(){
-		//rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
+//		rightMotorTop.set(STOP_MOTOR_POWER_SPEED);
 		rightMotorFront.set(STOP_MOTOR_POWER_SPEED);
 		rightMotorBack.set(STOP_MOTOR_POWER_SPEED);
-		//leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
+//		leftMotorTop.set(STOP_MOTOR_POWER_SPEED);
 		leftMotorFront.set(STOP_MOTOR_POWER_SPEED);
 		leftMotorBack.set(STOP_MOTOR_POWER_SPEED);
 		wantedSpeed = STOP_MOTOR_POWER_SPEED;
@@ -902,7 +905,7 @@ public class Drives extends GenericSubsystem {
 	public void setStartingCoordinate(double x, double y){
 		currentX = x;
 		currentY = y;
-		gyro.zeroYaw();
+		gyroZero = gyro.getAngle();
 	}
 	
 	/**
@@ -938,6 +941,13 @@ public class Drives extends GenericSubsystem {
 		}else{
 			return false;
 		}
+	}
+	
+	/**
+	 * gets the gyro angle and gets the adjusted angle for the beginning gyro position
+	 */
+	public double getAdjustedAngle(){
+		return (gyro.getAngle() - gyroZero);
 	}
 	
 	/**
