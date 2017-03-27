@@ -253,8 +253,8 @@ public class Drives extends GenericSubsystem {
 	@Override
 	protected boolean execute() {
 		
-		boolean lBrakeMode = false;
-		boolean rBrakeMode = false;
+		boolean lBrakeMode;
+		boolean rBrakeMode;
 		
 		if(gyro.equals(null)){
 			gyro = new AHRS(SerialPort.Port.kUSB);
@@ -267,7 +267,9 @@ public class Drives extends GenericSubsystem {
 			navReady = true;
 			gyro.zeroYaw();
 		}
-			
+		
+		lBrakeMode = false;
+		rBrakeMode = false;
 		rightEncoderData.calculateSpeed();
 		leftEncoderData.calculateSpeed();
 		rightCurrentSpeed = rightEncoderData.getSpeed();
@@ -371,12 +373,10 @@ public class Drives extends GenericSubsystem {
 //				autoDrivePoint(144, 50);
 //			}
 			
+			lBrakeMode = true;
+			rBrakeMode = true;
 			setTankSpeed(dsc.getAxis(IO.RIGHT_JOY_Y), dsc.getAxis(IO.LEFT_JOY_Y), isInverse);
 			//setArcadeSpeed(dsc.getAxis(IO.RIGHT_JOY_X), dsc.getAxis(IO.RIGHT_JOY_Y), isInverse);
-//			if(dsc.isPressed(DriverStationControls.LEFT_JOY_TRIGGER)){
-//				rightWantedSpeed = .3 * MAX_SPEED;
-//				leftWantedSpeed = -.3 * MAX_SPEED;
-//			}
 			
 			break;
 			
@@ -394,8 +394,6 @@ public class Drives extends GenericSubsystem {
 			if(dsc.isOperatorControl()){
 				rightSetPower = rightWantedSpeed/MAX_SPEED;
 				leftSetPower = leftWantedSpeed/MAX_SPEED;
-				lBrakeMode = true;
-				rBrakeMode = true;
 			}else{
 				rightSetPower = rightPID.loop(rightCurrentSpeed, rightWantedSpeed);
 				leftSetPower = leftPID.loop(leftCurrentSpeed, leftWantedSpeed);
@@ -604,7 +602,6 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("AutoDriveCoordinate (" + x + ", " + y + ", " + speed + ") Ang " + initialHeading);
 		wantedSpeed = speed;
 		currentDriveState = DriveState.AUTO_DRIVE_POINT;
-		autoReady = false;
 		return true;
 	}
 	
@@ -630,8 +627,6 @@ public class Drives extends GenericSubsystem {
 		LOG.logMessage("angle to Lift: " + wantedAngle);
 		LOG.logMessage("moveToLift(" + speed + ") Ang " + initialHeading);
 		currentDriveState = DriveState.AUTO_DRIVE_DISTANCE;
-		autoReady = false;
-		//currentDriveState = DriveState.STANDBY;
 		return true;
 	}
 	/**
