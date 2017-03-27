@@ -78,13 +78,13 @@ public class Scaling extends GenericSubsystem {
 			break;
 		}
 		case ATTATCHING:{
-			ScalingMotor.set(MOTOR_ATTATCH);
+			ScalingMotor.set(dsc.getRawAxis(IO.SCALING_AXIS));
 			currentScalingStatus = State.SCALING;
 			isStarted = true;
 			break;
 		}
 		case SCALING:	
-			ScalingMotor.set(MOTOR_SPIN);
+			ScalingMotor.set(dsc.getRawAxis(IO.SCALING_AXIS));
 			isStarted = true;
 			if(ScalingSensor.get()){
 				LOG.logMessage("Rope Has Been Climbed");
@@ -112,10 +112,19 @@ public class Scaling extends GenericSubsystem {
 	}
 
 	private void readControls(){
-		if(dsc.getRawAxis(IO.SCALING_RT) >= 0.5)
-			currentScalingStatus = State.ATTATCHING;
-		else
+		//for using the right trigger
+		
+//		if(dsc.getRawAxis(IO.SCALING_RT) >= 0.5)
+//			currentScalingStatus = State.ATTATCHING;
+//		else
+//			currentScalingStatus = State.STANDBY;
+		
+		//for using the right y-axis on xbox controller
+		if(dsc.getRawAxis(IO.SCALING_AXIS) < .25){
 			currentScalingStatus = State.STANDBY;
+		}else{
+			currentScalingStatus = State.ATTATCHING;
+		}
 	}
 	
 
