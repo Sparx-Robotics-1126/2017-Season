@@ -357,8 +357,8 @@ public class Shooter extends GenericSubsystem{
 	protected void writeLog(){
 		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
 		LOG.logMessage("Turret Voltage: " + turretSensor.getVoltage());
-//		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
-//		LOG.logMessage("Distance Away: " + distance);
+		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
+		LOG.logMessage("Distance Away: " + targetDistance);
 //		LOG.logMessage("IsPressed: " + isPressed
 	}
 	
@@ -373,7 +373,7 @@ public class Shooter extends GenericSubsystem{
 		if (targetDistance < 35)
 			speed = 1375;
 		else if (targetDistance < 85)
-			speed = (targetDistance - 35.0) * 1.5;
+			speed = 1450 + (targetDistance - 35.0) * 1.5;
 		else
 			speed = 1450 + (targetDistance - 85.0) * 14.6;
 		return speed;
