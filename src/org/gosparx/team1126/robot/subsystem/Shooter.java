@@ -29,7 +29,8 @@ public class Shooter extends GenericSubsystem{
 	private double shootingSpeedCurrent;
 	private double shootingSpeed;
 	private double shroudOutput;
-
+	private double targetDistance;
+	
 	/**
 	 * current turret degree - 2/3 rotation per 30 degrees & turret motor output
 	 */
@@ -101,7 +102,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * Initial wheel speed
 	 */
-	private final double INITIAL_SPEED = 1400;   //used to be 1425
+	private final double INITIAL_SPEED = 1375;   //used to be 1425
 // 40 ball @ .6 shroud, 1575 speed
 	/**
 	 * the speed that slowly decreases the fly wheel speed
@@ -212,7 +213,8 @@ public class Shooter extends GenericSubsystem{
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
-			
+		turretOutput = 0;
+		
 		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
 		if(dsc.isPressed(IO.DIAGNOSTICS))
@@ -249,11 +251,16 @@ public class Shooter extends GenericSubsystem{
 				fireWhenReady = false;
 				manualControl = false;
 			}
-			degreeOff = SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
 
 //			LOG.logMessage(35,50,"Deg/Corr :" + degreeOff + "/" + (SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER)));
 //			LOG.logMessage(36,50,"Boiler (X,Y):"+ SharedData.targetXBoiler+","+SharedData.targetYBoiler);
 //			LOG.logMessage(37,50,"Heading:" + SharedData.heading + " (" + SharedData.x + "," + SharedData.y+")");
+		}
+		
+		
+		if ((manualControl == false) && (visionOff == false)){
+			targetDistance = SharedData.distanceToBoiler;
+			degreeOff = SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
 		}
 		
 		// Check to see if the system state has changed
@@ -329,6 +336,7 @@ public class Shooter extends GenericSubsystem{
 		SmartDashboard.putBoolean("Flywheel On", isPressed);
 		SmartDashboard.putBoolean("Feedwheel On", fireWhenReady);
 		SmartDashboard.putBoolean("Fire Feeder Override", fireOverride);
+		SmartDashboard.putNumber("Shroud Setting", shroudOutput);
 		return false;
 	}
 
@@ -361,16 +369,26 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double distanceToSpeed(){
 //		1425 @ boiler, 1600 @ 6'6" (center of boiler)
-// 		speed = dsc.sharedData.distanceToTarget * someFormula
-		speed = 1460;
+
+		if (targetDistance < 35)
+			speed = 1375;
+		else if (targetDistance < 85)
+			speed = (targetDistance - 35.0) * 1.5;
+		else
+			speed = 1450 + (targetDistance - 85.0) * 14.6;
 		return speed;
 
 	}
 
 	private double distanceToShroud(){
+		
 //		0 @ boiler, 60% @ 6'6" (center of boiler)
-//		return (dsc.sharedData.distanceToTarget * someFormula
-		shroudOutput = .55;
+		if (targetDistance < 35)
+			shroudOutput = 0;
+		else if (targetDistance > 85)
+			shroudOutput = 50;
+		else
+			shroudOutput = targetDistance - 35; 
 		return shroudOutput;
 	}
 	
@@ -410,7 +428,7 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		if(visionOff){
+		if(visionOff || manualControl){
 			return true;
 		}else{
 			turretOutput = 0;									// Initialize Turret Output to 0
