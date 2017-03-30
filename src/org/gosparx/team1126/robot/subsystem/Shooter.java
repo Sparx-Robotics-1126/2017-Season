@@ -127,7 +127,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * turret center position in volts
 	 */
-	private final double ZERO_VOLTAGE = 2.12;
+	private final double ZERO_VOLTAGE = 2.67;
 	
 	private BallAcq ballAcq;	
 	
@@ -306,9 +306,9 @@ public class Shooter extends GenericSubsystem{
 		// enabled (e.g., flip switch)
 		
 		if(dsc.getAxis(IO.TURRET_JOY_X) < -0.25){
-			turretOutput = -.2;
-		}else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25){
 			turretOutput = .2;
+		}else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25){
+			turretOutput = -.2;
 		}
 		
 		// Turret Limit Protection and output to turret motor.
@@ -334,7 +334,7 @@ public class Shooter extends GenericSubsystem{
 		SmartDashboard.putNumber("Turret Angle", turretDegreeCurrent);
 		SmartDashboard.putNumber("Shooter Speed", speed);
 		SmartDashboard.putBoolean("Flywheel On", isPressed);
-		SmartDashboard.putBoolean("Feedwheel On", fireWhenReady);
+		SmartDashboard.putBoolean("Feederwheel On", fireWhenReady);
 		SmartDashboard.putBoolean("Fire Feeder Override", fireOverride);
 		SmartDashboard.putNumber("Shroud Setting", shroudOutput);
 		return false;
@@ -373,7 +373,7 @@ public class Shooter extends GenericSubsystem{
 		if (targetDistance < 35)
 			speed = 1375;
 		else if (targetDistance < 85)
-			speed = 1450 + (targetDistance - 35.0) * 1.5;
+			speed = 1375 + (targetDistance - 35.0) * 1.5;
 		else
 			speed = 1450 + (targetDistance - 85.0) * 14.6;
 		return speed;
