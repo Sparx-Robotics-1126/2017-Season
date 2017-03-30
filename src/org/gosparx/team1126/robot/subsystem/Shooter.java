@@ -373,7 +373,7 @@ public class Shooter extends GenericSubsystem{
 		if (targetDistance < 35)
 			speed = 1375;
 		else if (targetDistance < 85)
-			speed = 1450 + (targetDistance - 35.0) * 1.5;
+			speed = 1375 + (targetDistance - 35.0) * 1.5;
 		else
 			speed = 1450 + (targetDistance - 85.0) * 14.6;
 		return speed;
