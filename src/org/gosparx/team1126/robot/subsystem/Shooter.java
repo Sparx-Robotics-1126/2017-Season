@@ -102,8 +102,8 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * Initial wheel speed
 	 */
-	private final double INITIAL_SPEED = 1375;   //used to be 1425
-// 40 ball @ .6 shroud, 1575 speed
+	private final double INITIAL_SPEED = 1400;
+	
 	/**
 	 * the speed that slowly decreases the fly wheel speed
 	 */
@@ -112,7 +112,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * the speed that allows the balls to go into the fly wheel 
 	 */
-	private final double INTAKE_BALL_SPEED = 1; //KEEP THIS VALUE 0.35
+	private final double INTAKE_BALL_SPEED = 1; 
 	
 	/**
 	 * the difference in fly wheel speeds allowed
@@ -207,15 +207,11 @@ public class Shooter extends GenericSubsystem{
 		boolean turretReady;
 		boolean shooterReady;
 		boolean fireOverride = false;
-		boolean currentManualControl;
+		boolean currentManualControl = false;
 
-		//LOG.logMessage(36, 30, "Shroud setting: " + ((1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0));
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
-		turretOutput = 0;
-		
-		//LOG.logMessage(36, 300,"Flywheel speed Wanted/Actual: " + shootingSpeedCurrent + " " + speed);
 
 		if(dsc.isPressed(IO.DIAGNOSTICS))
 			diagnostics();
@@ -241,19 +237,6 @@ public class Shooter extends GenericSubsystem{
 				}			
 				
 				manualControl = currentManualControl;
-
-				if(manualControl == false){
-					degreeOff = -SharedData.angleToBoiler;	
-				}else{
-					shroudOutput += (dsc.getAxis(IO.SHROUD_MANUAL_AXIS) / 100.0);
-					
-					if (shroudOutput > .50)
-						shroudOutput = .50;
-					else if (shroudOutput < 0)
-						shroudOutput = 0;
-					
-//					shroudOutput = (1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0;
-				}
 			} else {
 				isPressed = false;
 				fireWhenReady = false;
@@ -268,7 +251,7 @@ public class Shooter extends GenericSubsystem{
 		
 		if ((manualControl == false) && (visionOff == false)){
 			targetDistance = SharedData.distanceToBoiler;
-//			degreeOff = -SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
+//			degreeOff = -SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER) - 4;
 			degreeOff = SharedData.angleToBoiler - 4.0;
 		}
 		
@@ -286,14 +269,6 @@ public class Shooter extends GenericSubsystem{
 
 			lastPressed = isPressed;
 		}
-		
-		// Manual control of the flywheel.  This will need to be changed to the analog dial on joystick 4 
-		
-		if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
-			speed += 25;
-		}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
-			speed -= 25;
-		}
 
 		// fireCtrl checks to see if target and wheel is ready to fire.  Turret on Target, Wheel @ speed
 		
@@ -307,33 +282,8 @@ public class Shooter extends GenericSubsystem{
 			feeder.set(0);
 		}
 		
-		// Manual control of turret.  Note: this will be override the turret control while
-		// the axis is moved, however, as soon as the joystick is released, the system will
-		// immediately go back to automatic control.  This makes this manual control fairly
-		// useless except for turret tracking testing.  We need to have a way to engage a
-		// system override where automatic control is disabled and this manual control is
-		// enabled (e.g., flip switch)
-		
-		if(dsc.getAxis(IO.TURRET_JOY_X) < -0.25){
-			turretOutput = .2;
-		}else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25){
-			turretOutput = -.2;
-		}
-		
-		// Turret Limit Protection and output to turret motor.
-		
-		if ((limitSwitchRight.get() && turretOutput < 0) ||
-				(limitSwitchLeft.get() && turretOutput > 0))
-			turretOutput = 0;
-		
 		turret.set(turretOutput);
 		shroud.set(shroudOutput);;
-		
-		//feeder.set(wantedIntakeSpeed);
-		
-		//LOG.logMessage("turret angle: " + turretSensor.getDegrees());
-		//LOG.logMessage("relative angle: " + turretSensor.relDegrees());
-		//LOG.logMessage("Voltage: " + turretSensor.getVoltage());
 		
 		SharedData.systemReady = ready;
 		SharedData.turretAngle = turretDegreeCurrent;
@@ -365,10 +315,9 @@ public class Shooter extends GenericSubsystem{
 	@Override
 	protected void writeLog(){
 		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
-		LOG.logMessage("Turret Voltage: " + turretSensor.getVoltage());
-		LOG.logMessage("Turret Angle/Degrees Off: "+ turretDegreeCurrent + "/" + degreeOff);
+		LOG.logMessage("Turret Angle/Volt/Degrees Off: "+ turretDegreeCurrent + " / " + 
+				turretSensor.getVoltage() + " / " + degreeOff);
 		LOG.logMessage("Distance Away: " + targetDistance);
-//		LOG.logMessage("IsPressed: " + isPressed
 	}
 	
 //-----------------------------------------------------------------------------------------
@@ -377,19 +326,20 @@ public class Shooter extends GenericSubsystem{
 	 * @return - the required speed
 	 */
 	private double distanceToSpeed(){
-//		1425 @ boiler, 1600 @ 6'6" (center of boiler)
-
+		double speed;
+		
 		if (targetDistance < 35)
 			speed = 1400;
 		else if (targetDistance < 85)
 			speed = 1400 + (targetDistance - 35.0) * 1.5;
 		else
 			speed = 1450 + (targetDistance - 85.0) * 7.6;
+		
 		return speed;
-
 	}
 
 	private double distanceToShroud(){
+		double shroudOutput;
 		
 //		0 @ boiler, 60% @ 6'6" (center of boiler)
 		if (targetDistance < 35)
@@ -414,7 +364,20 @@ public class Shooter extends GenericSubsystem{
 			return false;
 		}
 		
-		if(visionOff || manualControl){
+		if(visionOff || manualControl){			// Manual control of the flywheel and shroud
+			shroudOutput -= (dsc.getAxis(IO.SHROUD_MANUAL_AXIS) / 100.0);
+			
+			if (shroudOutput > .50)
+				shroudOutput = .50;
+			else if (shroudOutput < 0)
+				shroudOutput = 0;
+			
+			if(dsc.getButtonRising(IO.FLYWHEEL_INCREASE)){
+				speed += 25;
+			}else if(dsc.getButtonRising(IO.FLYWHEEL_DECREASE)){
+				speed -= 25;
+			}
+
 			shootingSpeed = speed;
 		} else {
 			shootingSpeed = distanceToSpeed();
@@ -429,6 +392,7 @@ public class Shooter extends GenericSubsystem{
 		
 		if(Math.abs(shootingSpeedCurrent - shootingSpeed) > FlYWHEEL_DEADBAND)
 				return false;
+		
 		return true;	 
 	}
 		
@@ -438,28 +402,37 @@ public class Shooter extends GenericSubsystem{
 	 * @return - if this system is ready
 	 */
 	private boolean turretCtrl(){
-		if(visionOff || manualControl){
-			return true;
-		}else{
-			turretOutput = 0;									// Initialize Turret Output to 0
-	
-			// Only control if system is ON and we have a boiler image less than 2 seconds old.
+		boolean turretReady = false;
+		
+		turretOutput = 0;
+		
+		if(visionOff || manualControl){					// Manual control of turret.
+			if(dsc.getAxis(IO.TURRET_JOY_X) < -0.25)
+				turretOutput = .2;
+			else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25)
+				turretOutput = -.2;
+
+			turretReady = true;
+		}else if(dsc.isPressed(IO.DIAGNOSTICS) || (isPressed)){
+			// Only control if system is ON and we have a boiler image
 			
-			if(!dsc.isPressed(IO.DIAGNOSTICS) && (!isPressed)){
-				return false;
-			}
-			
-			if(turretDegreeCurrent < degreeOff - .5){
+			if(turretDegreeCurrent < degreeOff - .5)
 				turretOutput = .50;
-			}else if(turretDegreeCurrent > degreeOff + 0.5){
+			else if(turretDegreeCurrent > degreeOff + 0.5)
 				turretOutput = -.50;
-			} else
-				return true;
-			
+			else
+				turretReady = true;
+
 			turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.25));
-			
-			return false;
 		}
+		
+		// Turret Limit Protection and output to turret motor.
+		
+		if ((limitSwitchRight.get() && turretOutput < 0) ||
+				(limitSwitchLeft.get() && turretOutput > 0))
+			turretOutput = 0;
+		
+		return turretReady;
 	}
 		
 //-----------------------------------------------------------------------------------------
