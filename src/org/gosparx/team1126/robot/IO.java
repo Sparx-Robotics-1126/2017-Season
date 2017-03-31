@@ -33,7 +33,7 @@ public class IO {
 	
 	/**********************************CAN********************************************/
 	
-	//public static final int CAN_BALLACQ_RIGHT							= 1;
+	public static final int CAN_BALLACQ_RIGHT							= 1;
 	public static final int CAN_SHOOTER_TURRET							= 2;
 	public static final int CAN_CLIMBING_WINCH	   						= 3;
 	public static final int CAN_DRIVES_RIGHT_BACK                       = 4;
@@ -82,6 +82,7 @@ public class IO {
 	public static final int LEFT_JOY_X									= DriverStationControls.LEFT_JOY_X_AXIS;
 	public static final int LEFT_JOY_Y									= DriverStationControls.LEFT_JOY_Y_AXIS;
 	public static final int TURRET_JOY_X								= DriverStationControls.OP_XBOX_LEFT_X;
+	public static final int SHROUD_MANUAL_AXIS							= DriverStationControls.OP_XBOX_LEFT_Y;
 	public static final int DIAGNOSTICS									= DriverStationControls.OP_XBOX_BACK;
 	public static final int FLYWHEEL_INCREASE						    = DriverStationControls.OP_XBOX_B;
 	public static final int FLYWHEEL_DECREASE 							= DriverStationControls.OP_XBOX_X;

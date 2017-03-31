@@ -40,6 +40,9 @@ public class SharedData {
 	// Note: may need to change "+ angleToBoiler" to "- angleToBoiler"
 	
 	public static void setTarget (Target type, double distance, double angle){
+		if ((angle < -25) || (angle > 25))
+			return;												// invalid data
+		
 		if(type == Target.BOILER){
 			distanceToBoiler = distance;
 			angleToBoiler = -angle;

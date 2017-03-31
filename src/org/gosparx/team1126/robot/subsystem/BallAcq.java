@@ -17,7 +17,8 @@ public class BallAcq extends GenericSubsystem{
 
 	public static BallAcq ballacq;
 
-	private CANTalon acqMotor;
+	private CANTalon acqMotorLeft;
+	private CANTalon acqMotorRight;
 	private CANTalon horizontalBeltMotor;
 	private DigitalInput GearAcqSensor;
 
@@ -49,7 +50,8 @@ public class BallAcq extends GenericSubsystem{
 
 	@Override
 	protected boolean init(){
-		acqMotor = new CANTalon(IO.CAN_BALLACQ_LEFT);
+		acqMotorLeft = new CANTalon(IO.CAN_BALLACQ_LEFT);
+		acqMotorRight = new CANTalon(IO.CAN_BALLACQ_RIGHT);
 		horizontalBeltMotor = new CANTalon(IO.CAN_HOPPER_HORIZONTAL_BELT);
 		GearAcqSensor = new DigitalInput (IO.DIO_GEARACQ_SENSOR);
 		acqIsAcquiring = false;
@@ -192,7 +194,8 @@ public class BallAcq extends GenericSubsystem{
 			break;
 		}
 
-		acqMotor.set(wantedSpeed);
+		acqMotorRight.set(wantedSpeed);  
+		acqMotorLeft.set(wantedSpeed);
 		horizontalBeltMotor.set(wantedBeltSpeed);
 		SmartDashboard.putBoolean("Acquiring?", acqIsAcquiring);
 		SmartDashboard.putString("Horizontal Belt Direction: ", horBeltDir);

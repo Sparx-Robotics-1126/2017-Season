@@ -139,11 +139,13 @@ public class Autonomous extends GenericSubsystem{
 			{5, 0, 0},
 			{8, 1, 1575, 0, 60},
 			{11, -5},
+			{7, 1, 4},
+			{7, 2, 2},
 			{1, -128, 66},
 			{2, -70, 48, 2},
 			{1, 29, 60},
+			{7, 3, 3},
 			{2, 20, 48, 2},
-			{7, 4, 3},
 			{9, 1},
 			{100}
 	};
@@ -153,11 +155,13 @@ public class Autonomous extends GenericSubsystem{
 			{5, 0, 0},
 			{8, 1, 1575, 0, 60},
 			{11, -5},
-			{1, -128, 66},
+			{7, 1, 4},
+			{7, 2, 2},
+			{1, -134, 66},
 			{2, 70, 48, 2},
-			{1, 29, 60},
+			{1, 31, 60},
+			{7, 3, 2},
 			{2, -20, 48, 2},
-			{7, 4, 2},
 			{9, 1},
 			{100}
 	};
@@ -246,8 +250,8 @@ public class Autonomous extends GenericSubsystem{
 //***Set Auto HERE***//
 			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
-//			currentAuto = FOURTY_BALL_BLUE;  
-			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
+			currentAuto = FOURTY_BALL_RED;  
+//			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
 			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;
 		} else if (fromFile){

@@ -127,7 +127,7 @@ public class Shooter extends GenericSubsystem{
 	/**
 	 * turret center position in volts
 	 */
-	private final double ZERO_VOLTAGE = 2.67;
+	private final double ZERO_VOLTAGE = 2.64;
 	
 	private BallAcq ballAcq;	
 	
@@ -238,13 +238,21 @@ public class Shooter extends GenericSubsystem{
 					speed = INITIAL_SPEED;
 					shroudOutput = 0;
 					degreeOff = 0;
-				}					
+				}			
+				
 				manualControl = currentManualControl;
 
 				if(manualControl == false){
 					degreeOff = -SharedData.angleToBoiler;	
 				}else{
-					shroudOutput = (1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0;
+					shroudOutput += (dsc.getAxis(IO.SHROUD_MANUAL_AXIS) / 100.0);
+					
+					if (shroudOutput > .50)
+						shroudOutput = .50;
+					else if (shroudOutput < 0)
+						shroudOutput = 0;
+					
+//					shroudOutput = (1 + dsc.getAxis(IO.SHROUD_TEST_AXIS))/2.0;
 				}
 			} else {
 				isPressed = false;
@@ -260,7 +268,8 @@ public class Shooter extends GenericSubsystem{
 		
 		if ((manualControl == false) && (visionOff == false)){
 			targetDistance = SharedData.distanceToBoiler;
-			degreeOff = SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
+//			degreeOff = -SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER);
+			degreeOff = SharedData.angleToBoiler - 4.0;
 		}
 		
 		// Check to see if the system state has changed
@@ -371,11 +380,11 @@ public class Shooter extends GenericSubsystem{
 //		1425 @ boiler, 1600 @ 6'6" (center of boiler)
 
 		if (targetDistance < 35)
-			speed = 1375;
+			speed = 1400;
 		else if (targetDistance < 85)
-			speed = 1375 + (targetDistance - 35.0) * 1.5;
+			speed = 1400 + (targetDistance - 35.0) * 1.5;
 		else
-			speed = 1450 + (targetDistance - 85.0) * 14.6;
+			speed = 1450 + (targetDistance - 85.0) * 7.6;
 		return speed;
 
 	}
@@ -385,10 +394,11 @@ public class Shooter extends GenericSubsystem{
 //		0 @ boiler, 60% @ 6'6" (center of boiler)
 		if (targetDistance < 35)
 			shroudOutput = 0;
-		else if (targetDistance > 85)
-			shroudOutput = 50;
+		else if (targetDistance > 90)
+			shroudOutput = .50;
 		else
-			shroudOutput = targetDistance - 35; 
+			shroudOutput = (targetDistance - 35.0) * 0.009; 
+
 		return shroudOutput;
 	}
 	
@@ -440,9 +450,9 @@ public class Shooter extends GenericSubsystem{
 			}
 			
 			if(turretDegreeCurrent < degreeOff - .5){
-				turretOutput = -.50;
-			}else if(turretDegreeCurrent > degreeOff + 0.5){
 				turretOutput = .50;
+			}else if(turretDegreeCurrent > degreeOff + 0.5){
+				turretOutput = -.50;
 			} else
 				return true;
 			
