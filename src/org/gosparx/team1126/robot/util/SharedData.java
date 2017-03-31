@@ -88,9 +88,9 @@ public class SharedData {
 	
 	public static double getImageTime(Target type){
 		if (type == Target.BOILER)
-			return (System.currentTimeMillis() - boilerImageTime) / 1000.0;
+			return ((double)(System.currentTimeMillis() - boilerImageTime)) / 1000.0;
 		else if (type == Target.LIFT)
-			return (System.currentTimeMillis() - liftImageTime) / 1000.0;
+			return ((double) (System.currentTimeMillis() - liftImageTime)) / 1000.0;
 		else
 			return INVALIDTARGETTYPE;
 	}

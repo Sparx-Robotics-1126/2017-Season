@@ -93,6 +93,7 @@ public class Autonomous extends GenericSubsystem{
 //			"Shooter_Servo",
 			"Shooter Turret",
 			"Shooter_Setup",
+			"Shooter_Fire",
 			"Drives_Stop",
 			"Drives_Done - DO NOT USE",
 			"Background Delay",
@@ -114,10 +115,13 @@ public class Autonomous extends GenericSubsystem{
 			{5, 0, 0},
 			{8, 1, 1425, 1, 0},
 			{95, 500},
+			{7,1,4},
+			{7,2,2},
+			{7,3,2},
 			{9, 1},
 			{100},
-			{2, 80, 30, 2},			// Red 80, Blue -80
-			{1, -96, 40},
+//			{2, 80, 30, 2},			// Red 80, Blue -80
+//			{1, -96, 40},
 			{99}
 	};
 
@@ -127,6 +131,9 @@ public class Autonomous extends GenericSubsystem{
 			{5, 0, 0},
 			{8, 1, 1425, 1, 0},
 			{95, 500},
+			{7,1,4},
+			{7,2,2},
+			{7,3,3},
 			{9, 1},
 			{100},
 			{2, -80, 30, 2},			// Red 80, Blue -80
@@ -138,14 +145,15 @@ public class Autonomous extends GenericSubsystem{
 			{0},
 			{5, 0, 0},
 			{8, 1, 1575, 0, 60},
-			{11, -5},
+			{11, 6},
 			{7, 1, 4},
 			{7, 2, 2},
-			{1, -128, 66},
-			{2, -70, 48, 2},
-			{1, 29, 60},
-			{7, 3, 3},
+			{1, -134, 66},
+			{2, -75, 48, 2},
+			{1, 31, 60},
+			{7, 3, 2},
 			{2, 20, 48, 2},
+			{95, 250},
 			{9, 1},
 			{100}
 	};
@@ -154,14 +162,15 @@ public class Autonomous extends GenericSubsystem{
 			{0},
 			{5, 0, 0},
 			{8, 1, 1575, 0, 60},
-			{11, -5},
+			{11, -6},
 			{7, 1, 4},
 			{7, 2, 2},
-			{1, -134, 66},
-			{2, 70, 48, 2},
+			{1, -140, 66},
+			{2, 65, 48, 2},
 			{1, 31, 60},
-			{7, 3, 2},
-			{2, -20, 48, 2},
+			{7, 3, 3},
+			{2, -10, 48, 2},
+			{95, 250},
 			{9, 1},
 			{100}
 	};
@@ -250,7 +259,7 @@ public class Autonomous extends GenericSubsystem{
 //***Set Auto HERE***//
 			// Choices TEN_BALL_RED, TEN_BALL_BLUE, FOURTY_BALL_RED, FOURTY_BALL_BLUE
 			
-			currentAuto = FOURTY_BALL_RED;  
+			currentAuto = TEN_BALL_BLUE; 											//TODO: so this is easy to find 
 //			currentAuto = reader.readIntCSV("/home/lvuser/Auto");
 			LOG.logMessage(Arrays.deepToString(currentAuto));
 			return currentAuto;

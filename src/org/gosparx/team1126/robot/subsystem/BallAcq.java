@@ -176,14 +176,14 @@ public class BallAcq extends GenericSubsystem{
 			wantedBeltSpeed = 0;
 			horBeltDir = "Off";
 			break;
-		case RIGHT:
+		case LEFT:
 			horBeltDir = "Empty Left Bin";
 			if(wantedBeltSpeed > -1)
 				wantedBeltSpeed -= BELT_RAMP;
 			else
 				wantedBeltSpeed = -1.0;
 			break;
-		case LEFT:
+		case RIGHT:
 			horBeltDir = "Empty Right Bin";
 			if(wantedBeltSpeed < 1)
 				wantedBeltSpeed += BELT_RAMP;
@@ -194,7 +194,7 @@ public class BallAcq extends GenericSubsystem{
 			break;
 		}
 
-		acqMotorRight.set(wantedSpeed);  
+		acqMotorRight.set(-wantedSpeed);  
 		acqMotorLeft.set(wantedSpeed);
 		horizontalBeltMotor.set(wantedBeltSpeed);
 		SmartDashboard.putBoolean("Acquiring?", acqIsAcquiring);

@@ -9,6 +9,7 @@ package org.gosparx.team1126.robot.subsystem;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
@@ -36,7 +37,8 @@ public class Shooter extends GenericSubsystem{
 	 */
 	private double turretDegreeCurrent;
 	private double turretOutput;
-		
+	private boolean intakeStatus = false;
+	
 	/**
 	 * the local variable to see if the button is being pressed
 	 */
@@ -208,7 +210,8 @@ public class Shooter extends GenericSubsystem{
 		boolean shooterReady;
 		boolean fireOverride = false;
 		boolean currentManualControl = false;
-
+		double blueOffset = 0;
+		
 		encoderData.calculateSpeed();
 		shootingSpeedCurrent = encoderData.getSpeed();
 		turretDegreeCurrent = turretSensor.relDegrees();
@@ -251,8 +254,15 @@ public class Shooter extends GenericSubsystem{
 		
 		if ((manualControl == false) && (visionOff == false)){
 			targetDistance = SharedData.distanceToBoiler;
-//			degreeOff = -SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER) - 4;
-			degreeOff = SharedData.angleToBoiler - 4.0;
+//			degreeOff = -SharedData.getCorrectedTargetAngle(SharedData.Target.BOILER) -1.0; //TODO: comment out -4 before matches
+
+			if ((dsc.isAutonomous()) && (dsc.getAlliance() == DriverStation.Alliance.Blue))
+				blueOffset = 3.0;
+			else
+				blueOffset = 0.0;
+			
+			if (!dsc.isAutonomous() || (dsc.sharedData.getImageTime(SharedData.Target.BOILER) < 3.0))
+				degreeOff = SharedData.angleToBoiler - 1.0 - blueOffset;
 		}
 		
 		// Check to see if the system state has changed
@@ -268,6 +278,7 @@ public class Shooter extends GenericSubsystem{
 				SharedData.targetType = SharedData.Target.NONE;
 
 			lastPressed = isPressed;
+	
 		}
 
 		// fireCtrl checks to see if target and wheel is ready to fire.  Turret on Target, Wheel @ speed
@@ -276,10 +287,21 @@ public class Shooter extends GenericSubsystem{
 		shooterReady = speedCtrl();		
 		ready = turretReady & shooterReady;
 		
+//		if(((ready || dsc.isAutonomous()) && fireWhenReady) || fireOverride){
 		if((ready && fireWhenReady) || fireOverride){
 			feeder.set(INTAKE_BALL_SPEED);
+			
+			if (intakeStatus == false)
+				LOG.logMessage("Firing (Intake ON)");
+
+			intakeStatus = true;
 		}else{
 			feeder.set(0);
+			
+			if (intakeStatus == true)
+				LOG.logMessage("Stop Firing (Intake OFF)");
+
+			intakeStatus = false;
 		}
 		
 		turret.set(turretOutput);
@@ -317,7 +339,8 @@ public class Shooter extends GenericSubsystem{
 		LOG.logMessage("Flywheel SP/Spd: " + (int) speed +"/" + (int) shootingSpeedCurrent);
 		LOG.logMessage("Turret Angle/Volt/Degrees Off: "+ turretDegreeCurrent + " / " + 
 				turretSensor.getVoltage() + " / " + degreeOff);
-		LOG.logMessage("Distance Away: " + targetDistance);
+		LOG.logMessage("Distance Away / Image Time: " + targetDistance + " / " + 
+				dsc.sharedData.getImageTime(SharedData.Target.BOILER));
 	}
 	
 //-----------------------------------------------------------------------------------------
@@ -408,12 +431,20 @@ public class Shooter extends GenericSubsystem{
 		
 		if(visionOff || manualControl){					// Manual control of turret.
 			if(dsc.getAxis(IO.TURRET_JOY_X) < -0.25)
-				turretOutput = .2;
+				degreeOff -= dsc.getAxis(IO.TURRET_JOY_X) / 3.0;
+//				turretOutput = .2;
 			else if (dsc.getAxis(IO.TURRET_JOY_X) > 0.25)
-				turretOutput = -.2;
+//				turretOutput = -.2;
+				degreeOff -= dsc.getAxis(IO.TURRET_JOY_X) / 3.0;
 
+				if (degreeOff < -20)
+					degreeOff = -20;
+				else if (degreeOff > 20)
+					degreeOff = 20;
+			
 			turretReady = true;
-		}else if(dsc.isPressed(IO.DIAGNOSTICS) || (isPressed)){
+		}
+//		}else if(dsc.isPressed(IO.DIAGNOSTICS) || (isPressed)){
 			// Only control if system is ON and we have a boiler image
 			
 			if(turretDegreeCurrent < degreeOff - .5)
@@ -424,7 +455,7 @@ public class Shooter extends GenericSubsystem{
 				turretReady = true;
 
 			turretOutput *= (.2 + (Math.abs(turretDegreeCurrent - degreeOff) * 0.25));
-		}
+//		}
 		
 		// Turret Limit Protection and output to turret motor.
 		
@@ -457,10 +488,8 @@ public class Shooter extends GenericSubsystem{
 	public void shooterSystemFire(int fire) {
 		if ((fire == 1) && dsc.isAutonomous()){
 			fireWhenReady = true;
-			ballAcq.transport(true);
 		}else{
 			fireWhenReady = false;
-			ballAcq.transport(false);
 		}
 	}
 	
