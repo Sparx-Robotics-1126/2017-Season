@@ -1,0 +1,18 @@
+Jetson Installation Requirements:
+
+*Follow the Jetson TK1 Wiki
+
+Configuration Changes:
+1) Change Password
+2) Hold File*
+3) Enable USB 3.0
+
+Required Packages:
+1) CUDA*
+2) OpenCV4Tegra*
+3) V4L
+
+Project Specific Changes:
+1) Install or Compile Vision Executables
+2) Set Up Startup Script in Ubuntu's Startup Applications
+
